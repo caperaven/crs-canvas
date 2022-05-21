@@ -67,20 +67,22 @@
         import "./node_modules/crs-modules/crs-modules.js";
         import "./node_modules/crs-router/crs-router.js";
         import "./node_modules/crs-process-api/crs-process-api.js";
+        import "https://cdn.babylonjs.com/babylon.js";
+        import "https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js";
+        import "https://cdn.babylonjs.com/gui/babylon.gui.min.js";
+
+        import "/src/crs-canvas.js";
+        import "/components/canvas_2d/canvas_2d.js";
+
         import IndexViewModel from "./index.js";
 
         async function load() {
-            await crs.modules.enableBinding([
-                ["my-component", "/components/component.js"]
-            ])
-
             document.viewModel = new IndexViewModel(document.body);
 
             window.addEventListener("load", (event) => {
                 document.viewModel.connectedCallback();
             });
         }
-
         load();
     </script>
 </body>

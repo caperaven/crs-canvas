@@ -31,7 +31,7 @@
     "dependencies": {
         "crs-binding": "^0.0.246",
         "crs-modules": "^1.0.17",
-        "crs-process-api": "^0.0.26",
+        "crs-process-api": "^0.0.155",
         "crs-router": "^0.0.75"
     }
 }
