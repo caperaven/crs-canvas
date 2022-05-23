@@ -1,4 +1,5 @@
 import "./managers/camera-manager.js"
+import "./managers/materials-manager.js"
 
 class GraphicsActions {
     static async perform(step, context, process, item) {
@@ -17,6 +18,7 @@ class GraphicsActions {
         canvas.__engine = engine;
 
         await crs.call("gfx_camera", "initialize", { element: canvas, type: camera });
+        await crs.call("gfx_materials", "initialize", { element: canvas });
 
         canvas.__renderLoop = renderLoop.bind(canvas);
         canvas.__engine.runRenderLoop(canvas.__renderLoop);
@@ -24,6 +26,9 @@ class GraphicsActions {
 
     static async dispose(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
+
+        await crs.call("gfx_camera", "dispose", { element: canvas });
+        await crs.call("gfx_materials", "dispose", { element: canvas });
 
         canvas.__engine.stopRenderLoop(canvas.__renderLoop);
         canvas.__renderLoop = null;

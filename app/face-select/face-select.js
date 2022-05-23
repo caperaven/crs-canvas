@@ -26,7 +26,8 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
 
 
     addMeshes() {
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), this.canvas.__layers[0]);
+        const cameraPosition = this.canvas.__camera.position;
+        const light = new BABYLON.HemisphericLight("light", cameraPosition, this.canvas.__layers[0]);
         light.intensity = 0.7;
 
         BABYLON.MeshBuilder.CreateBox("grid", {size: 1}, this.canvas.__layers[0]);
@@ -36,13 +37,33 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         this.canvas.__layers[0].onPointerDown = this.pointerDown.bind(this);
     }
 
-    pointerDown(event, pickResult) {
-        if (pickResult.hit == false) return;
+    async pointerDown(event, pickResult) {
+        if (event.button != 0 || pickResult.hit == false) return;
 
+        if (event.ctrlKey == true) {
+            return this.remove(event, pickResult)
+        }
+        else {
+            return this.add(event, pickResult);
+        }
+
+    }
+
+    async add(event, pickResult) {
         const normals = pickResult.getNormal(true, true);
         const point = pickResult.pickedMesh.position;
 
         const box = BABYLON.MeshBuilder.CreateBox("box", {size: 1}, this.canvas.__layers[0]);
         box.position = point.add(normals);
+
+        box.material = await crs.call("gfx_materials", "get", {
+            element: this.canvas,
+            value: "#ffffff",
+            diffuse: true
+        })
+    }
+
+    async remove(event, pickResult) {
+        pickResult.pickedMesh.dispose();
     }
 }
