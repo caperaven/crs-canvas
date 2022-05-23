@@ -4,12 +4,14 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
     async connectedCallback() {
         await super.connectedCallback();
 
+        this.currentColor = "#ffffff";
         this.canvas = this.element.querySelector("canvas");
 
         const ready = () => {
             this.canvas.removeEventListener("ready", ready);
             this.addMeshes();
             this.addPickEvent();
+            this.addGUI();
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -30,7 +32,21 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         const light = new BABYLON.HemisphericLight("light", cameraPosition, this.canvas.__layers[0]);
         light.intensity = 0.7;
 
-        BABYLON.MeshBuilder.CreateBox("grid", {size: 1}, this.canvas.__layers[0]);
+        this.createBox()
+    }
+
+    async createBox(position) {
+        const box = BABYLON.MeshBuilder.CreateBox("grid", {size: 1}, this.canvas.__layers[0]);
+
+        box.material = await crs.call("gfx_materials", "get", {
+            element: this.canvas,
+            value: this.currentColor,
+            diffuse: true
+        })
+
+        if (position) {
+            box.position = position;
+        }
     }
 
     addPickEvent() {
@@ -53,17 +69,29 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         const normals = pickResult.getNormal(true, true);
         const point = pickResult.pickedMesh.position;
 
-        const box = BABYLON.MeshBuilder.CreateBox("box", {size: 1}, this.canvas.__layers[0]);
-        box.position = point.add(normals);
-
-        box.material = await crs.call("gfx_materials", "get", {
-            element: this.canvas,
-            value: "#ffffff",
-            diffuse: true
-        })
+        await this.createBox(point.add(normals));
     }
 
     async remove(event, pickResult) {
         pickResult.pickedMesh.dispose();
+    }
+
+    async addGUI() {
+        const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+        const picker = new BABYLON.GUI.ColorPicker();
+        picker.height = "200px";
+        picker.width = "200px";
+        picker.left = -50;
+        picker.top = 50;
+        picker.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        picker.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+        picker.onValueChangedObservable.add(value => {
+            this.currentColor = value.toHexString();
+            console.log(this.currentColor);
+        });
+
+        advancedTexture.addControl(picker);
     }
 }
