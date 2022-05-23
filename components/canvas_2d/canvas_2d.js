@@ -1,14 +1,12 @@
 export class Canvas extends HTMLCanvasElement {
     async connectedCallback() {
-        const camera = this.dataset.camtype || "free,0,5,-10";
-        crs.call("gfx", "initialize", { element: this, camera: camera });
-
-        this.dataset.ready = "true";
-        this.dispatchEvent(new CustomEvent("ready"));
+        const camera = this.dataset.camera || "free,0,5,-10";
+        await crs.call("gfx", "initialize", { element: this, camera: camera });
+        await crs.call("dom", "notify_ready", {element: this});
     }
 
     async disconnectedCallback() {
-        crs.call("gfx", "dispose", { element: this });
+        await crs.call("gfx", "dispose", { element: this });
     }
 }
 

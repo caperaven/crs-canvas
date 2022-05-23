@@ -16,7 +16,7 @@ The process api acts as the core of features to be program against and also driv
 ## Views
 The application comes by default with three views already configured.
 
-1. Welcome - default view with view model
+1. FaceSelect - default view with view model
 2. About - html only view
 3. 404 - html only view
 

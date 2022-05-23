@@ -11,6 +11,11 @@
       "hasStyle": true
     },
     {
+      "title": "Face Select",
+      "hash": "#face-select",
+      "view": "face-select"
+    },
+    {
       "title": "About",
       "hash": "#about",
       "view": "about",
