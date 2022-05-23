@@ -4,27 +4,45 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
     async connectedCallback() {
         await super.connectedCallback();
 
-        const canvas = this.element.querySelector("canvas");
+        this.canvas = this.element.querySelector("canvas");
 
         const ready = () => {
-            canvas.removeEventListener("ready", ready);
-            this.addMeshes(canvas);
+            this.canvas.removeEventListener("ready", ready);
+            this.addMeshes();
+            this.addPickEvent();
         }
 
-        if (canvas.dataset.ready == "true") {
+        if (this.canvas.dataset.ready == "true") {
             ready();
         }
         else {
-            canvas.addEventListener("ready", ready);
+            this.canvas.addEventListener("ready", ready);
         }
     }
 
+    async disconnectedCallback() {
+        this.canvas.__layers[0].onPointerDown = null;
+    }
 
-    addMeshes(canvas) {
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), canvas.__layers[0]);
+
+    addMeshes() {
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), this.canvas.__layers[0]);
         light.intensity = 0.7;
 
-        const box = BABYLON.MeshBuilder.CreateBox("grid", {size: 1}, canvas.__layers[0]);
-        box.position.y = 1;
+        BABYLON.MeshBuilder.CreateBox("grid", {size: 1}, this.canvas.__layers[0]);
+    }
+
+    addPickEvent() {
+        this.canvas.__layers[0].onPointerDown = this.pointerDown.bind(this);
+    }
+
+    pointerDown(event, pickResult) {
+        if (pickResult.hit == false) return;
+
+        const normals = pickResult.getNormal(true, true);
+        const point = pickResult.pickedMesh.position;
+
+        const box = BABYLON.MeshBuilder.CreateBox("box", {size: 1}, this.canvas.__layers[0]);
+        box.position = point.add(normals);
     }
 }
