@@ -1,7 +1,8 @@
 export class Canvas extends HTMLCanvasElement {
     async connectedCallback() {
         const camera = this.dataset.camera || "free,0,5,-10";
-        await crs.call("gfx", "initialize", { element: this, camera: camera });
+        const color = this.dataset.color;
+        await crs.call("gfx", "initialize", { element: this, camera: camera, color: color });
         await crs.call("dom", "notify_ready", {element: this});
     }
 

@@ -12,6 +12,7 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
             this.addMeshes();
             this.addPickEvent();
             this.addGUI();
+            this.addSave();
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -24,13 +25,17 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
 
     async disconnectedCallback() {
         this.canvas.__layers[0].onPointerDown = null;
+        this.colorPicker.onValueChangedObservable = null;
+
+        this.element.removeEventListener("keydown", this.keyDownHandler);
+        this.keyDownHandler = null;
     }
 
 
     addMeshes() {
         const cameraPosition = this.canvas.__camera.position;
-        const light = new BABYLON.HemisphericLight("light", cameraPosition, this.canvas.__layers[0]);
-        light.intensity = 0.7;
+        this.light = new BABYLON.HemisphericLight("light", cameraPosition, this.canvas.__layers[0]);
+        this.light.intensity = 0.7;
 
         this.createBox()
     }
@@ -62,6 +67,9 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         else if (event.altKey == true) {
             return this.changeColor(event, pickResult);
         }
+        else if (event.shiftKey == true) {
+            return this.pickColor(event, pickResult);
+        }
         else {
             return this.add(event, pickResult);
         }
@@ -87,10 +95,22 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         })
     }
 
+    async pickColor(event, pickResult) {
+        this.currentColor = pickResult.pickedMesh.material.diffuseColor.toHexString();
+        this.colorPicker.value = pickResult.pickedMesh.material.diffuseColor;
+    }
+
     async addGUI() {
         const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
+        const color = await crs.call("gfx_materials", "get", {
+            element: this.canvas,
+            value: "#ffffff",
+            diffuse: true
+        })
+
         const picker = new BABYLON.GUI.ColorPicker();
+        picker.value = color.diffuseColor;
         picker.height = "200px";
         picker.width = "200px";
         picker.left = -50;
@@ -100,9 +120,38 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
 
         picker.onValueChangedObservable.add(value => {
             this.currentColor = value.toHexString();
-            console.log(this.currentColor);
         });
 
         advancedTexture.addControl(picker);
+        this.colorPicker = picker;
+
+
+        const slider = new BABYLON.GUI.Slider();
+        slider.minimum = 0;
+        slider.maximum = 1;
+        slider.value = 0.7;
+        slider.height = "20px";
+        slider.width = "200px";
+        slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        slider.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        slider.left = -50;
+        slider.top = 25;
+
+        slider.onValueChangedObservable.add(value => {
+            this.light.intensity = value;
+        });
+
+        advancedTexture.addControl(slider);
+    }
+
+    async addSave() {
+        this.keyDownHandler = this.keydown.bind(this);
+        this.element.addEventListener("keydown", this.keyDownHandler);
+    }
+
+    async keydown(event) {
+        if (event.ctrlKey == true && event.key == "s") {
+
+        }
     }
 }
