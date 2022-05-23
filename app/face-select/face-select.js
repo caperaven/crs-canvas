@@ -57,7 +57,10 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         if (event.button != 0 || pickResult.hit == false) return;
 
         if (event.ctrlKey == true) {
-            return this.remove(event, pickResult)
+            return this.remove(event, pickResult);
+        }
+        else if (event.altKey == true) {
+            return this.changeColor(event, pickResult);
         }
         else {
             return this.add(event, pickResult);
@@ -74,6 +77,14 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
 
     async remove(event, pickResult) {
         pickResult.pickedMesh.dispose();
+    }
+
+    async changeColor(event, pickResult) {
+        pickResult.pickedMesh.material = await crs.call("gfx_materials", "get", {
+            element: this.canvas,
+            value: this.currentColor,
+            diffuse: true
+        })
     }
 
     async addGUI() {
