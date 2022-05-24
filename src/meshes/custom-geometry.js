@@ -20,5 +20,9 @@ BABYLON.MeshBuilder.CreateGeometry = (name, args, scene) => {
                 const z = args.position.z || 0;
                 customMesh.position = new BABYLON.Vector3(x, y, z)
             }
+
+            if (args.material != null) {
+                customMesh.material = args.material;
+            }
         })
 }
