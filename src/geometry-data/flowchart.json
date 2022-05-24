@@ -1,0 +1,24 @@
+{
+  "folder": "flowchart",
+  "scale": "48,48",
+  "columns": 2,
+  "items": [
+    "action",
+    "data",
+    "decision",
+    "delay",
+    "display",
+    "document",
+    "documents",
+    "event",
+    "inputOutput",
+    "loopLimit",
+    "manualInput",
+    "manualOperations",
+    "merge",
+    "offPage",
+    "predefinedProcesses",
+    "preparation",
+    "start"
+  ]
+}

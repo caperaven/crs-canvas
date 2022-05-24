@@ -1,0 +1,13 @@
+{
+  "folder": "floorplan",
+  "scale": "48,48",
+  "columns": 2,
+  "items": [
+    "air_conditioner",
+    "cctv",
+    "fire_extinguisher",
+    "fire_hose",
+    "smoke_detector",
+    "toilets"
+  ]
+}

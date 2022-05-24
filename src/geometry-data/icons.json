@@ -1,0 +1,15 @@
+{
+  "folder": "icons",
+  "scale": "48,48",
+  "columns": 2,
+  "items": [
+    "account",
+    "document",
+    "home",
+    "move",
+    "room",
+    "search",
+    "settings",
+    "star"
+  ]
+}
