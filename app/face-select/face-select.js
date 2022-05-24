@@ -73,7 +73,6 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         else {
             return this.add(event, pickResult);
         }
-
     }
 
     async add(event, pickResult) {

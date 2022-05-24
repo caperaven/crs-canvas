@@ -21,6 +21,10 @@ export default class Welcome extends crsbinding.classes.ViewBase {
 
 
     addMeshes(canvas) {
+        canvas.__layers[0].onPointerDown = (event, pickResult) => {
+            console.log(pickResult.pickedMesh)
+        }
+
         // const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), canvas.__layers[0]);
         // light.intensity = 1;
 

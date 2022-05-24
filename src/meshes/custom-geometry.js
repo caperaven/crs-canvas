@@ -24,5 +24,8 @@ BABYLON.MeshBuilder.CreateGeometry = (name, args, scene) => {
             if (args.material != null) {
                 customMesh.material = args.material;
             }
+
+            // 1. add plane and combine it using merge meshes.
+            //var mesh = BABYLON.Mesh.MergeMeshes([sphere, cube], true, true, undefined, false, true);
         })
 }
