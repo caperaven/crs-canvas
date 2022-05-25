@@ -14,18 +14,21 @@ BABYLON.MeshBuilder.CreateGeometry = (name, args, scene) => {
             vertexData.normals = normals;
             vertexData.applyToMesh(customMesh);
 
-            if (args.position != null) {
-                const x = args.position.x || 0;
-                const y = args.position.y || 0;
-                const z = args.position.z || 0;
-                customMesh.position = new BABYLON.Vector3(x, y, z)
-            }
-
             if (args.material != null) {
                 customMesh.material = args.material;
             }
 
-            // 1. add plane and combine it using merge meshes.
-            //var mesh = BABYLON.Mesh.MergeMeshes([sphere, cube], true, true, undefined, false, true);
+            // const plane = BABYLON.MeshBuilder.CreatePlane("plane", {size: 1}, scene);
+            // plane.material = args.transparent;
+
+            if (args.position != null) {
+                const x = args.position.x || 0;
+                const y = args.position.y || 0;
+                const z = args.position.z || 0;
+                customMesh.position = new BABYLON.Vector3(x, y, z);
+                // plane.position = new BABYLON.Vector3(x, y, z + 0.01);
+            }
+
+            // BABYLON.Mesh.MergeMeshes([plane, customMesh], true, true, undefined, false, true);
         })
 }

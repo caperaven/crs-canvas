@@ -1,6 +1,11 @@
 class MaterialsManager {
-    constructor() {
-        this.store = {}
+    constructor(scene) {
+        this.store = {
+            "transparent": new BABYLON.StandardMaterial("#000000", scene)
+        }
+
+        this.store.transparent.diffuseColor = BABYLON.Color3.FromHexString("#ff0010");
+        this.store.transparent.alpha = 0;
     }
 
     dispose() {
@@ -37,7 +42,8 @@ class MaterialsManagerActions {
 
     static async initialize(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
-        canvas.__materials = new MaterialsManager();
+        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        canvas.__materials = new MaterialsManager(canvas.__layers[layer]);
     }
 
     static async dispose(step, context, process, item) {
