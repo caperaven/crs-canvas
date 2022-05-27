@@ -1,4 +1,7 @@
 BABYLON.MeshBuilder.CreateGeometry = (name, args, scene) => {
+   return new Promise((resolve)=> {
+
+
     import(`./../geometry-data/${args.data}Data.js`)
         .then(module => {
             const positions = module.data.vertices;
@@ -25,7 +28,9 @@ BABYLON.MeshBuilder.CreateGeometry = (name, args, scene) => {
                 customMesh.material = args.material;
             }
 
+            resolve(customMesh);
             // 1. add plane and combine it using merge meshes.
             //var mesh = BABYLON.Mesh.MergeMeshes([sphere, cube], true, true, undefined, false, true);
         })
+    });
 }

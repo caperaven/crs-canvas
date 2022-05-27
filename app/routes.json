@@ -16,6 +16,11 @@
       "view": "face-select"
     },
     {
+      "title": "2d Camera",
+      "hash": "#2d-camera",
+      "view": "2d-camera"
+    },
+    {
       "title": "About",
       "hash": "#about",
       "view": "about",

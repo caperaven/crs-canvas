@@ -2,7 +2,7 @@ import "./../meshes/custom-geometry.js";
 
 class GeometryManagerActions {
     static async perform(step, context, process, item) {
-        await this[step.action]?.(step, context, process, item);
+        return this[step.action]?.(step, context, process, item);
     }
 
     static async add(step, context, process, item) {
@@ -24,7 +24,7 @@ class GeometryManagerActions {
             })
         }
 
-        BABYLON.MeshBuilder.CreateGeometry(name, { data: data, position: position, material: material }, scene);
+        return BABYLON.MeshBuilder.CreateGeometry(name, { data: data, position: position, material: material }, scene);
     }
 }
 

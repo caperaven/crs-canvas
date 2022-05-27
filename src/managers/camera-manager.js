@@ -48,6 +48,28 @@ class CameraFactory {
         const camera = new BABYLON.ArcRotateCamera("camera", alpha, beta, radius, target, scene)
         return camera;
     }
+
+    static pan(parts, scene) {
+
+        const betaPos = Math.PI / 2;
+
+        const target = new BABYLON.Vector3(0, 0, 0);
+        const camera = new BABYLON.ArcRotateCamera("camera", -betaPos, betaPos, 10, target, scene)
+
+        camera.zoomToMouseLocation = true;
+        camera.upperAlphaLimit = -betaPos;
+        camera.lowerAlphaLimit = -betaPos;
+        camera.upperBetaLimit = betaPos;
+        camera.lowerBetaLimit = betaPos;
+        camera.wheelPrecision = 20;
+        camera.lowerRadiusLimit = 2;
+        camera.upperRadiusLimit = 50;
+        camera.panningInertia = 0;
+        camera.panningSensibility = 50;
+        camera.panningDistanceLimit = 50;
+
+        return camera;
+    }
 }
 
 crs.intent.gfx_camera = CameraManagerActions;
