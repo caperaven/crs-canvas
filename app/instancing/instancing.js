@@ -19,7 +19,7 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
                     id: "my_color",
                     color: "#ff0090"
                 },
-                positions: [{x: 0, y: 1, z: 0}, {x: 2, y: 1, z: 0}]
+                positions: [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 0}, {x: 2, y: 1, z: 0}]
             })
 
             // crs.call("gfx_instances", "add", {
