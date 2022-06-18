@@ -16,8 +16,8 @@ class MaterialsManager {
         this.store = null;
     }
 
-    get(value, diffuse, scene) {
-        if (this.store[value] == null) {
+    get(id, value, diffuse, scene) {
+        if (this.store[id] == null) {
             const color = BABYLON.Color3.FromHexString(value);
             const material = new BABYLON.StandardMaterial(value, scene);
 
@@ -28,11 +28,18 @@ class MaterialsManager {
                 material.emissiveColor = color;
             }
 
-            this.store[value] = material;
+            this.store[id] = material;
         }
 
-        return this.store[value];
+        return this.store[id];
     }
+
+    /**
+     * JHR: Note
+     * use material id, if id not given use material color or texture name
+     * get must not assume color
+     * add set function
+     */
 }
 
 class MaterialsManagerActions {
@@ -53,11 +60,12 @@ class MaterialsManagerActions {
 
     static async get(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
+        const id = await crs.process.getValue(step.args.id, context, process, item);
         const value = await crs.process.getValue(step.args.value, context, process, item);
         const diffuse = await crs.process.getValue(step.args.diffuse, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const scene = canvas.__layers[layer];
-        return canvas.__materials.get(value, diffuse, scene);
+        return canvas.__materials.get(id, value, diffuse, scene);
     }
 }
 

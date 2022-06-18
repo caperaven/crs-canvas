@@ -1,6 +1,8 @@
 import "./managers/camera-manager.js"
 import "./managers/materials-manager.js"
-import './managers/geometry-manager.js'
+import "./managers/geometry-factory-manager.js"
+import "./managers/instance-manager.js"
+import "./managers/mesh-factory-manager.js"
 
 class GraphicsActions {
     static async perform(step, context, process, item) {
