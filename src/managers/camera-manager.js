@@ -50,12 +50,16 @@ class CameraFactory {
     }
 
     static pan(parts, scene) {
-
         const betaPos = Math.PI / 2;
+        const allowXPan = Number(parts[1] || 1);
+        const allowYPan = Number(parts[2] || 1);
+
+        console.log(parts);
 
         const target = new BABYLON.Vector3(0, 0, 0);
-        const camera = new BABYLON.ArcRotateCamera("camera", -betaPos, betaPos, 10, target, scene)
+        const camera = new BABYLON.ArcRotateCamera("camera", 0,0, 0, target, scene)
 
+        camera.position =  new BABYLON.Vector3(0, 0, 20);
         camera.zoomToMouseLocation = true;
         camera.upperAlphaLimit = -betaPos;
         camera.lowerAlphaLimit = -betaPos;
@@ -67,6 +71,7 @@ class CameraFactory {
         camera.panningInertia = 0;
         camera.panningSensibility = 50;
         camera.panningDistanceLimit = 50;
+        camera.panningAxis = new BABYLON.Vector3(allowXPan, allowYPan, 0)
 
         return camera;
     }
