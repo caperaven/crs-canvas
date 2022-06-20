@@ -41,11 +41,12 @@ class CameraFactory {
     }
 
     static rotate(parts, scene) {
-        const alpha = Number(parts[1]);
-        const beta = Number(parts[2]);
+        const x = Number(parts[1]);
+        const y = Number(parts[2]);
         const radius = Number(parts[3]);
         const target = new BABYLON.Vector3(0, 0, 0);
-        const camera = new BABYLON.ArcRotateCamera("camera", alpha, beta, radius, target, scene)
+        const camera = new BABYLON.ArcRotateCamera("camera", 0, 0,radius, target, scene)
+        camera.setPosition(new BABYLON.Vector3(x, y, -radius));
         return camera;
     }
 
@@ -53,8 +54,6 @@ class CameraFactory {
         const betaPos = Math.PI / 2;
         const allowXPan = Number(parts[1] || 1);
         const allowYPan = Number(parts[2] || 1);
-
-        console.log(parts);
 
         const target = new BABYLON.Vector3(0, 0, 0);
         const camera = new BABYLON.ArcRotateCamera("camera", 0,0, 0, target, scene)
