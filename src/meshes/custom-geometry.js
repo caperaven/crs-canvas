@@ -1,7 +1,5 @@
 BABYLON.MeshBuilder.CreateGeometry = (name, args, scene) => {
    return new Promise((resolve)=> {
-
-
     import(`./../geometry-data/${args.data}Data.js`)
         .then(module => {
             const positions = module.data.vertices;

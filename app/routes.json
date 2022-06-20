@@ -11,6 +11,11 @@
       "hasStyle": true
     },
     {
+      "title": "Instancing",
+      "hash": "#instancing",
+      "view": "instancing"
+    },
+    {
       "title": "Face Select",
       "hash": "#face-select",
       "view": "face-select"
