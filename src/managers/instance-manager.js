@@ -1,3 +1,7 @@
+class ThinInstances {
+
+}
+
 class InstanceManager {
     constructor() {
         this.store = {};
@@ -7,15 +11,26 @@ class InstanceManager {
         return null;
     }
 
-    add() {
+    async add(id, positions, mesh, material, canvas) {
+        let instance = this.store[id]?.[0];
+        if (instance == null) {
+            instance = (await crs.call("gfx_mesh_factory", "create", {element: canvas, mesh: mesh, material: material}))[0];
+            this.store[id] = [instance]
+        }
 
+        for (const position of positions) {
+            const matrix = BABYLON.Matrix.Translation(position.x, position.y, position.z);
+            const idx = instance.thinInstanceAdd(matrix);
+            this.store[id].push(idx);
+        }
     }
 
-    remove() {
-
+    async remove(id, index, count) {
+        let items = this.store[id];
+        items.splice(index, count);
     }
 
-    clear() {
+    async clear() {
 
     }
 }
@@ -40,9 +55,21 @@ class InstanceManagerActions {
         const id = await crs.process.getValue(step.args.id, context, process, item);
         const positions = await crs.process.getValue(step.args.positions, context, process, item);
         const mesh = await crs.process.getValue(step.args.mesh, context, process, item);
-        //... get stuff
-        // need mesh manager
-        canvas.__instances.add(id, positions, createMeshCallback)
+        const material = await crs.process.getValue(step.args.material, context, process, item);
+
+        if (canvas.__instances == null) {
+            await this.initialize(step, context, process, item);
+        }
+
+        await canvas.__instances.add(id, positions, mesh, material, canvas)
+    }
+
+    static async remove(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        const id = await crs.process.getValue(step.args.id, context, process, item);
+        const index = await crs.process.getValue(step.args.index, context, process, item);
+        const count = await crs.process.getValue(step.args.count, context, process, item);
+        await canvas.__instances.remove(id, index, count);
     }
 }
 

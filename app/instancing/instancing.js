@@ -22,22 +22,25 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
                 positions: [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 0}, {x: 2, y: 1, z: 0}]
             })
 
-            // crs.call("gfx_instances", "add", {
-            //     canvas: this.canvas,
-            //     id: "my_path_items",
-            //     positions: [
-            //         {x: 0, y: 0, z:0},
-            //         {x: 2, y: 0, z:0},
-            //         {x: 4, y: 0, z:0}
-            //     ],
-            //     material,
-            //     mesh: {
-            //         id: "my_path_items_mesh",
-            //         type: "sphere",
-            //         options: {diameter: 1, segments: 16}
-            //     }
-            // })
-            //
+            crs.call("gfx_instances", "add", {
+                element: this.canvas,
+                id: "my_path_items",
+                positions: [
+                    {x: 0, y: 0, z:0},
+                    {x: 2, y: 0, z:0},
+                    {x: 4, y: 0, z:0}
+                ],
+                material: {
+                    id: "my_color2",
+                    color: "#ff9000"
+                },
+                mesh: {
+                    id: "my_path_items_mesh",
+                    type: "sphere",
+                    options: {diameter: 1, segments: 16}
+                }
+            })
+
             // crs.call("gfx_instances", "add", {
             //     canvas: this.canvas,
             //     id: "my_path_items",
@@ -54,5 +57,27 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         } else {
             this.canvas.addEventListener("ready", ready);
         }
+    }
+
+    async add() {
+        crs.call("gfx_instances", "add", {
+            element: this.canvas,
+            id: "my_path_items",
+            positions: [
+                {x: 0, y: 2, z:0},
+                {x: 2, y: 2, z:0},
+                {x: 4, y: 2, z:0}
+            ]
+        })
+
+    }
+
+    async remove() {
+        crs.call("gfx_instances", "remove", {
+            element: this.canvas,
+            id: "my_path_items",
+            index: 3,
+            count: 3
+        })
     }
 }
