@@ -67,8 +67,6 @@
         import "./packages/crs-modules/crs-modules.js";
         import "./packages/crs-router/crs-router.js";
         import {initialize} from "./packages/crs-process-api/crs-process-api.js";
-
-        "./packages/crs-process-api/crs-process-api.js";
         import "https://cdn.babylonjs.com/babylon.js";
         import "https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js";
         import "https://cdn.babylonjs.com/gui/babylon.gui.min.js";
@@ -78,16 +76,11 @@
 
         import IndexViewModel from "./index.js";
 
-        async function load() {
+        window.addEventListener("load", async (event) => {
             await initialize("/packages/crs-process-api");
-
             document.viewModel = new IndexViewModel(document.body);
-
-            window.addEventListener("load", (event) => {
-                document.viewModel.connectedCallback();
-            });
-        }
-        load();
+            await document.viewModel.connectedCallback();
+        });
     </script>
 </body>
 </html>
