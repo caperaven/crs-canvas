@@ -4,11 +4,11 @@
     "description": "",
     "main": "index.js",
     "directories": {
-        "test": "test"
+        "test": "tests"
     },
     "scripts": {
         "build-geometry": "wasm-pack build wasm/geometry/ --target web --out-dir ../../bin",
-        "test": "deno test"
+        "test": "deno test --allow-read ./tests"
     },
     "license": "ISC"
 }
