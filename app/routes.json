@@ -26,6 +26,11 @@
       "view": "2d-camera"
     },
     {
+      "title": "Text",
+      "hash": "#text",
+      "view": "text"
+    },
+    {
       "title": "About",
       "hash": "#about",
       "view": "about",

@@ -5,3 +5,5 @@ yarn-error.log
 /coverage/
 /dist/
 /publish/
+/wasm/geometry/Cargo.lock
+wasm/geometry/target/.rustc_info.json
