@@ -1,4 +1,4 @@
-import "./../../src/meshes/grid-box.js";
+import "./../../src/managers/geometry-factory-manager.js"
 
 export default class FaceSelect extends crsbinding.classes.ViewBase {
     async connectedCallback() {
