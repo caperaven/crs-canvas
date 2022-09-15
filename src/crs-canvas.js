@@ -67,3 +67,4 @@ function resize() {
 }
 
 crs.intent.gfx = GraphicsActions;
+crs.intent.gfx.assetsLocation = "/assets";

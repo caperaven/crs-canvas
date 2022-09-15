@@ -1,5 +1,5 @@
 export const font = {
-    "pages": ["SourceSansPro-Regular.png"],
+    "pages": ["font.png"],
     "chars": [{
         "id": 106,
         "index": 37,

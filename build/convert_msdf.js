@@ -2,7 +2,7 @@
  * Convert the font json file for msdf to be more appropriate for rendering
  */
 
-import {font} from "./../src/msdf/SourceSansPro-Regular-msdf.js";
+import {font} from "../src/msdf-temp/SourceSansPro-Regular-msdf.js";
 
 function convertFont() {
     const result = {
@@ -25,9 +25,16 @@ function convertFont() {
      */
 
     for (let char of font.chars) {
+        const u = normalize(char.x, 0, font.common.scaleW);
+        const v = normalize(char.y, 0, font.common.scaleH);
+        const uw = normalize(char.width, 0, font.common.scaleW);
+        const vh = normalize(char.height, 0, font.common.scaleW);
+
         result.chars[char.char] = {
-            u: normalize(char.x, 0, font.common.scaleW),
-            v: normalize(char.y, 0, font.common.scaleH),
+            u1: u,
+            v1: v,
+            u2: u + uw,
+            v2: v + vh,
             width: normalize(char.width, 0, font.common.lineHeight),
             height: normalize(char.height, 0, font.common.lineHeight),
             xoffset: normalize(char.xoffset, 0, font.common.lineHeight),
@@ -45,4 +52,4 @@ function normalize(value, min, max) {
 
 const newFont = convertFont();
 const js = `export const font = ${JSON.stringify(newFont, null, 4)}`;
-await Deno.writeTextFile("./../src/msdf/font.js", js);
+await Deno.writeTextFile("./../src/managers/utils/font.js", js);

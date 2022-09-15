@@ -1,6 +1,6 @@
-import {font} from "./../../src/msdf/font.js";
-import {TextManager} from "../../src/managers/text-manager.js";
 import "./../../src/managers/grid-manager.js";
+import "./../../src/managers/text-manager.js";
+
 
 export default class Text extends crsbinding.classes.ViewBase {
     async connectedCallback() {
@@ -10,10 +10,8 @@ export default class Text extends crsbinding.classes.ViewBase {
 
         const ready = async () => {
             this.canvas.removeEventListener("ready", ready);
-            this.scene = this.canvas.__engine.scenes[0];
-            this.textManager = new TextManager(font);
-            await crs.call("gfx_grid", "add", { element: this.canvas })
-            await this.createPlane();
+            await crs.call("gfx_grid", "add", { element: this.canvas });
+            await crs.call("gfx_text", "add", { element: this.canvas, text: "a" });
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -26,21 +24,5 @@ export default class Text extends crsbinding.classes.ViewBase {
 
     async disconnectedCallback() {
         await super.disconnectedCallback();
-    }
-
-    async createPlane() {
-        const data = this.textManager.getFaceVertexData("T");
-        const customMesh = new BABYLON.Mesh("text", this.scene);
-        data.applyToMesh(customMesh);
-
-        customMesh.position = new BABYLON.Vector3(0, 0, 0);
-
-        const material = new BABYLON.StandardMaterial("font", this.scene);
-        material.emissiveTexture = new BABYLON.Texture("src/msdf/SourceSansPro-Regular.png");
-        customMesh.material = material;
-    }
-
-    async remove() {
-        await crs.call("gfx_grid", "remove", { element: this.canvas })
     }
 }
