@@ -57,8 +57,6 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         gizmoManager.attachableMeshes = meshes;
     }
 
-
-
     async createPlane() {
         this.bgPlane = BABYLON.MeshBuilder.CreatePlane("plane", {
             size: 200,

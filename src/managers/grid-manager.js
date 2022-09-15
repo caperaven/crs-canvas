@@ -5,13 +5,12 @@ export class GridManagerActions {
 
     static async add(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
-        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const size = (await crs.process.getValue(step.args.size, context, process, item)) || 200;
         const z = (await crs.process.getValue(step.args.z, context, process, item)) || 0.01;
         const ratio = (await crs.process.getValue(step.args.ratio, context, process, item)) || 0.1;
         const canMove = (await crs.process.getValue(step.args.can_move, context, process, item)) || true;
 
-        const scene = canvas.__layers[layer];
+        const scene = canvas.__layers[0];
         const grid = BABYLON.MeshBuilder.CreatePlane("gfx_grid", { size: size, position: { z: z } }, scene);
 
         grid.material = new BABYLON.GridMaterial("gfx_grid", scene);
@@ -24,7 +23,12 @@ export class GridManagerActions {
 
     static async remove(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
+        const scene = canvas.__layers[0];
 
+        const grid = scene.getMeshByName("gfx_grid");
+        if (grid != null) {
+            grid.dispose();
+        }
     }
 }
 

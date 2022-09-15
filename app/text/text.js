@@ -39,4 +39,8 @@ export default class Text extends crsbinding.classes.ViewBase {
         material.emissiveTexture = new BABYLON.Texture("src/msdf/SourceSansPro-Regular.png");
         customMesh.material = material;
     }
+
+    async remove() {
+        await crs.call("gfx_grid", "remove", { element: this.canvas })
+    }
 }
