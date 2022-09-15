@@ -2,7 +2,7 @@
  * Convert the font json file for msdf to be more appropriate for rendering
  */
 
-import {font} from "../src/msdf-temp/SourceSansPro-Regular-msdf.js";
+import {font} from "./font-files/SourceSansPro-Regular-msdf.js";
 
 function convertFont() {
     const result = {

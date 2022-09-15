@@ -11,7 +11,7 @@ export default class Text extends crsbinding.classes.ViewBase {
         const ready = async () => {
             this.canvas.removeEventListener("ready", ready);
             await crs.call("gfx_grid", "add", { element: this.canvas });
-            await crs.call("gfx_text", "add", { element: this.canvas, text: "Haggle" });
+            await crs.call("gfx_text", "add", { element: this.canvas, text: "Hello good World, just be cool" });
         }
 
         if (this.canvas.dataset.ready == "true") {

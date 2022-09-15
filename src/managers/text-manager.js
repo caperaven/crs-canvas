@@ -19,14 +19,22 @@ export class TextManagerActions {
         data.normals = [];
 
         let xadvance = 0;
+        let c = 0;
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
-            const charData = getCharData(font, char, xadvance, i * 4);
+
+            if (char == " ") {
+                xadvance += 0.3;
+                continue;
+            }
+
+            const charData = getCharData(font, char, xadvance, c * 4);
             data.positions.push(...charData.positions);
             data.indices.push(...charData.indices);
             data.uvs.push(...charData.uvs);
             data.normals.push(...charData.normals);
             xadvance += charData.xadvance;
+            c += 1;
         }
 
         const customMesh = new BABYLON.Mesh(text, scene);
@@ -55,14 +63,13 @@ function getCharData(font, char, pO, ind) {
     const yoffset = charData.yoffset;
 
     const positions = [
-        pO, 1 - yoffset - height, 0,
-        pO + width, 1 - yoffset - height, 0,
-        pO, 1 - yoffset, 0,
-        pO + width, 1 - yoffset, 0
+        pO + xoffset, 1 - yoffset - height, 0,
+        pO + width + xoffset, 1 - yoffset - height, 0,
+        pO + xoffset, 1 - yoffset, 0,
+        pO + width + xoffset, 1 - yoffset, 0
     ]
 
     const indices = [ind + 0, ind + 1, ind + 2, ind + 1, ind + 3, ind + 2];
-    //const uvs =   [0, 0, 1,  0,  0,  1,  1,  1];
     const uvs = [u1, v1, u2, v1, u1, v2, u2, v2];
     const normals = [];
 
