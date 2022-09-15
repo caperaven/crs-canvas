@@ -26,7 +26,7 @@ function convertFont() {
 
     for (let char of font.chars) {
         const u = normalize(char.x, 0, font.common.scaleW);
-        const v = normalize(char.y, 0, font.common.scaleH);
+        const v = 1 - normalize(char.y + char.height, 0, font.common.scaleH);
         const uw = normalize(char.width, 0, font.common.scaleW);
         const vh = normalize(char.height, 0, font.common.scaleW);
 
@@ -53,3 +53,4 @@ function normalize(value, min, max) {
 const newFont = convertFont();
 const js = `export const font = ${JSON.stringify(newFont, null, 4)}`;
 await Deno.writeTextFile("./../src/managers/utils/font.js", js);
+

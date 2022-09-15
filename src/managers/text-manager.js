@@ -18,12 +18,17 @@ export class TextManagerActions {
         data.uvs = [];
         data.normals = [];
 
-        for (const char of text) {
-            const charData = getCharData(font, char);
+        let xOffset = 0;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const charData = getCharData(font, char, xOffset, i * 4);
             data.positions.push(...charData.positions);
             data.indices.push(...charData.indices);
             data.uvs.push(...charData.uvs);
             data.normals.push(...charData.normals);
+
+            xOffset += 1;
         }
 
         const customMesh = new BABYLON.Mesh(text, scene);
@@ -34,13 +39,13 @@ export class TextManagerActions {
             element: canvas,
             id: "font",
             texture: "textures/font.png"
-        })
+        });
 
         customMesh.material = material;
     }
 }
 
-function getCharData(font, char) {
+function getCharData(font, char, pO, ind) {
     const charData = font.chars[char];
     const width = charData.width;
     const height = charData.height;
@@ -50,13 +55,13 @@ function getCharData(font, char) {
     const v2 = charData.v2;
 
     const positions = [
-        0, 0, 0,
-        width, 0, 0,
-        0, height, 0,
-        width, height, 0
+        pO, 0, 0,
+        pO + width, 0, 0,
+        pO, height, 0,
+        pO + width, height, 0
     ]
 
-    const indices = [0, 1, 2, 1, 3, 2];
+    const indices = [ind + 0, ind + 1, ind + 2, ind + 1, ind + 3, ind + 2];
     //const uvs =   [0, 0, 1,  0,  0,  1,  1,  1];
     const uvs = [u1, v1, u2, v1, u1, v2, u2, v2];
     const normals = [];
