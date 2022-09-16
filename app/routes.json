@@ -16,6 +16,11 @@
       "view": "instancing"
     },
     {
+      "title": "Instancing Test",
+      "hash": "#instancing-test",
+      "view": "instancing-test"
+    },
+    {
       "title": "Face Select",
       "hash": "#face-select",
       "view": "face-select"

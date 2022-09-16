@@ -1,3 +1,5 @@
+import {CameraPanInputActions} from "./inputs/camera-pan-input.js";
+
 class CameraManagerActions {
     static async perform(step, context, process, item) {
         await this[step.action]?.(step, context, process, item);
@@ -9,10 +11,10 @@ class CameraManagerActions {
         const attachControls = (await crs.process.getValue(step.args.attach_controls, context, process, item)) || true;
         const scene = canvas.__layers[0];
 
-        const camera = CameraFactory.create(type, scene);
+        const camera = await CameraFactory.create(type, scene);
         canvas.__camera = camera;
 
-        if (attachControls == true) {
+        if (camera.__forceDisableControls === true || attachControls == true) {
             camera.attachControl(canvas, true);
         }
     }
@@ -72,6 +74,17 @@ class CameraFactory {
         camera.panningDistanceLimit = 50;
         camera.panningAxis = new BABYLON.Vector3(allowXPan, allowYPan, 0)
 
+        return camera;
+    }
+
+    static async custom_pan(parts, scene) {
+        const camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, -250), scene);
+
+        camera.attachControl(scene, true);
+        camera.inputs.remove(camera.inputs.attached.mouse);
+
+        await CameraPanInputActions.enable(scene, camera);
+        camera.__forceDisableControls = true;
         return camera;
     }
 }
