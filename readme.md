@@ -37,6 +37,11 @@ The styles are broken down into logical files that can be used in a modular way.
     1. 404.css - styles for the 404 view
 1. styles.css - main stylesheet
 
+# Temp
 
+## Videos
+https://www.youtube.com/watch?v=d8cfgcJR9Tk&t=19s
+
+## Tools
 
 
