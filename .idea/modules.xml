@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/crs-starter.iml" filepath="$PROJECT_DIR$/.idea/crs-starter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/crs-canvas.iml" filepath="$PROJECT_DIR$/crs-canvas.iml" />
     </modules>
   </component>
 </project>

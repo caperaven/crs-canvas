@@ -31,9 +31,15 @@
       "view": "2d-camera"
     },
     {
+
       "title": "Text Rendering",
       "hash": "#text-rendering",
       "view": "text-rendering"
+    },
+    {
+      "title": "Text",
+      "hash": "#text",
+      "view": "text"
     },
     {
       "title": "About",

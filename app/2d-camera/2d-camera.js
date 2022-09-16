@@ -1,4 +1,4 @@
-import "./../../src/meshes/grid-box.js";
+import "./../../src/managers/geometry-factory-manager.js"
 
 export default class FaceSelect extends crsbinding.classes.ViewBase {
     async connectedCallback() {
@@ -56,8 +56,6 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         gizmoManager.boundingBoxGizmoEnabled = true
         gizmoManager.attachableMeshes = meshes;
     }
-
-
 
     async createPlane() {
         this.bgPlane = BABYLON.MeshBuilder.CreatePlane("plane", {

@@ -1,3 +1,5 @@
+import "./../../src/managers/mesh-factory-manager.js"
+
 export default class FaceSelect extends crsbinding.classes.ViewBase {
     async connectedCallback() {
         await super.connectedCallback();
