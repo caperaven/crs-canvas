@@ -31,6 +31,11 @@
       "view": "text"
     },
     {
+      "title": "SDF Shapes",
+      "hash": "#sdf-shapes",
+      "view": "sdf-shapes"
+    },
+    {
       "title": "About",
       "hash": "#about",
       "view": "about",
