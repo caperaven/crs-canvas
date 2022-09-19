@@ -41,9 +41,9 @@ export class TextManagerActions {
         data.applyToMesh(customMesh);
         customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
 
-        const material = await crs.call("gfx_materials", "get_textured", {
+        const material = await crs.call("gfx_materials", "get_shader", {
             element: canvas,
-            id: "font",
+            id: "sdf",
             texture: "textures/font.png"
         });
 
