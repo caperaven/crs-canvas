@@ -75,12 +75,13 @@
         import "/components/canvas_2d/canvas_2d.js";
 
         import IndexViewModel from "./index.js";
-        await initialize("/packages/crs-process-api");
 
         window.addEventListener("load", async (event) => {
             document.viewModel = new IndexViewModel(document.body);
             await document.viewModel.connectedCallback();
         });
+
+        await initialize("/packages/crs-process-api");
     </script>
 </body>
 </html>
