@@ -5,6 +5,7 @@ class MaterialsManager {
         }
 
         this.textures = {}
+        this.shaders = {}
 
         this.store.transparent.diffuseColor = BABYLON.Color3.FromHexString("#ff0010");
         this.store.transparent.alpha = 0;
@@ -22,7 +23,7 @@ class MaterialsManager {
         this.textures = null;
     }
 
-    getMaterial(id, value, diffuse, scene) {
+    async getMaterial(id, value, diffuse, scene) {
         if (this.store[id] == null) {
             const color = BABYLON.Color3.FromHexString(value);
             const material = new BABYLON.StandardMaterial(value, scene);
@@ -40,7 +41,7 @@ class MaterialsManager {
         return this.store[id];
     }
 
-    getTexture(id, texture) {
+    async getTexture(id, texture) {
         if (this.textures[id] == null) {
             this.textures[id] = new BABYLON.Texture(`${crs.intent.gfx.assetsLocation}/${texture}`);
         }
@@ -48,14 +49,45 @@ class MaterialsManager {
         return this.textures[id];
     }
 
-    getTextureMaterial(id, texture, scene) {
+    async getTextureMaterial(id, texture, scene) {
         if (this.store[id] == null) {
             const material = new BABYLON.StandardMaterial(id, scene);
-            material.emissiveTexture = this.getTexture(id, texture);
+            material.emissiveTexture = await this.getTexture(id, texture);
             this.store[id] = material;
         }
 
         return this.store[id];
+    }
+
+    async getShader(id, texture, scene) {
+        if (this.shaders[id] == null) {
+            const fragCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.frag`).then(result => result.text());
+            const vertCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.vert`).then(result => result.text());
+
+            BABYLON.Effect.ShadersStore[`${id}VertexShader`] = vertCode;
+            BABYLON.Effect.ShadersStore[`${id}FragmentShader`] = fragCode;
+
+            const material = new BABYLON.ShaderMaterial(id, scene,
+                {
+                    vertex: id,
+                    fragment: id
+                },
+                {
+                    attributes: ["position", "normal", "uv"],
+                    uniforms: ["world", "worldView", "worldViewProjection", "view", "projection"],
+                    needAlphaBlending: true
+                }
+            );
+
+            if (texture != null) {
+                const textureResult = await this.getTexture(id, texture);
+                material.setTexture("texture1", textureResult);
+            }
+
+            this.shaders[id] = material;
+        }
+
+        return this.shaders[id];
     }
 
     /**
@@ -89,7 +121,7 @@ class MaterialsManagerActions {
         const diffuse = await crs.process.getValue(step.args.diffuse, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const scene = canvas.__layers[layer];
-        return canvas.__materials.getMaterial(id, value, diffuse, scene);
+        return await canvas.__materials.getMaterial(id, value, diffuse, scene);
     }
 
     static async get_textured(step, context, process, item) {
@@ -98,7 +130,16 @@ class MaterialsManagerActions {
         const texture = await crs.process.getValue(step.args.texture, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const scene = canvas.__layers[layer];
-        return canvas.__materials.getTextureMaterial(id, texture, scene);
+        return await canvas.__materials.getTextureMaterial(id, texture, scene);
+    }
+
+    static async get_shader(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        const id = await crs.process.getValue(step.args.id, context, process, item);
+        const texture = await crs.process.getValue(step.args.texture, context, process, item);
+        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        const scene = canvas.__layers[layer];
+        return await canvas.__materials.getShader(id, texture, scene);
     }
 }
 

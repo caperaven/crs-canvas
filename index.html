@@ -77,10 +77,11 @@
         import IndexViewModel from "./index.js";
 
         window.addEventListener("load", async (event) => {
-            await initialize("/packages/crs-process-api");
             document.viewModel = new IndexViewModel(document.body);
             await document.viewModel.connectedCallback();
         });
+
+        await initialize("/packages/crs-process-api");
     </script>
 </body>
 </html>

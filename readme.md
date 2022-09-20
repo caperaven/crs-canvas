@@ -37,6 +37,15 @@ The styles are broken down into logical files that can be used in a modular way.
     1. 404.css - styles for the 404 view
 1. styles.css - main stylesheet
 
+# Temp
+
+## Videos
+https://www.youtube.com/watch?v=d8cfgcJR9Tk&t=19s
+
+## Tools
+https://github.com/Chlumsky
+https://playground.babylonjs.com/#1OH09K#131
+https://cyos.babylonjs.com/
 
 
 
