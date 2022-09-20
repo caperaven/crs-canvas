@@ -14,7 +14,7 @@ class CameraManagerActions {
         const camera = await CameraFactory.create(type, scene);
         canvas.__camera = camera;
 
-        if (camera.__forceDisableControls === true || attachControls == true) {
+        if (attachControls == true) {
             camera.attachControl(canvas, true);
         }
     }
@@ -53,31 +53,40 @@ class CameraFactory {
     }
 
     static pan(parts, scene) {
-        const betaPos = Math.PI / 2;
         const allowXPan = Number(parts[1] || 1);
         const allowYPan = Number(parts[2] || 1);
 
         const target = new BABYLON.Vector3(0, 0, 0);
-        const camera = new BABYLON.ArcRotateCamera("camera", 0,0, 0, target, scene)
 
-        camera.position =  new BABYLON.Vector3(0, 0, 20);
+        const halfPI = Math.PI / 2;
+        const camera = new BABYLON.ArcRotateCamera("camera", -halfPI,halfPI, 9, target, scene);
+
         camera.zoomToMouseLocation = true;
-        camera.upperAlphaLimit = -betaPos;
-        camera.lowerAlphaLimit = -betaPos;
-        camera.upperBetaLimit = betaPos;
-        camera.lowerBetaLimit = betaPos;
+        camera.upperAlphaLimit = -halfPI;
+        camera.lowerAlphaLimit = -halfPI;
+        camera.upperBetaLimit = halfPI;
+        camera.lowerBetaLimit = halfPI;
         camera.wheelPrecision = 20;
         camera.lowerRadiusLimit = 2;
         camera.upperRadiusLimit = 50;
-        camera.panningInertia = 0;
-        camera.panningSensibility = 50;
-        camera.panningDistanceLimit = 50;
-        camera.panningAxis = new BABYLON.Vector3(allowXPan, allowYPan, 0)
+        camera.panningAxis = new BABYLON.Vector3(allowXPan, allowYPan, 0);
+
+        let prevRadius = camera.radius;
+        scene.onBeforeRenderObservable.add(() => {
+            let ratio = 0;
+            if (prevRadius != camera.radius) {
+                ratio = prevRadius / camera.radius;
+                prevRadius = camera.radius;
+                camera.panningSensibility *= ratio;
+                camera.wheelPrecision *= ratio;
+            }
+        });
 
         return camera;
     }
 
     static async custom_pan(parts, scene) {
+        //WIP
         const camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, -250), scene);
 
         camera.attachControl(scene, true);

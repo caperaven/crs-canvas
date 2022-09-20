@@ -1,3 +1,5 @@
+import "./../../src/managers/grid-manager.js";
+
 export default class FaceSelect extends crsbinding.classes.ViewBase {
     async connectedCallback() {
         await super.connectedCallback();
@@ -5,10 +7,10 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         this.currentColor = "#ffffff";
         this.canvas = this.element.querySelector("canvas");
 
-        const ready = () => {
+        const ready = async () => {
             this.canvas.removeEventListener("ready", ready);
-
-           this.addMeshes();
+            await crs.call("gfx_grid", "add", {element: this.canvas});
+            this.addMeshes();
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -41,27 +43,29 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
             5, 6, 7
         ]
 
-        const customMesh = new BABYLON.Mesh("custom", scene);
-        data.applyToMesh(customMesh);
-
         const material = new BABYLON.StandardMaterial("material", scene);
-        customMesh.material = material;
+        material.emissiveColor = new BABYLON.Color3(255, 0, 0)
+
 
 
         material.diffuseColor = new BABYLON.Color3(1, 0, 1);
 
-        // const plane = BABYLON.MeshBuilder.CreatePlane("plane", {size: 0.5}, scene);
+        const plane = BABYLON.MeshBuilder.CreatePlane("plane", {size: 1}, scene);
+        plane.position.set(0.5,-0.5,0)
+        plane.material = material;
 
+        //
+        // const customMesh = new BABYLON.Mesh("custom", scene);
+        // data.applyToMesh(customMesh);
+        // customMesh.material = material;
 
-
-
-        let instances = [];
-
-        for (let i = 0; i < 500000; i++) {
-            const matrix = BABYLON.Matrix.Translation(i*12, 0, 0);
-            instances.push(matrix);
-        }
-
-        customMesh.thinInstanceAdd(instances);
+        // let instances = [];
+        //
+        // for (let i = 0; i < 100; i++) {
+        //     const matrix = BABYLON.Matrix.Translation(i * 12, 0, 0);
+        //     instances.push(matrix);
+        // }
+        //
+        // customMesh.thinInstanceAdd(instances);
     }
 }

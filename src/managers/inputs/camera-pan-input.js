@@ -26,7 +26,7 @@ export class CameraPanInputActions {
         camera.pan.lastPosition = new BABYLON.Vector3(scene.pointerX, scene.pointerY, 0)
     }
 
-    static async pointer_move(scene, camera) {
+    static async pointer_move(scene, camera, pointerInfo) {
         if (camera.__dragging) {
             const pos = new BABYLON.Vector2(scene.pointerX, scene.pointerY);
 
@@ -36,6 +36,7 @@ export class CameraPanInputActions {
             const speed = 0.001 * -camera.position.z; // We do this to adjust the speed as you zoom out;
 
             camera._localDirection.set(speed * xdir, speed * -ydir, 0);
+
             camera.getViewMatrix().invertToRef(camera._cameraTransformMatrix);
             BABYLON.Vector3.TransformNormalToRef(camera._localDirection, camera._cameraTransformMatrix, camera._transformedDirection);
             camera.position.addInPlace(camera._transformedDirection);
@@ -49,12 +50,12 @@ export class CameraPanInputActions {
         // Add camera max and min zoom level
         // Cache vector to save on memory
         // Get zoom in and out position on par with Miro
-
-        const zoom_speed = 0.01;
+        console.log(camera.getProjectionMatrix());
+        const zoom_speed = 0.001;
         const engine = scene.getEngine();
 
 
-        const sensibility = 0.0015;
+        const sensibility = 0.0001;
 
         const halfWidth = engine.getRenderWidth() / 2
         const halfHeight = engine.getRenderHeight() / 2
