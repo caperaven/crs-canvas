@@ -1,6 +1,7 @@
 import "./managers/camera-manager.js"
 import "./managers/materials-manager.js"
 import "./managers/instance-manager.js"
+import "./managers/sdf-glyphs-manager.js"
 
 class GraphicsActions {
     static async perform(step, context, process, item) {
@@ -25,6 +26,7 @@ class GraphicsActions {
 
         await crs.call("gfx_camera", "initialize", { element: canvas, type: camera });
         await crs.call("gfx_materials", "initialize", { element: canvas });
+        await crs.call("gfx_sdf_icon", "initialize", { element: canvas });
 
         canvas.__renderLoop = renderLoop.bind(canvas);
         canvas.__engine.runRenderLoop(canvas.__renderLoop);
@@ -39,6 +41,7 @@ class GraphicsActions {
 
         await crs.call("gfx_camera", "dispose", { element: canvas });
         await crs.call("gfx_materials", "dispose", { element: canvas });
+        await crs.call("gfx_sdf_icon", "dispose", { element: canvas });
 
         window.removeEventListener("resize", canvas.__resize);
         canvas.__resize = null;

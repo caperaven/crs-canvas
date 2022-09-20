@@ -3,7 +3,7 @@ export class Canvas extends HTMLCanvasElement {
         const camera = this.dataset.camera || "free,0,5,-10";
         const color = this.dataset.color;
         await crs.call("gfx", "initialize", { element: this, camera: camera, color: color });
-        await crs.call("dom", "notify_ready", {element: this});
+        await crs.call("component", "notify_ready", {element: this});
     }
 
     async disconnectedCallback() {

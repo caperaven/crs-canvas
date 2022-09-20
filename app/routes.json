@@ -16,6 +16,11 @@
       "view": "instancing"
     },
     {
+      "title": "Instancing Test",
+      "hash": "#instancing-test",
+      "view": "instancing-test"
+    },
+    {
       "title": "Face Select",
       "hash": "#face-select",
       "view": "face-select"
@@ -31,9 +36,19 @@
       "view": "timeline-manager-view"
     },
     {
+      "title": "Text Rendering",
+      "hash": "#text-rendering",
+      "view": "text-rendering"
+    },
+    {
       "title": "Text",
       "hash": "#text",
       "view": "text"
+    },
+    {
+      "title": "SDF Shapes",
+      "hash": "#sdf-shapes",
+      "view": "sdf-shapes"
     },
     {
       "title": "About",
