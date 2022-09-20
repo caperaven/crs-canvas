@@ -95,6 +95,7 @@ export default class TimeLine extends crsbinding.classes.ViewBase {
         for (let i = 0; i < this.dates.length; i++) {
             const result = await crs.call("time_line", "get", {element: this.canvas, start: this.dates[i].start, end: this.dates[i].end, scale: this.scale});
 
+            //NOTE: the calcs I'm doing on width & position. Can move that logic into the manager if needed i.e. get() can return width and an already transformed x1
             await crs.call("gfx_mesh_factory", "create", {
                 element: this.canvas,
                 mesh: {
