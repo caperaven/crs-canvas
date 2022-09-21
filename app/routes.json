@@ -47,6 +47,11 @@
       "view": "sdf-shapes"
     },
     {
+      "title": "Timeline",
+      "hash": "#timeline",
+      "view": "timeline"
+    },
+    {
       "title": "About",
       "hash": "#about",
       "view": "about",

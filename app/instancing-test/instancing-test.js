@@ -54,18 +54,18 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         plane.position.set(0.5,-0.5,0)
         plane.material = material;
 
-        //
-        // const customMesh = new BABYLON.Mesh("custom", scene);
-        // data.applyToMesh(customMesh);
-        // customMesh.material = material;
 
-        // let instances = [];
-        //
-        // for (let i = 0; i < 100; i++) {
-        //     const matrix = BABYLON.Matrix.Translation(i * 12, 0, 0);
-        //     instances.push(matrix);
-        // }
-        //
-        // customMesh.thinInstanceAdd(instances);
+        const customMesh = new BABYLON.Mesh("custom", scene);
+        data.applyToMesh(customMesh);
+        customMesh.material = material;
+
+        let instances = [];
+
+        for (let i = 0; i < 100; i++) {
+            const matrix = BABYLON.Matrix.Translation(i * 12, 0, 0);
+            instances.push(matrix);
+        }
+
+        customMesh.thinInstanceAdd(instances);
     }
 }
