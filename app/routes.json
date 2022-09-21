@@ -31,7 +31,11 @@
       "view": "2d-camera"
     },
     {
-
+      "title": "Timeline Manager",
+      "hash": "#timeline-manager-view",
+      "view": "timeline-manager-view"
+    },
+    {
       "title": "Text Rendering",
       "hash": "#text-rendering",
       "view": "text-rendering"
