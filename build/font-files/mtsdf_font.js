@@ -1,4 +1,4 @@
-export const font = {
+export const mtsdf_font = {
     "atlas": {"type": "mtsdf", "distanceRange": 2, "size": 32.09375, "width": 196, "height": 196, "yOrigin": "bottom"},
     "metrics": {
         "emSize": 1,

@@ -2,7 +2,7 @@
  * Convert the font json file for msdf to be more appropriate for rendering
  */
 
-import {font} from "./font-files/font.js";
+import {font} from "./font-files/sdf_font.js";
 
 function convertFont() {
     const result = {

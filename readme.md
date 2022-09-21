@@ -55,6 +55,6 @@ https://github.com/Butterwell/mtsdf-fonts/tree/main/src
 https://playground.babylonjs.com/#026IT4#2
 
 ## Commands
-msdf-atlas-gen -font .\SourceSansPro-Regular.ttf -json font.json -format png -imageout font.png
+msdf-atlas-gen -mtsdf_font .\SourceSansPro-Regular.ttf -json mtsdf_font.json -format png -imageout mtsdf_font.png
 
 
