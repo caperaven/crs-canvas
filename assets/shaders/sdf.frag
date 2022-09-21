@@ -8,7 +8,7 @@ varying vec4 v_color;
 uniform sampler2D texture1;
 uniform vec3 customColor;
 
-const float pxRange = 1.0;
+const float pxRange = 4.5;
 const vec4 bgColor = vec4(0.0, 0.0, 0.0, 1.0);
 const vec4 fgColor = vec4(1.0, 0.0, 0.0, 1.0);
 
@@ -32,4 +32,5 @@ vec4 drawBody() {
 void main(void) {
     vec4 body = drawBody();
     glFragColor = body;
+    if (gl_FragColor.a < 0.1) discard;
 }

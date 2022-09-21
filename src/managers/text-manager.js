@@ -41,6 +41,9 @@ export class TextManagerActions {
         data.applyToMesh(customMesh);
         customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
 
+        customMesh.scaling.x = 0.1;
+        customMesh.scaling.y = 0.1;
+
         const material = await crs.call("gfx_materials", "get_shader", {
             element: canvas,
             id: "sdf",

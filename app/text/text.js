@@ -10,6 +10,7 @@ export default class Text extends crsbinding.classes.ViewBase {
 
         const ready = async () => {
             this.canvas.removeEventListener("ready", ready);
+            this.canvas.__engine.setHardwareScalingLevel(1/ window.devicePixelRatio);
             await crs.call("gfx_grid", "add", { element: this.canvas });
             await crs.call("gfx_text", "add", { element: this.canvas, text: "Hello World grow" });
         }
