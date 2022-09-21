@@ -1,4 +1,3 @@
-import "../../src/meshes/grid-box.js";
 import {TextFactory} from "../../src/text/text-factory.js";
 
 export default class TextRendering extends crsbinding.classes.ViewBase {

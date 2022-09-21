@@ -13,23 +13,31 @@ class HeaderManager {
     }
 
     async render(startDate, endDate, scale, canvas, scene,  ) {
+        await this._observeCamera(canvas)
+
         scale = scale || TIMELINE_SCALE.MONTH;
 
         // For now hardcoding to days
 
         const dayCount = getDaysBetweenDates(startDate, endDate);
+        this.count = dayCount;
         this.bgMesh = await this._createBgMesh(canvas, dayCount);
-        const headerMesh = await this._createMesh(canvas);
+        this.headerMesh = await this._createMesh(canvas);
 
         const bufferMatrices = new Float32Array(16 * dayCount);
         const bufferColors = new Float32Array(4 * dayCount);
 
         let colors = [];
+
+        this.offset = 0.5
+
         for (let i = 0; i < dayCount; i++) {
 
             startDate.setUTCDate(startDate.getUTCDate() + 1);
 
-            const matrix = BABYLON.Matrix.Translation(i, 0, 0);
+            const x = this.offset+i;
+
+            const matrix = BABYLON.Matrix.Translation(x, -0.25, 0);
 
             matrix.copyToArray(bufferMatrices, i*16);
             const dayNumber = startDate.getUTCDay();
@@ -43,15 +51,23 @@ class HeaderManager {
             }
         }
 
-        console.log(bufferMatrices);
-        console.log(bufferColors);
         bufferColors.set(colors);
-        headerMesh.thinInstanceSetBuffer("matrix", bufferMatrices);
-        headerMesh.thinInstanceSetBuffer("color", bufferColors, 4);
+        this.headerMesh.thinInstanceSetBuffer("matrix", bufferMatrices);
+        this.headerMesh.thinInstanceSetBuffer("color", bufferColors, 4);
+    }
+
+    async _observeCamera(canvas) {
+        const camera = canvas.__camera;
+
+        // camera.onViewMatrixChangedObservable.add((camera)=> {
+        //     for (let i = 0; i < this.count; i++) {
+        //         const x = this.offset+i;
+        //         const matrix2 = BABYLON.Matrix.Translation(x, -0.25 + camera.position.y, 0)
+        //         // this.headerMesh.thinInstanceSetMatrixAt(i, matrix2);
+        //     }
+        // })
 
 
-       // const idx = headerMesh.thinInstanceAdd(this.headers);
-       // console.log(idx);
     }
 
     async _createMesh(canvas) {
@@ -90,7 +106,7 @@ class HeaderManager {
                 id: "timeline_header_border",
                 color: canvas._theme.header_border,
             },
-            positions: [{x: 0, y: 0, z: 0}]
+            positions: [{x: size /2, y: -0.25, z: 0}]
         })
 
         return meshes[0];
