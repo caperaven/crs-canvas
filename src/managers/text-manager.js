@@ -63,10 +63,10 @@ function getCharData(font, char, pO, ind) {
     const yoffset = charData.yoffset;
 
     const positions = [
-        pO + xoffset, 1 - yoffset - height, 0,
-        pO + width + xoffset, 1 - yoffset - height, 0,
-        pO + xoffset, 1 - yoffset, 0,
-        pO + width + xoffset, 1 - yoffset, 0
+        pO + xoffset, yoffset - height, 0,
+        pO + width + xoffset, yoffset - height, 0,
+        pO + xoffset, yoffset, 0,
+        pO + width + xoffset, yoffset, 0
     ]
 
     const indices = [ind + 0, ind + 1, ind + 2, ind + 1, ind + 3, ind + 2];

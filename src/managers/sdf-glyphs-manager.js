@@ -1,5 +1,3 @@
-import {normalize} from "./utils/normalize.js"
-
 class SDFGlyphsManager {
     constructor() {
         this.atlases = {};
@@ -9,7 +7,7 @@ class SDFGlyphsManager {
         this.atlases = null;
     }
 
-    async add(shader, atlas, glyph, scale, position, canvas, scene) {
+    async add(shader, atlas, glyph, scale, position, color, canvas, scene) {
         // JHR: todo, check if this glyph already exists and if it does, create a instance instead.
 
         if (this.atlases[atlas] == null) {
@@ -30,15 +28,16 @@ class SDFGlyphsManager {
         const glyphData = atlasData.reference.glyphs[glyph];
         const common = atlasData.reference.common;
 
-        const nx = normalize(glyphData.x, 0, atlasData.reference.common.scaleW);
-        const ny = normalize(glyphData.y, 0, atlasData.reference.common.scaleH);
-        const width = normalize(common.glyph_scale, 0, common.scaleW);
-        const height = normalize(common.glyph_scale, 0, common.scaleH);
+        const nx = await crs.call("math", "normalize", {value: glyphData.x, min: 0, max: atlasData.reference.common.scaleW});
+        const ny = await crs.call("math", "normalize", {value: glyphData.y, min: 0, max: atlasData.reference.common.scaleH});
+        const width = await crs.call("math", "normalize", { value: common.glyph_scale, min: 0, max: common.scaleW});
+        const height = await crs.call("math", "normalize", { value: common.glyph_scale, min: 0, max: common.scaleH});
 
-        const vertexData = getVertexData(scale, nx, ny, width, height);
+        const vertexData = getVertexData(scale, nx, ny, width, height, color);
         const customMesh = new BABYLON.Mesh(glyph, scene);
         vertexData.applyToMesh(customMesh);
         customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
+        customMesh.scaling = new BABYLON.Vector3(scale, scale, 1);
         customMesh.material = atlasData.material;
     }
 }
@@ -66,13 +65,14 @@ export class SDFGlyphsManagerActions {
         const scale = (await crs.process.getValue(step.args.scale, context, process, item)) || 1;
         const atlas = await crs.process.getValue(step.args.atlas, context, process, item);
         const glyph = await crs.process.getValue(step.args.glyph, context, process, item);
+        const color = await crs.process.getValue(step.args.color, context, process, item);
         const shader = (await crs.process.getValue(step.args.shader, context, process, item) || "sdf");
 
-        return await canvas.__sdfIcons.add(shader, atlas, glyph, scale, position, canvas, scene);
+        return await canvas.__sdfIcons.add(shader, atlas, glyph, scale, position, color, canvas, scene);
     }
 }
 
-function getVertexData(scale, nx, ny, width, height) {
+function getVertexData(scale, nx, ny, width, height, color) {
     const data = new BABYLON.VertexData();
     data.positions = [
         0, 0, 0,
@@ -95,6 +95,8 @@ function getVertexData(scale, nx, ny, width, height) {
     ];
 
     data.normals = [];
+    data.colors = [0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]
+
     BABYLON.VertexData.ComputeNormals(data.positions, data.indices, data.normals);
 
     return data;

@@ -47,5 +47,14 @@ https://github.com/Chlumsky
 https://playground.babylonjs.com/#1OH09K#131
 https://cyos.babylonjs.com/
 
+## References
+https://playground.babylonjs.com/#H6UIFZ
+https://github.com/Butterwell/mtsdf-fonts/tree/main/src
+
+## Examples
+https://playground.babylonjs.com/#026IT4#2
+
+## Commands
+msdf-atlas-gen -font .\SourceSansPro-Regular.ttf -json font.json -format png -imageout font.png
 
 

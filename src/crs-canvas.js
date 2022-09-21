@@ -38,24 +38,24 @@ class GraphicsActions {
 
     static async dispose(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
-
-        await crs.call("gfx_camera", "dispose", { element: canvas });
-        await crs.call("gfx_materials", "dispose", { element: canvas });
-        await crs.call("gfx_sdf_icon", "dispose", { element: canvas });
+        canvas.__engine.stopRenderLoop(canvas.__renderLoop);
+        canvas.__renderLoop = null;
 
         window.removeEventListener("resize", canvas.__resize);
         canvas.__resize = null;
-
-        canvas.__engine.stopRenderLoop(canvas.__renderLoop);
-        canvas.__renderLoop = null;
 
         for (const scene of canvas.__layers) {
             scene.dispose();
         }
 
+        await crs.call("gfx_camera", "dispose", { element: canvas });
+        await crs.call("gfx_materials", "dispose", { element: canvas });
+        await crs.call("gfx_sdf_icon", "dispose", { element: canvas });
+
         canvas.__engine.dispose();
         canvas.__engine = null;
         canvas.__layers = null;
+
     }
 }
 

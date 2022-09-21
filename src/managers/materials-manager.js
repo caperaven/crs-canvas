@@ -13,12 +13,12 @@ class MaterialsManager {
 
     dispose() {
         for (const key of Object.keys(this.store)) {
-            this.store[key].dispose();
+            this.store[key]?.dispose();
         }
         this.store = null;
 
         for (const key of Object.keys(this.textures)) {
-            this.textures[key].dispose();
+            this.textures[key]?.dispose();
         }
         this.textures = null;
     }
