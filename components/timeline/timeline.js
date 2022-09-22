@@ -8,30 +8,32 @@ import {workOrderSamples} from "../../app/timeline/sample_data.js";
 
 export class Timeline extends crsbinding.classes.BindableElement {
 
+    #canvas;
+
     get html() {
         return import.meta.url.replace(".js", ".html")
     }
 
     async connectedCallback() {
         await super.connectedCallback();
-        this.canvas = this.querySelector("canvas");
+        this.#canvas = this.querySelector("canvas");
 
-        await ThemeManager.initialize(this.canvas);
+        await ThemeManager.initialize(this.#canvas);
         const ready = async () => {
-            this.canvas.removeEventListener("ready", ready);
-            this.canvas.__engine.setHardwareScalingLevel(1/ window.devicePixelRatio);
+            this.#canvas.removeEventListener("ready", ready);
+            this.#canvas.__engine.setHardwareScalingLevel(1/ window.devicePixelRatio);
             await this.render();
         }
 
-        if (this.canvas.dataset.ready == "true") {
+        if (this.#canvas.dataset.ready == "true") {
             await ready();
         } else {
-            this.canvas.addEventListener("ready", ready);
+            this.#canvas.addEventListener("ready", ready);
         }
     }
 
     async disconnectedCallback() {
-
+        this.#canvas = null;
     }
 
 
@@ -40,24 +42,24 @@ export class Timeline extends crsbinding.classes.BindableElement {
         const endDate = new Date(2022, 11, 31);
 
         await crs.call("time_line", "initialize", {
-            element: this.canvas,
+            element: this.#canvas,
             min: startDate,
             max: endDate
         });
 
-        await crs.call("gfx_timeline_header", "initialize", {element: this.canvas});
+        await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_header", "render", {
             start_date: startDate,
             end_date: endDate,
             scale: TIMELINE_SCALE.MONTH,
-            element: this.canvas
+            element: this.#canvas
         });
 
-        await crs.call("gfx_timeline_rows", "initialize", {element: this.canvas});
+        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_rows", "render", {
-            element: this.canvas,
+            element: this.#canvas,
             items: workOrderSamples
         });
     }
