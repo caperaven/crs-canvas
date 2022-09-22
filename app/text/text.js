@@ -36,6 +36,19 @@ export default class Text extends crsbinding.classes.ViewBase {
         }
     }
 
+    preLoad() {
+        this.setProperty("min", 0.01);
+        this.setProperty("max", 1.0);
+    }
+
+    async minChanged(newValue) {
+        this.canvas?.__layers[0].meshes[0].material.setFloat("min", newValue);
+    }
+
+    async maxChanged(newValue) {
+        this.canvas?.__layers[0].meshes[0].material.setFloat("max", newValue);
+    }
+
     async disconnectedCallback() {
         await super.disconnectedCallback();
     }
