@@ -1,62 +1,60 @@
 import {TIMELINE_SCALE} from "../timeline_scale.js";
-import  "../../../src/managers/mesh-factory-manager.js";
+import "../../../src/managers/mesh-factory-manager.js";
 
 class HeaderManager {
-    constructor() {
-        this.headers = [];
-    }
+
+    #bgMesh;
+    #headerMesh;
 
     dispose() {
-        this.headers = null;
-        this.bgMesh?.dispose();
-        this.bgMesh = null;
+        this.#bgMesh?.dispose();
+        this.#bgMesh = null;
+
+        this.#headerMesh?.dispose();
+        this.#headerMesh = null;
     }
 
-    async render(startDate, endDate, scale, canvas, scene,  ) {
-        await this._observeCamera(canvas)
+    async render(startDate, endDate, scale, canvas) {
+        await this.#observeCamera(canvas)
 
         scale = scale || TIMELINE_SCALE.MONTH;
 
-        // For now hardcoding to days
-
         const dayCount = getDaysBetweenDates(startDate, endDate);
-        this.count = dayCount;
-        this.bgMesh = await this._createBgMesh(canvas, dayCount);
-        this.headerMesh = await this._createMesh(canvas);
+        this.#bgMesh = await this.#createBgMesh(canvas, dayCount);
+        this.#headerMesh = await this.#createMesh(canvas);
 
         const bufferMatrices = new Float32Array(16 * dayCount);
         const bufferColors = new Float32Array(4 * dayCount);
 
         let colors = [];
 
-        this.offset = 0.5
+        const offset = 0.5
 
         for (let i = 0; i < dayCount; i++) {
 
             startDate.setUTCDate(startDate.getUTCDate() + 1);
 
-            const x = this.offset+i;
+            const x = offset + i;
 
             const matrix = BABYLON.Matrix.Translation(x, -0.25, 0);
 
-            matrix.copyToArray(bufferMatrices, i*16);
+            matrix.copyToArray(bufferMatrices, i * 16);
             const dayNumber = startDate.getUTCDay();
 
-            if(dayNumber % 6 === 0 ||  dayNumber % 7 === 0) {
+            if (dayNumber % 6 === 0 || dayNumber % 7 === 0) {
                 //TODO find better way to add to array
-               colors.push(...[0.933,0.933,0.933,1]);
-            }
-            else {
-                colors.push(...[1,1,1,1]);
+                colors.push(...[0.933, 0.933, 0.933, 1]);
+            } else {
+                colors.push(...[1, 1, 1, 1]);
             }
         }
 
         bufferColors.set(colors);
-        this.headerMesh.thinInstanceSetBuffer("matrix", bufferMatrices);
-        this.headerMesh.thinInstanceSetBuffer("color", bufferColors, 4);
+        this.#headerMesh.thinInstanceSetBuffer("matrix", bufferMatrices);
+        this.#headerMesh.thinInstanceSetBuffer("color", bufferColors, 4);
     }
 
-    async _observeCamera(canvas) {
+    async #observeCamera(canvas) {
         const camera = canvas.__camera;
 
         // camera.onViewMatrixChangedObservable.add((camera)=> {
@@ -66,47 +64,31 @@ class HeaderManager {
         //         // this.headerMesh.thinInstanceSetMatrixAt(i, matrix2);
         //     }
         // })
-
-
     }
 
-    async _createMesh(canvas) {
+    async #createMesh(canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
-            element: canvas,
-            mesh: {
-                id: "timeline_header",
-                type: "plane",
-                options: {
-                    width: 0.98,
-                    height: 0.48
+            element: canvas, mesh: {
+                id: "timeline_header", type: "plane", options: {
+                    width: 0.98, height: 0.48
                 }
-            },
-            material: {
-                id: "timeline_header",
-                color: canvas._theme.header_bg,
-            },
-            positions: [{x: 0, y: 0, z: 0}]
+            }, material: {
+                id: "timeline_header", color: canvas._theme.header_bg,
+            }, positions: [{x: 0, y: 0, z: 0}]
         })
 
         return meshes[0];
     }
 
-    async _createBgMesh(canvas, size){
+    async #createBgMesh(canvas, size) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
-            element: canvas,
-            mesh: {
-                id: "timeline_header_border",
-                type: "plane",
-                options: {
-                    width: size,
-                    height: 0.5
+            element: canvas, mesh: {
+                id: "timeline_header_border", type: "plane", options: {
+                    width: size, height: 0.5
                 }
-            },
-            material: {
-                id: "timeline_header_border",
-                color: canvas._theme.header_border,
-            },
-            positions: [{x: size /2, y: -0.25, z: 0}]
+            }, material: {
+                id: "timeline_header_border", color: canvas._theme.header_border,
+            }, positions: [{x: size / 2, y: -0.25, z: 0}]
         })
 
         return meshes[0];
