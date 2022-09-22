@@ -2,17 +2,8 @@ import "../../../src/managers/mesh-factory-manager.js";
 import {TIMELINE_SCALE} from "../timeline_scale.js";
 
 class RowManager {
-    constructor() {
 
-    }
-
-    dispose() {
-        this.bgMesh?.dispose();
-        this.bgMesh = null;
-    }
-
-    async render(items, canvas, scene) {
-
+    async render(items, canvas) {
         // For now hardcoding to days
         const test = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
@@ -74,7 +65,6 @@ class RowManager {
         }
 
         range1Mesh.thinInstanceSetBuffer("matrix", range1Matrices);
-
     }
 
     async _createOffsetRows(itemCount, canvas) {
