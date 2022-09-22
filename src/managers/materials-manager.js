@@ -59,7 +59,7 @@ class MaterialsManager {
         return this.store[id];
     }
 
-    async getShader(id, texture, scene) {
+    async getShader(id, texture, attributes, scene) {
         if (this.shaders[id] == null) {
             const fragCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.frag`).then(result => result.text());
             const vertCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.vert`).then(result => result.text());
@@ -82,6 +82,13 @@ class MaterialsManager {
             if (texture != null) {
                 const textureResult = await this.getTexture(id, texture);
                 material.setTexture("texture1", textureResult);
+            }
+
+            if (attributes != null) {
+                for (let attribute of attributes) {
+                    const fn = `set${attribute.fn}`;
+                    material[fn](attribute.name, attribute.value);
+                }
             }
 
             this.shaders[id] = material;
@@ -138,8 +145,9 @@ class MaterialsManagerActions {
         const id = await crs.process.getValue(step.args.id, context, process, item);
         const texture = await crs.process.getValue(step.args.texture, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
         const scene = canvas.__layers[layer];
-        return await canvas.__materials.getShader(id, texture, scene);
+        return await canvas.__materials.getShader(id, texture, attributes, scene);
     }
 }
 

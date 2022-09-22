@@ -11,8 +11,20 @@ export default class Text extends crsbinding.classes.ViewBase {
         const ready = async () => {
             this.canvas.removeEventListener("ready", ready);
             this.canvas.__engine.setHardwareScalingLevel(0.5/ window.devicePixelRatio);
-            await crs.call("gfx_grid", "add", { element: this.canvas });
-            await crs.call("gfx_text", "add", { element: this.canvas, text: "MON", position: {y: 0.5} });
+            this.canvas.__layers[0].clearColor = new BABYLON.Color3(1, 1, 1);
+            //await crs.call("gfx_grid", "add", { element: this.canvas, attributes: [{ fn: "Float", name: "min", value: 0.1 }] });
+            await crs.call("gfx_text", "add", { element: this.canvas, text: "Hello World", position: {y: 0.5}, attributes: [
+                {
+                    fn: "Float",
+                    name: "min",
+                    value: 0.2
+                },
+                {
+                    fn: "Float",
+                    name: "max",
+                    value: 0.5
+                }
+            ]});
             await crs.call("gfx_text", "add", { element: this.canvas, text: "10", position: {x: 0.25, y: 0.05} });
         }
 
