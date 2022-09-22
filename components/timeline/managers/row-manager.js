@@ -11,7 +11,7 @@ class RowManager {
         this.bgMesh = null;
     }
 
-    async render(items, canvas, scene,) {
+    async render(items, canvas, scene) {
 
         // For now hardcoding to days
         const test = await crs.call("gfx_mesh_factory", "create", {
@@ -31,22 +31,19 @@ class RowManager {
             positions: [{x: 0, y: 0, z: 0}]
         })
 
-
-
-
         const itemCount = items.length;
 
         await this._createOffsetRows(itemCount, canvas);
-
-
 
         const range1Mesh = await this._createRect(1,0.5,canvas);
         const range1Matrices = new Float32Array(16 * itemCount);
 
         const headerOffset = 1;
 
-        const consoleData = [];
 
+        const scaleVector = new BABYLON.Vector3(0, 1, 1);
+        const rotation = new BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0);
+        const transformVector = new BABYLON.Vector3(0, 0, 0);
         for (let i = 0; i < itemCount; i++) {
             const item = items[i]
 
@@ -64,28 +61,17 @@ class RowManager {
 
             const width = Math.abs(result.x2 - result.x1);
 
-           consoleData.push( {
-               width,
-               receivedOn: stringDateToDate(item.receivedOn),
-               requiredBy:stringDateToDate(item.requiredBy)
-           });
-
             const x = result.x1 + ((result.x2 - result.x1) / 2);
-            // const matrix = BABYLON.Matrix.Translation();
 
-            const scale = new BABYLON.Vector3(width, 1, 1);
-            const rot = new BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0);
-            const trans = new BABYLON.Vector3(x, y, 0);
+            scaleVector.x = width;
 
-            const newMat = BABYLON.Matrix.Compose(scale, rot, trans);
+            transformVector.set(x,y,0);
 
+            const newMat = BABYLON.Matrix.Compose(scaleVector, rotation, transformVector);
 
             newMat.copyToArray(range1Matrices, i * 16);
 
         }
-
-        console.table(consoleData);
-
 
         range1Mesh.thinInstanceSetBuffer("matrix", range1Matrices);
 
@@ -184,7 +170,6 @@ export class RowManagerActions {
 }
 
 function stringDateToDate(stringDate) {
-
     const parts = stringDate.split(" ");
     const date = parts[0].split("/").reverse().join("-");
     const fullString = [date, parts[1]].join("T");
