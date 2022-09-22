@@ -15,9 +15,11 @@ export class Timeline extends crsbinding.classes.BindableElement {
     async connectedCallback() {
         await super.connectedCallback();
         this.canvas = this.querySelector("canvas");
+
         await ThemeManager.initialize(this.canvas);
         const ready = async () => {
             this.canvas.removeEventListener("ready", ready);
+            this.canvas.__engine.setHardwareScalingLevel(1/ window.devicePixelRatio);
             await this.render();
         }
 
