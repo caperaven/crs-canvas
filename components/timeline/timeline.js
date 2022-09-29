@@ -36,9 +36,12 @@ export class Timeline extends crsbinding.classes.BindableElement {
         this.#canvas = null;
     }
 
-
     async render() {
-        const startDate = new Date(2022, 0, 1);
+
+        const scene = this.#canvas.__layers[0];
+
+
+        const startDate = new Date(2020, 0, 1);
         const endDate = new Date(2022, 11, 31);
 
         await crs.call("time_line", "initialize", {
@@ -62,8 +65,9 @@ export class Timeline extends crsbinding.classes.BindableElement {
             element: this.#canvas,
             items: workOrderSamples
         });
-    }
 
+
+    }
 }
 
 customElements.define("crs-timeline", Timeline)

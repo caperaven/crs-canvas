@@ -54,6 +54,7 @@ export class TextManagerActions {
         });
 
         customMesh.material = material;
+        return customMesh;
     }
 }
 

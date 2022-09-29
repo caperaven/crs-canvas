@@ -14,8 +14,3 @@ void main(void) {
     float alpha = smoothstep(min, max, dist); // 0.01, 0.5, dist 0.3, 1.0
     glFragColor = vec4(v_color.rgb, alpha);
 }
-
-
-//float dist = texture2D(u_texture, v_texcoord).r;
-//float alpha = smoothstep(u_buffer — u_gamma, u_buffer + u_gamma, dist);
-//gl_FragColor = vec4(u_color.rgb, alpha * u_color.a);
