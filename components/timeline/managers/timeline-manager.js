@@ -75,15 +75,17 @@ class YearScale {
         //get amount of months between those two dates
         const differenceInMonths = (maxDate.getMonth() - minDate.getMonth()) + (12 * (maxDate.getFullYear() - minDate.getFullYear()));
         const widths = [];
-        const previousMonth = new Date(minDate);
+        let previousMonth = new Date(minDate);
         for (let i = 1; i < differenceInMonths; i++) {
             //loop through months calculating widths for each
             const newDate = new Date(previousMonth);
-            newDate.setMonth(previousMonth.getMonth() + i);
+            newDate.setMonth(previousMonth.getMonth() + 1);
             const timeInHours = Math.abs(getDate(newDate) - getDate(previousMonth)) / 3.6e+6;
             const year = newDate.getFullYear();
             const isLeap = (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
-            isLeap ? widths.push(timeInHours * (1/732)) : widths.push(timeInHours * (1/729.2));
+            isLeap ? widths.push(timeInHours * (3/732)) : widths.push(timeInHours * (3/729.2));
+
+            previousMonth = newDate;
         }
 
         return {items: differenceInMonths, widths: widths};

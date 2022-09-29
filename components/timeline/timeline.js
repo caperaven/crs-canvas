@@ -25,7 +25,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
     async connectedCallback() {
         await super.connectedCallback();
         this.#canvas = this.querySelector("canvas");
-        this.scale = this.scale || 'year';
+        this.scale = this.scale || 'month';
 
         await ThemeManager.initialize(this.#canvas);
         const ready = async () => {
