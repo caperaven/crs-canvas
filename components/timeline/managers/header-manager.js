@@ -17,30 +17,30 @@ class HeaderManager {
     async render(startDate, endDate, scale, canvas) {
         await this.#observeCamera(canvas)
 
-        scale = scale || TIMELINE_SCALE.MONTH;
+        const result = await crs.call("gfx_timeline_manager", "set_range", {
+            element: canvas,
+            min: startDate,
+            max: endDate,
+            scale: scale
+        });
+        console.log("set_range result", startDate, endDate, result)
 
-        const dayCount = getDaysBetweenDates(startDate, endDate);
-        this.#bgMesh = await this.#createBgMesh(canvas, dayCount);
-        this.#headerMesh = await this.#createMesh(canvas);
+        this.#bgMesh = await this.#createBgMesh(canvas, result.items);
+        this.#headerMesh = await this.#createMesh(canvas, result.width);
 
-        const bufferMatrices = new Float32Array(16 * dayCount);
-        const bufferColors = new Float32Array(4 * dayCount);
+        const bufferMatrices = new Float32Array(16 * result.items);
+        const bufferColors = new Float32Array(4 * result.items);
 
         let colors = [];
-
-        const offset = 0.5
-
-        for (let i = 0; i < dayCount; i++) {
+        const totalWidth = result.items * result.width
+        const offset = result.width / 2;
+        for (let i = 0; i < totalWidth; i += result.width) {
+            const x = offset + i;
+            const matrix = BABYLON.Matrix.Translation(x, -0.25, 0);
+            matrix.copyToArray(bufferMatrices, i * 16);
 
             startDate.setUTCDate(startDate.getUTCDate() + 1);
-
-            const x = offset + i;
-
-            const matrix = BABYLON.Matrix.Translation(x, -0.25, 0);
-
-            matrix.copyToArray(bufferMatrices, i * 16);
             const dayNumber = startDate.getUTCDay();
-
             if (dayNumber % 6 === 0 || dayNumber % 7 === 0) {
                 //TODO find better way to add to array
                 colors.push(...[0.933, 0.933, 0.933, 1]);
@@ -66,11 +66,14 @@ class HeaderManager {
         // })
     }
 
-    async #createMesh(canvas) {
+    /**
+     * Creates the column meshes
+     */
+    async #createMesh(canvas, size) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas, mesh: {
                 id: "timeline_header", type: "plane", options: {
-                    width: 0.98, height: 0.48
+                    width: size - 0.02, height: 0.48
                 }
             }, material: {
                 id: "timeline_header", color: canvas._theme.header_bg,
@@ -80,6 +83,9 @@ class HeaderManager {
         return meshes[0];
     }
 
+    /**
+     * Creates a long backing mesh
+     */
     async #createBgMesh(canvas, size) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas, mesh: {
@@ -121,14 +127,6 @@ export class HeaderManagerActions {
 
         canvas.__headers.render(startDate, endDate, scale, canvas, scene);
     }
-}
-
-function getDaysBetweenDates(firstDate, secondDate) {
-    // This function can be removed when Kieran got the timeline manager going
-    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-
-    const diffDays = Math.round(Math.abs((firstDate - secondDate) / oneDay));
-    return diffDays;
 }
 
 crs.intent.gfx_timeline_header = HeaderManagerActions;
