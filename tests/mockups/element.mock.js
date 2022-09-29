@@ -1,79 +1,91 @@
-export class ElementMock {
-    constructor(tagName, name) {
-        this.attributes = [];
-        this.queryResults = new Map();
-        this.events = new Map();
-        this.textContent = "";
-        this.innerText = "";
-        this.innerHTML = "";
-        this.content = this;
-        this.children = [];
-        this.classList = new ClassList();
-        this.dataset = {};
+export function mockElement(instance, tagName, name) {
+    instance.variables = {};
+    instance.attributes = [];
+    instance.queryResults = new Map();
+    instance.events = new Map();
+    instance.textContent = "";
+    instance.innerText = "";
+    instance.innerHTML = "";
+    instance.content = instance;
+    instance.children = [];
+    instance.classList = new ClassList();
+    instance.dataset = {};
 
-        this.nodeName = (tagName || "div").toUpperCase();
-        this.name = name;
-        this.style = {
-            gridTemplateColumns: "",
-            gridTemplateRows: ""
-        };
+    instance.nodeName = (tagName || "div").toUpperCase();
+    instance.name = name;
+    instance.style = {
+        gridTemplateColumns: "",
+        gridTemplateRows: ""
+    };
+
+    instance.getAttribute = (attr) => {
+        return instance.attributes.find(item => item.name == attr);
     }
 
-    getAttribute(attr) {
-        return this.attributes.find(item => item.name == attr);
-    }
-
-    setAttribute(attr, value) {
+    instance.setAttribute =(attr, value) => {
         const attrObj = {
             name: attr,
             value: value,
-            ownerElement: this
+            ownerElement: instance
         };
 
-        this.attributes.push(attrObj);
+        instance.attributes.push(attrObj);
     }
 
-    removeAttribute(attr, value) {
-        const attrObj = this.getAttribute(attr);
-        const index = this.attributes.indexOf(attrObj);
-        this.attributes.splice(index, 1);
+    instance.removeAttribute = (attr, value) => {
+        const attrObj = instance.getAttribute(attr);
+        const index = instance.attributes.indexOf(attrObj);
+        instance.attributes.splice(index, 1);
     }
 
-    querySelector(selector) {
-        return this.queryResults.get(selector);
+    instance.querySelector = (selector) => {
+        return instance.queryResults.get(selector);
     }
 
-    querySelectorAll(selector) {
-        return [this.querySelector(selector)];
+    instance.querySelectorAll = (selector) => {
+        return [instance.querySelector(selector)];
     }
 
-    cloneNode() {
-        return this;
+    instance.cloneNode = () => {
+        return instance;
     }
 
-    appendChild(element) {
-        this.children.push(element);
-        return this;
+    instance.appendChild = (element) => {
+        instance.children.push(element);
+        return instance;
     };
 
-    removeChild(child) {
-        const index = this.children.indexOf(child);
+    instance.removeChild = (child) => {
+        const index = instance.children.indexOf(child);
         if (index != -1) {
-            this.children.splice(index, 1);
+            instance.children.splice(index, 1);
         }
-        return this;
+        return instance;
     }
 
-    addEventListener(event, callback) {
-        this.events.set(event, callback);
+    instance.addEventListener = (event, callback) => {
+        instance.events.set(event, callback);
     }
 
-    removeEventListener(event, callback) {
-        this.events.delete(event);
+    instance.removeEventListener = (event, callback) => {
+        instance.events.delete(event);
     }
 
-    insertBefore(element, oldElement) {
+    instance.insertBefore = (element, oldElement) => {
+    }
 
+    instance.dispatchEvent = (event, args) => {
+        instance.events[event]?.(args);
+    }
+
+    return instance;
+}
+
+
+
+export class ElementMock {
+    constructor(tagName, name) {
+        mockElement(this, tagName, name);
     }
 }
 

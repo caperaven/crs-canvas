@@ -10,6 +10,8 @@ export class TextManagerActions {
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const text = await crs.process.getValue(step.args.text, context, process, item);
         const position = (await crs.process.getValue(step.args.position, context, process, item)) || {x: 0, y: 0, z: 0};
+        const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
+
         const scene = canvas.__layers[layer];
 
         const data = new BABYLON.VertexData();
@@ -47,10 +49,12 @@ export class TextManagerActions {
         const material = await crs.call("gfx_materials", "get_shader", {
             element: canvas,
             id: "sdf",
-            texture: "textures/sdf_font.png"
+            texture: "textures/sdf_font.png",
+            attributes: attributes
         });
 
         customMesh.material = material;
+        return customMesh;
     }
 }
 

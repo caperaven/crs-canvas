@@ -46,8 +46,15 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async render() {
-        const startDate = new Date(2022, 0, 1);
-        const endDate = new Date(2023, 0, 1);
+        // const startDate = new Date(2022, 0, 1);
+        // const endDate = new Date(2023, 0, 1);
+
+
+        const scene = this.#canvas.__layers[0];
+
+
+        const startDate = new Date(2020, 0, 1);
+        const endDate = new Date(2022, 11, 31);
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,

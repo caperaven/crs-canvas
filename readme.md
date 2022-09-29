@@ -50,6 +50,7 @@ https://cyos.babylonjs.com/
 ## References
 https://playground.babylonjs.com/#H6UIFZ
 https://github.com/Butterwell/mtsdf-fonts/tree/main/src
+https://blog.mapbox.com/drawing-text-with-signed-distance-fields-in-mapbox-gl-b0933af6f817
 
 ## Examples
 https://playground.babylonjs.com/#026IT4#2
@@ -58,3 +59,5 @@ https://playground.babylonjs.com/#026IT4#2
 msdf-atlas-gen -mtsdf_font .\SourceSansPro-Regular.ttf -json mtsdf_font.json -format png -imageout mtsdf_font.png
 
 
+        sphere.registerInstancedBuffer("customColor", 3);
+        sphere.instancedBuffers.customColor = BABYLON.Color3.Red();
