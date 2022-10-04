@@ -24,7 +24,6 @@ mod test {
     #[test]
     fn simple_shape() {
         let path = create_path("m,-100,-100,0.0,l,100,-100,0.0,l,100,100,0.0,l,-100,100,0.0,z");
-
         let buffer = create_fill(&path);
 
         println!("{:?}", buffer);

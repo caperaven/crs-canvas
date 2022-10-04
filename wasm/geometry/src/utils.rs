@@ -3,6 +3,7 @@ use js_sys::{Array, Object};
 use wasm_bindgen::JsValue;
 use crate::PolyBuffer;
 
+/// Returns a js_sys object which can be sent via wasm
 pub fn populate_from_buffer(buffers: &PolyBuffer, aabb: &Box2D) -> Object {
     let result = Object::new();
     let vertices = Array::new();
@@ -19,6 +20,7 @@ pub fn populate_from_buffer(buffers: &PolyBuffer, aabb: &Box2D) -> Object {
         indices.push(value);
     }
 
+    //TODO :: AA expose for javascript via wasm
     //let aa_result = Object::new();
     // js_sys::Reflect::set(&aa_result, &"originX".into(), &aabb.origin.x.into()).ok();
     // js_sys::Reflect::set(&aa_result, &"originY".into(), &aabb.origin.y.into()).ok();
