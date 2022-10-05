@@ -1,8 +1,8 @@
 const ViewToScaleFactor = Object.freeze({
     "day":   2,
-    "week":  3 / 24,
-    "month": 1 / 24,
-    "year":  3 / 730
+    "week":  4,
+    "month": 1,
+    "year":  3
 })
 
 function getDate(date) {
@@ -24,76 +24,112 @@ function getDate(date) {
 
 class DayScale {
     async get(min, date, zoomFactor = 0) {
-        const valueHours = (getDate(date) - getDate(min)) / 3.6e+6;
-        return valueHours * (ViewToScaleFactor.day + zoomFactor);
+        const differenceInHours = (getDate(date) - getDate(min)) / 3.6e+6;
+        return differenceInHours * (ViewToScaleFactor.day + zoomFactor);
     }
 
     async setScale(min, max, zoomFactor = 0) {
         const difference = Math.abs(getDate(max) - getDate(min)) / 3.6e+6;
-        return {items: Math.round(difference * (ViewToScaleFactor.day + zoomFactor)), width: (1 + zoomFactor)};
+        const items = Math.round(difference * (ViewToScaleFactor.day + zoomFactor));
+        const width = (1 + zoomFactor);
+        return {items: items, width: width, totalWidth: items * width};
     }
 }
 
 class WeekScale {
     async get(min, date, zoomFactor = 0) {
-        const valueHours = (getDate(date) - getDate(min)) / 3.6e+6;
-        return valueHours * (ViewToScaleFactor.week + zoomFactor);
+        const differenceInHours = (getDate(date) - getDate(min)) / 3.6e+6;
+        return differenceInHours * ((ViewToScaleFactor.week / 24) + (zoomFactor / 24));
     }
 
     async setScale(min, max, zoomFactor = 0) {
         const difference = Math.abs(getDate(max) - getDate(min)) / 3.6e+6;
-        const hoursPerDay = Math.round(difference * (ViewToScaleFactor.week + (zoomFactor/24)));
-        return {items: hoursPerDay, width: (3 + (zoomFactor/24))};
+        const items = Math.round(difference * ((1 / 24) + (zoomFactor / 24)));
+        const width = (ViewToScaleFactor.week + (zoomFactor / 24));
+        return {items: items, width: width, totalWidth: items * width};
     }
 }
 
 class MonthScale {
     async get(min, date, zoomFactor = 0) {
-        const valueHours = (getDate(date) - getDate(min)) / 3.6e+6;
-        return valueHours * (ViewToScaleFactor.month + (zoomFactor/24));
+        const differenceInHours = (getDate(date) - getDate(min)) / 3.6e+6;
+        return differenceInHours * ((ViewToScaleFactor.month / 24) + (zoomFactor / 24));
     }
 
     async setScale(min, max, zoomFactor = 0) {
         const difference = Math.abs(getDate(max) - getDate(min)) / 3.6e+6;
-        return {items: Math.round(difference * (ViewToScaleFactor.month + (zoomFactor/24))), width: (1 + (zoomFactor/24))};
+        const items = Math.round(difference * ((1 / 24) + (zoomFactor/24)));
+        const width = (1 + (zoomFactor / 24));
+        return {items: items, width: width, totalWidth: items * width};
     }
 }
 
 class YearScale {
-    //TODO KR: need to improve accuracy here
     async get(min, date, zoomFactor = 0) {
-        const valueHours = (getDate(date) - getDate(min)) / 3.6e+6;
-        return valueHours * (ViewToScaleFactor.year + (zoomFactor/730));
+        const minDate = new Date(getDate(min));
+        const maxDate = new Date(getDate(date));
+
+        //get amount of months between the two dates
+        const differenceInMonths = this.#getDifferenceInMonths(minDate, maxDate);
+        if (differenceInMonths === 0) {
+            //Date occurs in the same month of the same year
+            const isLeap = this.#getLeap(minDate.getFullYear());
+            return this.#getWidth(minDate, maxDate, isLeap);
+        } else {
+            //Cycle through in-between months, building up totalWidth
+            let previousDate = new Date(minDate);
+            let totalWidth = 0;
+            for (let i = 0; i < differenceInMonths; i++) {
+                const newDate = new Date(previousDate);
+                newDate.setMonth(previousDate.getMonth() + 1);
+
+                const isLeap = this.#getLeap(newDate.getFullYear());
+                const width = this.#getWidth(previousDate, newDate, isLeap);
+                totalWidth += width;
+
+                previousDate = newDate;
+            }
+
+            return totalWidth;
+        }
     }
 
     async setScale(min, max, zoomFactor = 0) {
-        console.log("getScale for years");
-        //get times in date format
         const minDate = new Date(getDate(min));
         const maxDate = new Date(getDate(max));
 
-        //get amount of months between those two dates
-        const differenceInMonths = (maxDate.getMonth() - minDate.getMonth()) + (12 * (maxDate.getFullYear() - minDate.getFullYear()));
+        //get amount of months between the two dates
+        const differenceInMonths = this.#getDifferenceInMonths(minDate, maxDate);
         const widths = [];
-        let previousMonth = new Date(minDate);
-        for (let i = 1; i < differenceInMonths; i++) {
-            //loop through months calculating widths for each
-            const newDate = new Date(previousMonth);
-            newDate.setMonth(previousMonth.getMonth() + 1);
-            const timeInHours = Math.abs(getDate(newDate) - getDate(previousMonth)) / 3.6e+6;
-            const year = newDate.getFullYear();
-            const isLeap = (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
-            isLeap ? widths.push(timeInHours * (3/732)) : widths.push(timeInHours * (3/729.2));
+        let previousDate = new Date(minDate);
+        let totalWidth = 0;
+        for (let i = 0; i < differenceInMonths; i++) {
+            //Cycle through the months between, adding individual month widths & totalWidth
+            const newDate = new Date(previousDate);
+            newDate.setMonth(previousDate.getMonth() + 1);
 
-            previousMonth = newDate;
+            const isLeap = this.#getLeap(newDate.getFullYear());
+            const width = this.#getWidth(previousDate, newDate, isLeap);
+            widths.push(width);
+            totalWidth += width;
+
+            previousDate = newDate;
         }
 
-        return {items: differenceInMonths, widths: widths};
+        return {items: differenceInMonths, width: widths, totalWidth: totalWidth};
+    }
 
-        // const difference = Math.abs(getDate(max) - getDate(min)) / 3.6e+6; //difference in hours
-        // const timeInDays = difference / 24;
-        //
-        // return {items: Math.round(timeInDays * (3 / 12)), width: (3 + (zoomFactor/12))} ;
+    #getDifferenceInMonths(minDate, maxDate) {
+        return (maxDate.getMonth() - minDate.getMonth()) + (12 * (maxDate.getFullYear() - minDate.getFullYear()));
+    }
+
+    #getLeap(year) {
+        return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
+    }
+
+    #getWidth(minDate, maxDate, zoomFactor, isLeap) {
+        const differenceInHours = Math.abs(getDate(maxDate) - getDate(minDate)) / 3.6e+6;
+        return isLeap ? differenceInHours * ((ViewToScaleFactor.year / 732) + (zoomFactor / 732)) : differenceInHours * ((ViewToScaleFactor.year / 730) + (zoomFactor / 732));
     }
 }
 
@@ -130,7 +166,6 @@ class TimelineManager {
         const x2 = await this[`_${scale}Scale`].get(getDate(this.#min), getDate(end));
         const width = Math.abs(x2 - x1);
         const x = x1 + (width / 2);
-        // const x = x1 < x2 ? x1 + (width / 2) : x2 + (width / 2);        //Chat to GM on this detail
         return {
             x: x,
             width: width

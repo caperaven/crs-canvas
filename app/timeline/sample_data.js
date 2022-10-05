@@ -1,8 +1,8 @@
 export const workOrderSamples = [
     {
-        "code": "1 Month (June)",
-        "receivedOn": "01/06/2022 00:00:00.000",
-        "requiredBy": "01/07/2022 00:00:00.000",
+        "code": "1/2 hour",
+        "receivedOn": "03/01/2022 00:00:00.000",
+        "requiredBy": "03/01/2022 00:30:00.000",
     },
     {
         "code": "1 hour",
@@ -45,9 +45,54 @@ export const workOrderSamples = [
         "requiredBy": "01/02/2022 00:00:00.000",
     },
     {
-        "code": "1 Month (March)",
+        "code": "1 Month (Feb)",
+        "receivedOn": "01/02/2022 00:00:00.000",
+        "requiredBy": "01/03/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Mar)",
         "receivedOn": "01/03/2022 00:00:00.000",
         "requiredBy": "01/04/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Apr)",
+        "receivedOn": "01/04/2022 00:00:00.000",
+        "requiredBy": "01/05/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (May)",
+        "receivedOn": "01/05/2022 00:00:00.000",
+        "requiredBy": "01/06/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Jun)",
+        "receivedOn": "01/06/2022 00:00:00.000",
+        "requiredBy": "01/07/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Jul)",
+        "receivedOn": "01/07/2022 00:00:00.000",
+        "requiredBy": "01/08/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Aug)",
+        "receivedOn": "01/08/2022 00:00:00.000",
+        "requiredBy": "01/09/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Sep)",
+        "receivedOn": "01/09/2022 00:00:00.000",
+        "requiredBy": "01/10/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Oct)",
+        "receivedOn": "01/10/2022 00:00:00.000",
+        "requiredBy": "01/11/2022 00:00:00.000",
+    },
+    {
+        "code": "1 Month (Nov)",
+        "receivedOn": "01/11/2022 00:00:00.000",
+        "requiredBy": "01/12/2022 00:00:00.000",
     },
     {
         "code": "1 Month (December)",

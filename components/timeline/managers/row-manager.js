@@ -29,13 +29,12 @@ class RowManager {
             max: endDate,
             scale: scale
         });
-        await this._createOffsetRows(itemCount, canvas, result.items);
+        await this._createOffsetRows(itemCount, canvas, result.totalWidth);
 
         const range1Mesh = await this._createRect(1,0.5, canvas);
         const range1Matrices = new Float32Array(16 * itemCount);
 
         const headerOffset = 1;
-        const consoleData = [];
 
         const scaleVector = new BABYLON.Vector3(0, 1, 1);
         const rotation = new BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0);
@@ -47,12 +46,6 @@ class RowManager {
                 start: item.receivedOn,
                 end: item.requiredBy,
                 scale: scale
-            });
-            consoleData.push( {
-                startingX: result.x,
-                width: result.width,
-                receivedOn: item.receivedOn,
-                requiredBy: item.requiredBy
             });
 
             scaleVector.x = result.width;
@@ -66,7 +59,6 @@ class RowManager {
             newMat.copyToArray(range1Matrices, i * 16);
 
         }
-        console.table(consoleData);
         range1Mesh.thinInstanceSetBuffer("matrix", range1Matrices);
     }
 
