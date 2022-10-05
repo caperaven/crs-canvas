@@ -13,8 +13,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
 
         if (canvas.dataset.ready == "true") {
             ready();
-        }
-        else {
+        } else {
             canvas.addEventListener("ready", ready);
         }
     }
@@ -33,7 +32,14 @@ export default class Welcome extends crsbinding.classes.ViewBase {
         // BABYLON.MeshBuilder.CreateBox("box", {size: 1}, canvas.__layers[0]);
 
         crs.call("gfx_geometry", "add", { element: canvas, data: "icons/home", position: {x: -1, y: 1}, color: "#ff0090" });
-        crs.call("gfx_geometry", "add", { element: canvas, data: "flowchart/documents", position: {x: 1, y: 1}, color: "#ff9000" });
-        crs.call("gfx_geometry", "add", { element: canvas, data: "floorplan/fire_hose", position: {x: 1, y: -1}, color: "#9000ff" });
+        // crs.call("gfx_geometry", "add", { element: canvas, data: "flowchart/documents", position: {x: 1, y: 1}, color: "#ff9000" });
+        // crs.call("gfx_geometry", "add", { element: canvas, data: "floorplan/fire_hose", position: {x: 1, y: -1}, color: "#9000ff" });
+
+        crs.call("gfx_geometry", "from", {
+            element: canvas, data: {
+                positions: [-1, -1, 0, 1, -1, 0, 0, 1, 0],
+                indices: [1, 0, 2]
+            }, position: {x: 1, y: -1}, color: "#9000ff"
+        })
     }
 }
