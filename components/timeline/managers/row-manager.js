@@ -2,9 +2,8 @@ import "../../../src/managers/mesh-factory-manager.js";
 import {TIMELINE_SCALE} from "../timeline_scale.js";
 
 class RowManager {
-
-    async render(items, canvas) {
-        // For now hardcoding to days
+    async render(items, canvas, scene, startDate, endDate, scale) {
+        //RED DOT
         const test = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
             mesh: {
@@ -24,38 +23,35 @@ class RowManager {
 
         const itemCount = items.length;
 
-        await this._createOffsetRows(itemCount, canvas);
+        const result = await crs.call("gfx_timeline_manager", "set_range", {
+            element: canvas,
+            min: startDate,
+            max: endDate,
+            scale: scale
+        });
+        await this._createOffsetRows(itemCount, canvas, result.totalWidth);
 
-        const range1Mesh = await this._createRect(1,0.5,canvas);
+        const range1Mesh = await this._createRect(1,0.5, canvas);
         const range1Matrices = new Float32Array(16 * itemCount);
 
         const headerOffset = 1;
-
 
         const scaleVector = new BABYLON.Vector3(0, 1, 1);
         const rotation = new BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0);
         const transformVector = new BABYLON.Vector3(0, 0, 0);
         for (let i = 0; i < itemCount; i++) {
             const item = items[i]
-
-            item.testDate = stringDateToDate(item.receivedOn);
-
-            const result = await crs.call("time_line", "get", {
+            const result = await crs.call("gfx_timeline_manager", "get", {
                 element: canvas,
-                start: stringDateToDate(item.receivedOn),
-                end: stringDateToDate(item.requiredBy),
-                scale: TIMELINE_SCALE.MONTH
+                start: item.receivedOn,
+                end: item.requiredBy,
+                scale: scale
             });
 
+            scaleVector.x = result.width;
 
+            const x = result.x;
             const y = -i - headerOffset;
-
-            const width = Math.abs(result.x2 - result.x1);
-
-            const x = result.x1 + ((result.x2 - result.x1) / 2);
-
-            scaleVector.x = width;
-
             transformVector.set(x,y,0);
 
             const newMat = BABYLON.Matrix.Compose(scaleVector, rotation, transformVector);
@@ -63,12 +59,11 @@ class RowManager {
             newMat.copyToArray(range1Matrices, i * 16);
 
         }
-
         range1Mesh.thinInstanceSetBuffer("matrix", range1Matrices);
     }
 
-    async _createOffsetRows(itemCount, canvas) {
-        const offsetRowMesh = await this._createMesh(1000, 1, canvas);
+    async _createOffsetRows(itemCount, canvas, width) {
+        const offsetRowMesh = await this._createMesh(width, 1, canvas);
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
         const rowOffsetColors = new Float32Array(4 * offsetRowCount);
@@ -153,17 +148,14 @@ export class RowManagerActions {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const items = await crs.process.getValue(step.args.items, context, process, item);
+        const startDate = await crs.process.getValue(step.args.start_date, context, process, item);
+        const endDate = await crs.process.getValue(step.args.end_date, context, process, item);
+        const scale = await crs.process.getValue(step.args.scale, context, process, item);
+
         const scene = canvas.__layers[layer];
 
-        canvas.__rows.render(items, canvas, scene);
+        canvas.__rows.render(items, canvas, scene, startDate, endDate, scale);
     }
-}
-
-function stringDateToDate(stringDate) {
-    const parts = stringDate.split(" ");
-    const date = parts[0].split("/").reverse().join("-");
-    const fullString = [date, parts[1]].join("T");
-    return new Date(Date.parse(fullString));
 }
 
 crs.intent.gfx_timeline_rows = RowManagerActions;
