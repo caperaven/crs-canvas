@@ -1,6 +1,6 @@
 import "./../../src/managers/geometry-factory-manager.js";
 import "./../../src/managers/mesh-factory-manager.js";
-import "./../../src/managers/timeline-manager.js";
+import "../../components/timeline/managers/timeline-manager.js";
 
 const getDates = () => {
     const dates = [
@@ -88,12 +88,12 @@ export default class TimeLine extends crsbinding.classes.ViewBase {
     }
 
     async _initTimelineManager() {
-        await crs.call("time_line", "initialize", {element: this.canvas, min: this.dates[0].start, max: this.dates[3].end});
+        await crs.call("gfx_timeline_manager", "initialize", {element: this.canvas, min: this.dates[0].start, max: this.dates[3].end});
     }
 
     async _renderDates() {
         for (let i = 0; i < this.dates.length; i++) {
-            const result = await crs.call("time_line", "get", {element: this.canvas, start: this.dates[i].start, end: this.dates[i].end, scale: this.scale});
+            const result = await crs.call("gfx_timeline_manager", "get", {element: this.canvas, start: this.dates[i].start, end: this.dates[i].end, scale: this.scale});
 
             //NOTE: the calcs I'm doing on width & position. Can move that logic into the manager if needed i.e. get() can return width and an already transformed x1
             await crs.call("gfx_mesh_factory", "create", {
@@ -102,11 +102,11 @@ export default class TimeLine extends crsbinding.classes.ViewBase {
                     id: `mesh_${i}`,
                     type: "plane",
                     options: {
-                        width: result.x2 - result.x1,
+                        width: result.width,
                         height: 0.5
                     }
                 },
-                positions: [{x: result.x1 + ((result.x2 - result.x1) / 2), y: -i + 0.5, z:0}],
+                positions: [{x: result.x, y: -i + 0.5, z:0}],
                 material: {
                     id: "bar_colour",
                     color: "#14645b"
