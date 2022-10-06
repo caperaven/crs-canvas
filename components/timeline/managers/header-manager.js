@@ -84,6 +84,10 @@ class HeaderManager {
         })
     }
 
+    #getBaseYPosition(canvas) {
+        return 0.375 - canvas.__camera.offset_y;
+    }
+
     /**
      * Creates a long backing mesh
      */
@@ -98,7 +102,7 @@ class HeaderManager {
                 }
             }, material: {
                 id: "timeline_header_border", color: canvas._theme.header_border,
-            }, positions: [{x: size / 2, y: -0.375, z: -0.01}]
+            }, positions: [{x: size / 2, y: this.#getBaseYPosition(canvas), z: -0.01}]
         })
 
         return meshes[0];
@@ -166,7 +170,7 @@ class HeaderManager {
             const hourNumber = startDate.getHours();
 
             result[hourNumber].positions.push(-0.275 + ((i * width) * 2), -0.3, -0.02);
-            result.header_plane.positions.push(0.5 + i, -0.375, -0.01);
+            result.header_plane.positions.push(0.5 + i, this.#getBaseYPosition(canvas), -0.01);
 
             startDate.setHours(hourNumber + 1);
         }
@@ -229,7 +233,7 @@ class HeaderManager {
         }
 
         for (let i = 0; i < numberOfItems; i++) {
-            result.header_plane.positions.push((width / 2) + (i * width), -0.375, -0.01);
+            result.header_plane.positions.push((width / 2) + (i * width), this.#getBaseYPosition(canvas), -0.01);
 
             const day = startDate.toLocaleString('en-us', {weekday:'long'})
             const dayNumber = startDate.getDate();
@@ -303,7 +307,7 @@ class HeaderManager {
 
             result[day.toLowerCase()].positions.push(0.25 + i, -0.3, -0.02);
 
-            result.header_plane.positions.push(0.5 + i, -0.375, -0.01);
+            result.header_plane.positions.push(0.5 + i, this.#getBaseYPosition(canvas), -0.01);
 
             result[dayNumber].positions.push(0.325 + i, -0.55, -0.01);
             startDate.setUTCDate(startDate.getUTCDate() + 1);
@@ -402,7 +406,7 @@ class HeaderManager {
                 totalHeaderDistance += ((width[i - 1] / 2) + (width[i] / 2));
             }
 
-            result[`header_plane_${width[i]}`].positions.push(totalHeaderDistance + (width[0] / 2), -0.375, -0.01);
+            result[`header_plane_${width[i]}`].positions.push(totalHeaderDistance + (width[0] / 2), this.#getBaseYPosition(canvas), -0.01);
 
             const month = startDate.getMonth();
             result[month].positions.push((totalTextDistance + (width[0] / 2)) - 0.45, -0.4, -0.02);
