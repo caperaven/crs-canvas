@@ -15,5 +15,16 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         await crs.call("gfx_stats", "addInspector", {
             element: "canvas"
         });
+
+        await crs.call("gfx_custom_shapes", "add", {
+            element: "canvas",
+            shape: "arrow_line",
+            width: 21.35,
+            position: {
+                x: 0,
+                y: 1,
+                z: -0.01
+            }
+        });
     }
 }

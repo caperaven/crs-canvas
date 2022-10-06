@@ -55,8 +55,8 @@ class HeaderManager {
 
     async #observeCamera(canvas) {
         canvas.__camera.onViewMatrixChangedObservable.add((camera)=> {
-            this.#headerParticleSystem.mesh.position.y = camera.position.y;
-            this.#bgMesh.position.y = camera.position.y - 0.375;
+            this.#headerParticleSystem.mesh.position.y = camera.position.y - camera.offset_y ;
+            this.#bgMesh.position.y = camera.position.y - 0.375 - camera.offset_y;
         })
     }
 

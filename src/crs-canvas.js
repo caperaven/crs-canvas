@@ -24,8 +24,8 @@ class GraphicsActions {
         canvas.__layers.push(scene);
         canvas.__engine = engine;
 
-        await crs.call("gfx_camera", "initialize", { element: canvas, type: camera });
         await crs.call("gfx_materials", "initialize", { element: canvas });
+        await crs.call("gfx_camera", "initialize", { element: canvas, type: camera });
         await crs.call("gfx_sdf_icon", "initialize", { element: canvas });
 
         canvas.__renderLoop = renderLoop.bind(canvas);

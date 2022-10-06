@@ -1,7 +1,9 @@
 import {ThemeManager} from "./managers/theme-manager.js";
 import "./managers/header-manager.js"
 import "./managers/row-manager.js"
+
 import "./../../src/managers/timeline-manager.js";
+import "./../../src/managers/mesh-factory-manager.js";
 
 import {TIMELINE_SCALE} from "./timeline_scale.js";
 import {workOrderSamples} from "../../app/timeline/sample_data.js";
@@ -9,6 +11,8 @@ import {workOrderSamples} from "../../app/timeline/sample_data.js";
 export class Timeline extends crsbinding.classes.BindableElement {
 
     #canvas;
+    #beforeRenderObserver;
+    #beforeRenderHandler;
 
     get html() {
         return import.meta.url.replace(".js", ".html")
@@ -21,7 +25,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
         await ThemeManager.initialize(this.#canvas);
         const ready = async () => {
             this.#canvas.removeEventListener("ready", ready);
-            this.#canvas.__engine.setHardwareScalingLevel(1/ window.devicePixelRatio);
+            this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
             await this.render();
         }
 
@@ -39,6 +43,13 @@ export class Timeline extends crsbinding.classes.BindableElement {
     async render() {
 
         const scene = this.#canvas.__layers[0];
+        const camera = this.#canvas.__camera;
+
+        this.#canvas.__camera.checkCollisions = true;
+        scene.collisionsEnabled = true;
+        camera.collisionRadius = new BABYLON.Vector3(1, 1, 1);
+
+
 
 
         const startDate = new Date(2020, 0, 1);
@@ -66,7 +77,42 @@ export class Timeline extends crsbinding.classes.BindableElement {
             items: workOrderSamples
         });
 
+        await this.#configureCamera(camera, scene);
+    }
 
+    async #configureCamera(camera, scene) {
+
+        let observer = scene.onBeforeRenderObservable.add(() => {
+            camera.getViewMatrix();
+
+            const topLeftNormalised = new BABYLON.Vector3(-1, 1, 1)
+
+            // Calculate top_left corner on the far plane. We need it to calculate our tangent
+            const pos = BABYLON.Vector3.TransformCoordinates(topLeftNormalised, camera.getTransformationMatrix().invert());
+
+            if (pos.x) {
+                camera._transformed = true;
+
+                const zDistance = pos.z - camera.position.z;
+                const tangentX = this.#calculateTangent(zDistance, pos.x);
+                const cameraNewX = tangentX * camera.position.z;
+
+                const tangentY = this.#calculateTangent(zDistance, pos.y);
+                const cameraNewY = tangentY * camera.position.z;
+
+                camera.offset_x = cameraNewX;
+                camera.offset_y = cameraNewY;
+
+                camera.position.x = cameraNewX;
+                camera.position.y = cameraNewY;
+
+                scene.onBeforeRenderObservable.remove(observer)
+            }
+        })
+    }
+
+    #calculateTangent(adjacent, opposite) {
+        return opposite / adjacent;
     }
 }
 

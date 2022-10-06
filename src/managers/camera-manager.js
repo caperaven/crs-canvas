@@ -1,4 +1,4 @@
-import {CameraPanInputActions} from "./inputs/camera-pan-input.js";
+import { CustomPanInput} from "./inputs/camera-pan-input.js";
 
 class CameraManagerActions {
     static async perform(step, context, process, item) {
@@ -85,14 +85,48 @@ class CameraFactory {
         return camera;
     }
 
+
+    static pan2(parts, scene) {
+        const allowXPan = Number(parts[1] || 1);
+        const allowYPan = Number(parts[2] || 1);
+
+        const target = new BABYLON.Vector3(0, 0, 0);
+
+        const halfPI = Math.PI / 2;
+        const camera = new BABYLON.ArcRotateCamera("camera", -halfPI,halfPI, 9, target, scene);
+
+        camera.zoomToMouseLocation = true;
+        camera.upperAlphaLimit = -halfPI;
+        camera.lowerAlphaLimit = -halfPI;
+        camera.upperBetaLimit = halfPI;
+        camera.lowerBetaLimit = halfPI;
+        camera.wheelPrecision = 20;
+        camera.lowerRadiusLimit = 2;
+        camera.upperRadiusLimit = 50;
+        camera.panningAxis = new BABYLON.Vector3(allowXPan, allowYPan, 0);
+
+        let prevRadius = camera.radius;
+        scene.onBeforeRenderObservable.add(() => {
+            let ratio = 0;
+            if (prevRadius != camera.radius) {
+                ratio = prevRadius / camera.radius;
+                prevRadius = camera.radius;
+                camera.panningSensibility *= ratio;
+                camera.wheelPrecision *= ratio;
+            }
+        });
+
+        return camera;
+    }
+
     static async custom_pan(parts, scene) {
         //WIP
-        const camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, -250), scene);
+        const camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, -13), scene);
 
         camera.attachControl(scene, true);
         camera.inputs.remove(camera.inputs.attached.mouse);
 
-        await CameraPanInputActions.enable(scene, camera);
+        camera._input =  new CustomPanInput(scene, camera);
         camera.__forceDisableControls = true;
         return camera;
     }
