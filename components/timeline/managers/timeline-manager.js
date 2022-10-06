@@ -143,6 +143,11 @@ class TimelineManager {
         this.setScales();
     }
 
+    dispose() {
+        this.#min = null;
+        this.#max = null;
+    }
+
     setScales() {
         this._dayScale   = this._dayScale   || new DayScale();
         this._weekScale  = this._weekScale  || new WeekScale();
@@ -185,6 +190,11 @@ class TimelineManagerActions {
         const scale = (await crs.process.getValue(step.args.scale, context, process, item));
         canvas.__timelineManager = new TimelineManager(min, max);
         return await canvas.__timelineManager.setScale(canvas, min, max, scale);
+    }
+
+    static async dispose(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        canvas.__timelineManager = canvas.__timelineManager?.dispose();
     }
 
     static async set_range(step, context, process, item) {

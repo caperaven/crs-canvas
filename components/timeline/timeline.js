@@ -11,6 +11,8 @@ import {workOrderSamples} from "../../app/timeline/sample_data.js";
 export class Timeline extends crsbinding.classes.BindableElement {
 
     #canvas;
+    #startDate;
+    #endDate;
 
     get html() {
         return import.meta.url.replace(".js", ".html")
@@ -24,8 +26,26 @@ export class Timeline extends crsbinding.classes.BindableElement {
         this.setProperty('scale', scale);
     }
 
+    get configuration() {
+        return this.getProperty('configuration');
+    }
+
+    set configuration(configuration) {
+        this.setProperty('configuration', configuration);
+    }
+
     async connectedCallback() {
         await super.connectedCallback();
+        this.configuration = {
+            settings: [
+                {
+                    fromField: "receivedOn",
+                    toField: "requiredBy",
+                    shapeType: "rectangle"
+                }
+            ]
+        }
+
         this.#canvas = this.querySelector("canvas");
         this.scale = this.scale || 'year';
 
@@ -55,14 +75,13 @@ export class Timeline extends crsbinding.classes.BindableElement {
         scene.collisionsEnabled = true;
         camera.collisionRadius = new BABYLON.Vector3(1, 1, 1);
 
-
-        const startDate = new Date(2021, 8, 1);
-        const endDate = new Date(2024, 11, 31);
+        this.#startDate = new Date(2022, 0, 1);
+        this.#endDate = new Date(2024, 11, 31);
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
-            min: startDate,
-            max: endDate,
+            min: this.#startDate,
+            max: this.#endDate,
             scale: this.scale
         });
 
@@ -70,18 +89,18 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
         await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
-            start_date: startDate,
-            end_date: endDate,
+            start_date: this.#startDate,
+            end_date: this.#endDate,
             scale: this.scale
         });
 
-        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas});
+        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.configuration});
 
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,
             items: workOrderSamples,
-            start_date: startDate,
-            end_date: endDate,
+            start_date: this.#startDate,
+            end_date: this.#endDate,
             scale: this.scale
         });
         await this.#configureCamera(camera, scene);
@@ -123,7 +142,24 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
     async setScale(scale) {
         this.scale = scale;
-        //TODO KR: add refresh logic
+
+        await crs.call("gfx_timeline_header", "clean", {element: this.#canvas});
+        await crs.call("gfx_timeline_rows", "clean", {element: this.#canvas});
+
+        await crs.call("gfx_timeline_header", "render", {
+            element: this.#canvas,
+            start_date: this.#startDate,
+            end_date: this.#endDate,
+            scale: this.scale
+        });
+
+        await crs.call("gfx_timeline_rows", "render", {
+            element: this.#canvas,
+            items: workOrderSamples,
+            start_date: this.#startDate,
+            end_date: this.#endDate,
+            scale: this.scale
+        });
     }
 }
 

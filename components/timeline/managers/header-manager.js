@@ -32,6 +32,16 @@ class HeaderManager {
         this.#headerParticleSystem = null;
     }
 
+    async clean(canvas, scene) {
+        //clean big mesh
+        const timelineHeaderBorderMesh = scene.getMeshByID("timeline_header_border");
+        timelineHeaderBorderMesh?.dispose();
+
+        //clean header_mesh/s
+        await crs.call("gfx_particles", "remove", {element: canvas, id: "timeline_headers"});
+    }
+
+
     async render(startDate, endDate, scale, canvas, scene) {
         scale = scale || TIMELINE_SCALE.MONTH;
         const result = await crs.call("gfx_timeline_manager", "set_range", {
@@ -44,14 +54,16 @@ class HeaderManager {
         this.#bgMesh = await this.#createBgMesh(canvas, result.totalWidth);
 
         const textScaling = new BABYLON.Vector3(0.25,0.25,1);
+        const tempStartDate = new Date(startDate);
+        const tempEndDate = new Date(endDate);
+
         this.#headerParticleSystem = await crs.call("gfx_particles", "add", {
             element: canvas,
-            shapes: await this.#scaleToShape[scale](new Date(startDate.getTime()), endDate, canvas, result.items, result.width, scale),
-            systemId: "timeline_headers",
+            shapes: await this.#scaleToShape[scale](tempStartDate, tempEndDate, canvas, result.items, result.width, scale),
+            id: "timeline_headers",
             particleCallback: (shape, particle, i) => {
-                //TODO KR: bring in a convention here for colouring header planes based on scale
                 if(shape.includes("header_plane")) {
-                    this.#scaleToColour[scale](startDate, particle, i, canvas);
+                    this.#scaleToColour[scale](tempStartDate, particle, i, canvas);
                 }
                 else {
                     particle.scaling = textScaling;
@@ -66,6 +78,9 @@ class HeaderManager {
         canvas.__camera.onViewMatrixChangedObservable.add((camera)=> {
             this.#headerParticleSystem.mesh.position.y = camera.position.y - camera.offset_y ;
             this.#bgMesh.position.y = camera.position.y - 0.375 - camera.offset_y;
+            
+            // if (this.#headerParticleSystem.mesh != null) this.#headerParticleSystem.mesh.position.y = camera.position.y;
+            // this.#bgMesh.position.y = camera.position.y - 0.375;
         })
     }
 
@@ -75,7 +90,7 @@ class HeaderManager {
     async #createBgMesh(canvas, size) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas, mesh: {
-                id: "timeline_header_border",
+                name: "timeline_header_border",
                 type: "plane",
                 options: {
                     width: size,
@@ -298,6 +313,7 @@ class HeaderManager {
     }
 
     async #getYearHeaderShapes(startDate, endDate, canvas, numberOfItems, width, scale) {
+        console.log("getting year shapes");
         const janMesh = await createHeaderText("January", canvas);
         const febMesh = await createHeaderText("February", canvas);
         const marMesh = await createHeaderText("March", canvas);
@@ -368,7 +384,7 @@ class HeaderManager {
             if (result[`header_plane_${width[i]}`] == null) {
                 const meshes = await crs.call("gfx_mesh_factory", "create", {
                     element: canvas, mesh: {
-                        id: `timeline_header_${i}`, type: "plane", options: {
+                        name: `timeline_header_${i}`, type: "plane", options: {
                             width: width[i] - 0.02, height: 0.72
                         }
                     }, material: {
@@ -424,6 +440,15 @@ export class HeaderManagerActions {
 
         canvas.__headers.render(startDate, endDate, scale, canvas, scene);
     }
+
+    static async clean(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+
+        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        const scene = canvas.__layers[layer];
+
+        await canvas.__headers.clean(canvas, scene);
+    }
 }
 
 async function createHeaderText(text, canvas, bold = false) {
@@ -448,7 +473,7 @@ async function createHeaderText(text, canvas, bold = false) {
 async function createHeaderMesh(canvas, width, offset = 0.02) {
     const meshes = await crs.call("gfx_mesh_factory", "create", {
         element: canvas, mesh: {
-            id: "timeline_header", type: "plane", options: {
+            name: "timeline_header", type: "plane", options: {
                 width: width - offset, height: 0.72
             }
         }, material: {
