@@ -11,8 +11,6 @@ import {workOrderSamples} from "../../app/timeline/sample_data.js";
 export class Timeline extends crsbinding.classes.BindableElement {
 
     #canvas;
-    #beforeRenderObserver;
-    #beforeRenderHandler;
 
     get html() {
         return import.meta.url.replace(".js", ".html")
@@ -58,7 +56,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
         camera.collisionRadius = new BABYLON.Vector3(1, 1, 1);
 
 
-        const startDate = new Date(2022, 0, 1);
+        const startDate = new Date(2021, 8, 1);
         const endDate = new Date(2024, 11, 31);
 
         await crs.call("gfx_timeline_manager", "initialize", {
@@ -90,7 +88,6 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async #configureCamera(camera, scene) {
-
         let observer = scene.onBeforeRenderObservable.add(() => {
             camera.getViewMatrix();
 

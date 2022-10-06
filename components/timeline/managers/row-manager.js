@@ -3,25 +3,6 @@ import {TIMELINE_SCALE} from "../timeline_scale.js";
 
 class RowManager {
     async render(items, canvas, scene, startDate, endDate, scale) {
-        //RED DOT
-        const test = await crs.call("gfx_mesh_factory", "create", {
-            element: canvas,
-            mesh: {
-                id: "my_dot",
-                type: "plane",
-                options: {
-                    width: 0.1,
-                    height: 0.1
-                }
-            },
-            material: {
-                id: "test",
-                color: "#ff0000",
-            },
-            positions: [{x: 0, y: 0, z: 0}]
-        })
-
-
         const itemCount = items.length;
 
         const result = await crs.call("gfx_timeline_manager", "set_range", {
