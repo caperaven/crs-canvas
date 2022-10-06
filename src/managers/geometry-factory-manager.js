@@ -46,6 +46,8 @@ class GeometryManagerActions {
             })
         }
 
+        material.backFaceCulling = false;
+
         const options = {
             material,
             position,
