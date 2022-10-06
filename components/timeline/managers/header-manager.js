@@ -70,18 +70,20 @@ class HeaderManager {
                 }
             }
         });
-
         await this.#observeCamera(canvas);
     }
 
     async #observeCamera(canvas) {
         canvas.__camera.onViewMatrixChangedObservable.add((camera)=> {
-            this.#headerParticleSystem.mesh.position.y = camera.position.y - camera.offset_y ;
-            this.#bgMesh.position.y = camera.position.y - 0.375 - camera.offset_y;
-            
-            // if (this.#headerParticleSystem.mesh != null) this.#headerParticleSystem.mesh.position.y = camera.position.y;
-            // this.#bgMesh.position.y = camera.position.y - 0.375;
-        })
+
+            this.#set_mesh_positions(camera)
+        });
+        this.#set_mesh_positions(canvas.__camera)
+    }
+
+    #set_mesh_positions(camera) {
+        this.#headerParticleSystem.mesh.position.y = camera.position.y - camera.offset_y ;
+        this.#bgMesh.position.y = camera.position.y - 0.375 - camera.offset_y;
     }
 
     /**
@@ -98,7 +100,7 @@ class HeaderManager {
                 }
             }, material: {
                 id: "timeline_header_border", color: canvas._theme.header_border,
-            }, positions: [{x: size / 2, y: -0.375, z: -0.01}]
+            }, positions: [{x: size / 2, y:   -0.375, z: -0.01}]
         })
 
         return meshes[0];
