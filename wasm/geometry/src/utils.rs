@@ -10,8 +10,8 @@ pub fn populate_from_buffer(buffers: &PolyBuffer, aabb: &Box2D) -> Object {
     let indices = Array::new();
 
     for point in buffers.vertices.iter() {
-        vertices.push(&JsValue::from(point.x.floor()));
-        vertices.push(&JsValue::from(point.y.floor()));
+        vertices.push(&JsValue::from(point.x));
+        vertices.push(&JsValue::from(point.y));
         vertices.push(&0.into());
     }
 

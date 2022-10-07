@@ -19,7 +19,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
     }
 
 
-    addMeshes(canvas) {
+    async addMeshes(canvas) {
         canvas.__layers[0].onPointerDown = (event, pickResult) => {
             console.log(pickResult.pickedMesh)
         }
@@ -31,15 +31,27 @@ export default class Welcome extends crsbinding.classes.ViewBase {
         // box.position.y = 2.5;
         // BABYLON.MeshBuilder.CreateBox("box", {size: 1}, canvas.__layers[0]);
 
-        crs.call("gfx_geometry", "add", { element: canvas, data: "icons/home", position: {x: -1, y: 1}, color: "#ff0090" });
+        //crs.call("gfx_geometry", "add", { element: canvas, data: "icons/home", position: {x: -1, y: 1}, color: "#ff0090" });
         // crs.call("gfx_geometry", "add", { element: canvas, data: "flowchart/documents", position: {x: 1, y: 1}, color: "#ff9000" });
         // crs.call("gfx_geometry", "add", { element: canvas, data: "floorplan/fire_hose", position: {x: 1, y: -1}, color: "#9000ff" });
 
+        const geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
+            aabb: {
+                minX: -3.0,
+                minY: 0.0,
+                maxX: 1.0,
+                maxY: 0.2
+            },
+            triangle_height: 0.18,
+            triangle_width: 0.2,
+            bar_height: 0.05
+        });
+
         crs.call("gfx_geometry", "from", {
             element: canvas, data: {
-                positions: [-1, -1, 0, 1, -1, 0, 0, 1, 0],
-                indices: [1, 0, 2]
-            }, position: {x: 1, y: -1}, color: "#9000ff"
+                positions: geom.vertices,
+                indices: geom.indices
+            }, position: {x: 0, y: 0}, color: "#000000"
         })
     }
 }
