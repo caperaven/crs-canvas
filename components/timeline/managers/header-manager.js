@@ -122,7 +122,7 @@ class HeaderManager {
     #getWeekHeaderColours(startDate, particle, i, canvas) {
         //Will need to think about the configuration here i.e. user defined work week
         const dayNumber = startDate.getUTCDay();
-        if (dayNumber === 5 || dayNumber === 6) {
+        if (dayNumber === 1 || dayNumber === 2) {
             particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
         } else {
             particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
@@ -133,7 +133,7 @@ class HeaderManager {
     #getMonthHeaderColours(startDate, particle, i, canvas) {
         //Will need to think about the configuration here i.e. user defined work week
         const dayNumber = startDate.getUTCDay();
-        if (dayNumber === 5 || dayNumber === 6) {
+        if (dayNumber === 1 || dayNumber === 2) {
             particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
         } else {
             particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
