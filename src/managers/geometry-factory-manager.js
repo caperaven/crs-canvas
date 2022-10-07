@@ -46,7 +46,7 @@ class GeometryManagerActions {
             })
         }
 
-        material.backFaceCulling = false;
+        //material.sideOrientation = 0;
 
         const options = {
             material,

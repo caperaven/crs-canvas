@@ -35,11 +35,11 @@ export default class Welcome extends crsbinding.classes.ViewBase {
         // crs.call("gfx_geometry", "add", { element: canvas, data: "flowchart/documents", position: {x: 1, y: 1}, color: "#ff9000" });
         // crs.call("gfx_geometry", "add", { element: canvas, data: "floorplan/fire_hose", position: {x: 1, y: -1}, color: "#9000ff" });
 
-        const geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
+        let geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
             aabb: {
-                minX: -3.0,
+                minX: 0.0,
                 minY: 0.0,
-                maxX: 1.0,
+                maxX: 3.0,
                 maxY: 0.2
             },
             triangle_height: 0.18,
@@ -47,11 +47,30 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             bar_height: 0.05
         });
 
-        crs.call("gfx_geometry", "from", {
+        await crs.call("gfx_geometry", "from", {
             element: canvas, data: {
                 positions: geom.vertices,
                 indices: geom.indices
             }, position: {x: 0, y: 0}, color: "#000000"
-        })
+        });
+
+        geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration_reverse", {
+            aabb: {
+                minX: -4.0,
+                minY: 0.0,
+                maxX: -1.0,
+                maxY: 0.2
+            },
+            triangle_height: 0.18,
+            triangle_width: 0.2,
+            bar_height: 0.05
+        });
+
+        await crs.call("gfx_geometry", "from", {
+            element: canvas, data: {
+                positions: geom.vertices,
+                indices: geom.indices
+            }, position: {x: 0, y: 0}, color: "#000000"
+        });
     }
 }

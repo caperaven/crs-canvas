@@ -15,7 +15,7 @@ pub fn populate_from_buffer(buffers: &PolyBuffer, aabb: &Box2D) -> Object {
         vertices.push(&0.into());
     }
 
-    for &ind in buffers.indices.iter() {
+    for &ind in buffers.indices.iter().rev() {
         let value = &JsValue::from(ind);
         indices.push(value);
     }
