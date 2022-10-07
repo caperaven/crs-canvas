@@ -4,7 +4,6 @@ import "./../../src/managers/stats-manager.js"
 export default class Timeline extends crsbinding.classes.ViewBase {
     async connectedCallback() {
         await super.connectedCallback();
-
     }
 
     async disconnectedCallback() {

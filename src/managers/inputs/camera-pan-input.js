@@ -1,58 +1,94 @@
-export class CameraPanInputActions {
-    static async perform(step, context, process, item) {
-        await this[step.action]?.(step, context, process, item);
-    }
+export class CustomPanInput {
+    #pointerObserver;
+    #lastPosition;
 
-    static async enable(scene, camera) {
-        const pan = {
-            max_z: -250, min_z: -1, zoom_speed: 0.001
+    #max_z = -250;
+    #min_z = -1;
+    #zoom_speed = 0.001;
+
+    #camera;
+    #scene;
+
+    #pointerHandler;
+
+
+    constructor(scene, camera) {
+        this.pointerFns = {
+            pointer_down: this.#pointer_down.bind(this),
+            pointer_move: this.#pointer_move.bind(this),
+            pointer_up: this.#pointer_up.bind(this),
+            pointer_wheel: this.#pointer_wheel.bind(this)
         }
+        this.#camera = camera;
+        this.#scene = scene;
 
-        camera.pan = pan;
-        scene.onPointerObservable.add((pointerInfo) => {
-            const fnName = pointerMap[pointerInfo.type];
-            CameraPanInputActions[fnName]?.(scene, camera, pointerInfo);
-        });
+        this.#pointerHandler = this.#pointerEvent.bind(this);
+
+        this.#pointerObserver = this.#scene.onPointerObservable.add(this.#pointerHandler);
     }
 
-    static async disable(scene, camera) {
-        delete camera.pan;
-        delete camera.__dragging;
+    dispose() {
+        this.#camera = null;
+        this.#scene = null;
+        this.#lastPosition = null;
+        this.#pointerObserver = this.#scene.onPointerObservable.remove(this.#pointerHandler);
+        this.#pointerHandler = null;
     }
 
-    static async pointer_down(scene, camera) {
-        camera.__dragging = true;
-        scene.defaultCursor = "grabbing";
-        camera.pan.lastPosition = new BABYLON.Vector3(scene.pointerX, scene.pointerY, 0)
+    #pointerEvent(pointerInfo) {
+        const fnName = pointerMap[pointerInfo.type];
+        this.pointerFns[fnName]?.(pointerInfo);
     }
 
-    static async pointer_move(scene, camera, pointerInfo) {
-        if (camera.__dragging) {
-            const pos = new BABYLON.Vector2(scene.pointerX, scene.pointerY);
 
-            const xdir = camera.pan.lastPosition.x - pos.x;
-            const ydir = camera.pan.lastPosition.y - pos.y;
+    async #pointer_down() {
+        this.#camera.__dragging = true;
+        this.#scene.defaultCursor = "grabbing";
+        this.#lastPosition = new BABYLON.Vector3(this.#scene.pointerX, this.#scene.pointerY, 0)
+    }
 
-            const speed = 0.001 * -camera.position.z; // We do this to adjust the speed as you zoom out;
+    async #pointer_move(pointerInfo) {
+        if (this.#camera.__dragging) {
 
-            camera._localDirection.set(speed * xdir, speed * -ydir, 0);
+            const xdir = this.#lastPosition.x - this.#scene.pointerX;
+            const ydir = this.#lastPosition.y - this.#scene.pointerY;
 
-            camera.getViewMatrix().invertToRef(camera._cameraTransformMatrix);
-            BABYLON.Vector3.TransformNormalToRef(camera._localDirection, camera._cameraTransformMatrix, camera._transformedDirection);
-            camera.position.addInPlace(camera._transformedDirection);
-            camera.pan.lastPosition.set(scene.pointerX, scene.pointerY, 0);
+            const speed = 0.0011 * -this.#camera.position.z; // We do this to adjust the speed as you zoom out;
+
+            let xDelta = speed * xdir;
+            let yDelta = speed * -ydir;
+
+
+            if ((this.#camera.position.x + xDelta) < this.#camera.offset_x) {
+                xDelta = 0;
+            }
+
+            if ((this.#camera.position.y + yDelta) > this.#camera.offset_y) {
+                yDelta = 0;
+            }
+
+            this.#camera._localDirection.set(xDelta, yDelta, 0);
+            this.#camera.getViewMatrix().invertToRef(this.#camera._cameraTransformMatrix);
+
+            BABYLON.Vector3.TransformNormalToRef(this.#camera._localDirection, this.#camera._cameraTransformMatrix, this.#camera._transformedDirection);
+            this.#camera.position.addInPlace(this.#camera._transformedDirection);
+
+            this.#lastPosition.set(this.#scene.pointerX, this.#scene.pointerY, 0);
 
         }
     }
 
-    static async pointer_wheel(scene, camera, pointerInfo) {
+    async #pointer_wheel(pointerInfo) {
+
+        return;
+
         // TODOS:
         // Add camera max and min zoom level
         // Cache vector to save on memory
         // Get zoom in and out position on par with Miro
         console.log(camera.getProjectionMatrix());
         const zoom_speed = 0.001;
-        const engine = scene.getEngine();
+        const engine = this.#scene.getEngine();
 
 
         const sensibility = 0.0001;
@@ -60,27 +96,27 @@ export class CameraPanInputActions {
         const halfWidth = engine.getRenderWidth() / 2
         const halfHeight = engine.getRenderHeight() / 2
 
-        const pointerX = scene.pointerX; // We apply the * 1 minus to make it a negative number
-        const pointerY = scene.pointerY;
+        const pointerX = this.#scene.pointerX; // We apply the * 1 minus to make it a negative number
+        const pointerY = this.#scene.pointerY;
 
         const xOffset = (halfWidth - pointerX) * -1 * sensibility;
         const yOffset = (halfHeight - pointerY) * sensibility;
 
         const zOffset = -pointerInfo.event.deltaY * zoom_speed;
 
-        const cameraViewMatrix = camera.getViewMatrix();
+        const cameraViewMatrix = this.#camera.getViewMatrix();
 
         const newVector3 = BABYLON.Vector3.Zero().copyFromFloats(xOffset, yOffset, zOffset);
 
-        cameraViewMatrix.invertToRef(camera._cameraTransformMatrix); // Set cameraTransformMatrix to view matrix
+        cameraViewMatrix.invertToRef(this.#camera._cameraTransformMatrix); // Set cameraTransformMatrix to view matrix
         BABYLON.Vector3.TransformNormalToRef(newVector3, camera._cameraTransformMatrix, camera._transformedDirection);
-        camera.cameraDirection.addInPlace(camera._transformedDirection);
+        this.#camera.cameraDirection.addInPlace(camera._transformedDirection);
 
     }
 
-    static async pointer_up(scene, camera) {
-        camera.__dragging = false;
-        scene.defaultCursor = "grab";
+    async #pointer_up() {
+        this.#camera.__dragging = false;
+        this.#scene.defaultCursor = "grab";
     }
 }
 

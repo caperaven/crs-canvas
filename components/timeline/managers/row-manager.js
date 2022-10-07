@@ -2,25 +2,25 @@ import "../../../src/managers/mesh-factory-manager.js";
 import {TIMELINE_SCALE} from "../timeline_scale.js";
 
 class RowManager {
-    async render(items, canvas, scene, startDate, endDate, scale) {
-        //RED DOT
-        const test = await crs.call("gfx_mesh_factory", "create", {
-            element: canvas,
-            mesh: {
-                id: "my_dot",
-                type: "plane",
-                options: {
-                    width: 0.1,
-                    height: 0.1
-                }
-            },
-            material: {
-                id: "test",
-                color: "#ff0000",
-            },
-            positions: [{x: 0, y: 0, z: 0}]
-        })
+    #configuration;
 
+    constructor(config) {
+        this.#configuration = config;
+    }
+
+    dispose() {
+        this.#configuration = null;
+    }
+
+    clean(canvas, scene) {
+        const offsetRowMesh = scene.getMeshByID('timeline_offset_row_bg');
+        offsetRowMesh?.dispose();
+
+        const rowData = scene.getMeshByID('timeline_row_range1');
+        rowData?.dispose();
+    }
+
+    async render(items, canvas, scene, startDate, endDate, scale) {
         const itemCount = items.length;
 
         const result = await crs.call("gfx_timeline_manager", "set_range", {
@@ -83,14 +83,13 @@ class RowManager {
         rowOffsetColors.set(colors);
         offsetRowMesh.thinInstanceSetBuffer("matrix", rowOffsetMatrices);
         offsetRowMesh.thinInstanceSetBuffer("color", rowOffsetColors, 4);
-
     }
 
     async _createRect(width, height, canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
             mesh: {
-                id: "timeline_row_range1",
+                name: "timeline_row_range1",
                 type: "plane",
                 options: {
                     width: width,
@@ -111,7 +110,7 @@ class RowManager {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
             mesh: {
-                id: "timeline_offset_row_bg",
+                name: "timeline_offset_row_bg",
                 type: "plane",
                 options: {
                     width: width,
@@ -136,12 +135,23 @@ export class RowManagerActions {
 
     static async initialize(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
-        canvas.__rows = new RowManager();
+        const config = await crs.process.getValue(step.args.config, context, process, item);
+        canvas.__rows = new RowManager(config);
     }
 
     static async dispose(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
         canvas.__rows = canvas.__rows?.dispose();
+    }
+
+    static async clean(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+
+        const scale = await crs.process.getValue(step.args.scale, context, process, item);
+        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        const scene = canvas.__layers[layer];
+
+        await canvas.__rows.clean(canvas, scene, scale);
     }
 
     static async render(step, context, process, item) {

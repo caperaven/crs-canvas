@@ -1,4 +1,6 @@
 import {TextFactory} from "../../src/text/text-factory.js";
+import "./../../src/managers/mesh-factory-manager.js"
+import "./../../src/managers/grid-manager.js";
 
 export default class TextRendering extends crsbinding.classes.ViewBase {
     async connectedCallback() {
@@ -31,7 +33,6 @@ export default class TextRendering extends crsbinding.classes.ViewBase {
     async addMeshes() {
         this.canvas.__layers[0].onPointerDown = this.pointerDown.bind(this);
         await this.createPlane()
-        await this.createText()
     }
 
     async pointerDown(event, pickResult) {
@@ -39,45 +40,38 @@ export default class TextRendering extends crsbinding.classes.ViewBase {
     }
 
     async createPlane() {
-        this.bgPlane = BABYLON.MeshBuilder.CreatePlane("plane", {
-            size: 200,
-            position: {z: -0.1}
-        }, this.canvas.__layers[0]);
-        this.bgPlane.material = new BABYLON.GridMaterial("grid", this.canvas.__layers[0]);
-        this.bgPlane.material.gridRatio =1;
-        this.bgPlane.material.mainColor = new BABYLON.Color3(1, 1, 1);
-        this.bgPlane.material.lineColor = new BABYLON.Color3(0.6, 0.6, 0.6);
-        this.bgPlane.material.majorUnitFrequency = 5;
-        this.bgPlane.enablePointerMoveEvents = true;
-        this.bgPlane.position.z = 0.01;
+
+        await crs.call("gfx_grid", "add", { element: this.canvas, attributes: [{ fn: "Float", name: "min", value: 0.1 }] });
+        crs.call("gfx_mesh_factory", "create", {
+            element: this.canvas,
+            mesh: {
+                id: "my_mesh",
+                type: "plane",
+                options: {width: 2.5, height: 1},
+            },
+            material: {
+                id: "my_color",
+                color: "#ff0090"
+            },
+            positions: [{x: 0, y: 0, z: 0}]
+        })
+
+        crs.call("gfx_mesh_factory", "create", {
+            element: this.canvas,
+            mesh: {
+                id: "my_mesh",
+                type: "plane",
+                options: {width: 2.5, height: 1},
+            },
+            material: {
+                id: "green",
+                color: "#00ff00"
+            },
+            positions: [{x: 0, y: -2, z: 0}]
+        })
     }
 
-    async createText() {
-        const factory = new TextFactory(this.canvas.__layers[0], () => {
 
-            const dayMap = {
-                0: "Mon",
-                1: "Tue",
-                2: "Wed",
-                3: "Thu",
-                4: "Fri",
-                5: "Sat",
-                6: "Sun"
-            }
 
-            let count = 0;
-            for (let o = 0; o < 10; o++) {
-                for (let i = 0; i < 10 *7; i+=7) {
-                    for (let j = 0; j < 7; j++) {
-                        const text = factory.create(dayMap[j], 0.3, new BABYLON.Color4(0, 0, 0), {x:  (i+j), y:-o})
-                        count++;
-                    }
-                }
-            }
-
-            console.log(count * 3)
-        });
-
-    }
 }
 

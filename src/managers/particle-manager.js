@@ -116,9 +116,7 @@ export class ParticleManagerActions {
     static async remove(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const id = await crs.process.getValue(step.args.id, context, process, item);
-        const index = await crs.process.getValue(step.args.index, context, process, item);
-        const positions = await crs.process.getValue(step.args.positions, context, process, item);
-        await canvas.__instances.remove(id, index, positions);
+        await canvas.__particleSystems.remove(id, canvas);
     }
 }
 
