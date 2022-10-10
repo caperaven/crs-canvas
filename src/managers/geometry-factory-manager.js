@@ -40,13 +40,14 @@ class GeometryManagerActions {
         let material = null;
         if (color != null) {
             material = await crs.call("gfx_materials", "get", {
+                id: step.args.id,
                 element: canvas,
                 value: color,
-                diffuse: diffuse
+                diffuse,
+                layer
             })
         }
 
-        //material.sideOrientation = 0;
 
         const options = {
             material,

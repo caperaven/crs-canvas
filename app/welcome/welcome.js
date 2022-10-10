@@ -35,42 +35,96 @@ export default class Welcome extends crsbinding.classes.ViewBase {
         // crs.call("gfx_geometry", "add", { element: canvas, data: "flowchart/documents", position: {x: 1, y: 1}, color: "#ff9000" });
         // crs.call("gfx_geometry", "add", { element: canvas, data: "floorplan/fire_hose", position: {x: 1, y: -1}, color: "#9000ff" });
 
-        let geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
+
+        let bar_geom = await crs.call("gfx_work_order_shape_factory", "work_order_bar", {
+            aabb: {
+                minX: -4.0,
+                minY: 0.3,
+                maxX: -1.0,
+                maxY: 0.5
+            },
+            triangle_height: 0.1,
+            triangle_width: 0.1,
+            bar_height: 0.4
+        });
+
+        await crs.call("gfx_geometry", "from", {
+            element: canvas,
+            data: {
+                positions: bar_geom.vertices,
+                indices: bar_geom.indices
+            },
+            id: "wob1",
+            position: {x: 0, y: 0},
+            color: "#C8E5E1"
+        });
+
+        let duration_geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
             aabb: {
                 minX: 0.0,
                 minY: 0.0,
                 maxX: 3.0,
                 maxY: 0.2
             },
-            triangle_height: 0.18,
+            triangle_height: 0.15,
             triangle_width: 0.2,
             bar_height: 0.05
         });
 
         await crs.call("gfx_geometry", "from", {
-            element: canvas, data: {
-                positions: geom.vertices,
-                indices: geom.indices
-            }, position: {x: 0, y: 0}, color: "#000000"
+            element: canvas,
+            data: {
+                positions: duration_geom.vertices,
+                indices: duration_geom.indices
+            },
+            id: "wod1",
+            position: {x: 0, y: 0},
+            color: "#000000"
         });
 
-        geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration_reverse", {
+        duration_geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
             aabb: {
                 minX: -4.0,
                 minY: 0.0,
                 maxX: -1.0,
                 maxY: 0.2
             },
-            triangle_height: 0.18,
+            triangle_height: 0.15,
             triangle_width: 0.2,
             bar_height: 0.05
         });
 
         await crs.call("gfx_geometry", "from", {
-            element: canvas, data: {
-                positions: geom.vertices,
-                indices: geom.indices
-            }, position: {x: 0, y: 0}, color: "#000000"
+            element: canvas,
+            data: {
+                positions: duration_geom.vertices,
+                indices: duration_geom.indices
+            },
+            id: "wod2",
+            position: {x: 0, y: 0},
+            color: "#000000"
+        });
+
+        let actual_geom = await crs.call("gfx_work_order_shape_factory", "work_order_actual_duration_bar", {
+            aabb: {
+                minX: -3.9,
+                minY: 0.4,
+                maxX: -1.1,
+                maxY: 0.735
+            },
+            bar_height: 0.35
+        });
+
+        await crs.call("gfx_geometry", "from", {
+            element: canvas,
+            data: {
+                positions: actual_geom.vertices,
+                indices: actual_geom.indices
+            },
+            id: "act1",
+            position: {x: 0, y: 0},
+            color: "#16A085",
+            layer: 0
         });
     }
 }
