@@ -36,7 +36,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
         // crs.call("gfx_geometry", "add", { element: canvas, data: "floorplan/fire_hose", position: {x: 1, y: -1}, color: "#9000ff" });
 
 
-        let bar_geom = await crs.call("gfx_work_order_shape_factory", "work_order_bar", {
+        let bar_geom = await crs.call("gfx_timeline_shape_factory", "pillar", {
             aabb: {
                 minX: -4.0,
                 minY: 0.3,
@@ -59,7 +59,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             color: "#C8E5E1"
         });
 
-        let duration_geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
+        let duration_geom = await crs.call("gfx_timeline_shape_factory", "range_indicator", {
             aabb: {
                 minX: 0.0,
                 minY: 0.0,
@@ -82,7 +82,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             color: "#000000"
         });
 
-        duration_geom = await crs.call("gfx_work_order_shape_factory", "work_order_duration", {
+        duration_geom = await crs.call("gfx_timeline_shape_factory", "range_indicator", {
             aabb: {
                 minX: -4.0,
                 minY: 0.0,
@@ -105,7 +105,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             color: "#000000"
         });
 
-        let actual_geom = await crs.call("gfx_work_order_shape_factory", "work_order_actual_duration_bar", {
+        let actual_geom = await crs.call("gfx_timeline_shape_factory", "rect", {
             aabb: {
                 minX: -3.9,
                 minY: 0.45,
@@ -122,7 +122,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
                 indices: actual_geom.indices
             },
             id: "act1",
-            position: {x: 0, y: 0},
+            position: {x: 0, y: 0, z: -0.001},
             color: "#16A085",
             layer: 0
         });

@@ -1,11 +1,11 @@
 import init, {fill} from "../../bin/geometry.js";
 
-export class WorkOrderShapeFactory {
+export class TimelineShapeFactory {
     static async perform(step, context, process, item) {
         return this[step.action]?.(step, context, process, item);
     }
 
-    static async work_order_duration(step, context, process, item) {
+    static async range_indicator(step, context, process, item) {
         const aabb = await crs.process.getValue(step.args.aabb);
         if (aabb == null) return;
 
@@ -38,7 +38,8 @@ export class WorkOrderShapeFactory {
         return geometry_data;
     }
 
-    static async work_order_bar(step, context, process, item) {
+
+    static async pillar(step, context, process, item) {
         const aabb = await crs.process.getValue(step.args.aabb);
         if (aabb == null) return;
 
@@ -69,17 +70,17 @@ export class WorkOrderShapeFactory {
         return geometry_data;
     }
 
-    static async work_order_actual_duration_bar(step, context, process, item) {
+    static async rect(step, context, process, item) {
         const aabb = await crs.process.getValue(step.args.aabb);
         if (aabb == null) return;
 
         const bar_height = await crs.process.getValue(step.args.bar_height) ?? 0.1;
 
         const path = [
-            [['m'],[aabb.minX], [aabb.minY], [0.1]],
-            [['l'],[aabb.maxX] , [aabb.minY], [0.1]],
-            [['l'],[aabb.maxX], [aabb.minY + bar_height], [0.1]],
-            [['l'],[aabb.minX], [aabb.minY + bar_height], [0.1]],
+            [['m'],[aabb.minX], [aabb.minY], [0.0]],
+            [['l'],[aabb.maxX] , [aabb.minY], [0.0]],
+            [['l'],[aabb.maxX], [aabb.minY + bar_height], [0.0]],
+            [['l'],[aabb.minX], [aabb.minY + bar_height], [0.0]],
             [['z']]
         ]
 
@@ -98,4 +99,4 @@ export class WorkOrderShapeFactory {
 }
 
 
-crs.intent.gfx_work_order_shape_factory = WorkOrderShapeFactory;
+crs.intent.gfx_timeline_shape_factory = TimelineShapeFactory;
