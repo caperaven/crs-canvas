@@ -108,11 +108,11 @@ export default class Welcome extends crsbinding.classes.ViewBase {
         let actual_geom = await crs.call("gfx_work_order_shape_factory", "work_order_actual_duration_bar", {
             aabb: {
                 minX: -3.9,
-                minY: 0.4,
+                minY: 0.45,
                 maxX: -1.1,
-                maxY: 0.735
+                maxY: 0.75
             },
-            bar_height: 0.35
+            bar_height: 0.3
         });
 
         await crs.call("gfx_geometry", "from", {
