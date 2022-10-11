@@ -1,25 +1,21 @@
-use wasm_bindgen::prelude::*;
-use lyon::path::{Path};
-use js_sys::{Object, Array};
-use lyon::math::{Box2D};
-use crate::extrude;
+use lyon::math::Box2D;
+use js_sys::{Array, Object};
+use wasm_bindgen::JsValue;
+use crate::PolyBuffer;
 
-pub fn get_aabb(path: &Path) -> Box2D {
-    lyon::algorithms::aabb::bounding_box(path.iter())
-}
-
-pub fn populate_from_buffer(buffers: &extrude::PolyBuffer, aabb: &Box2D) -> Object {
+/// Returns a js_sys object which can be sent via wasm
+pub fn populate_from_buffer(buffers: &PolyBuffer, aabb: &Box2D) -> Object {
     let result = Object::new();
     let vertices = Array::new();
     let indices = Array::new();
 
     for point in buffers.vertices.iter() {
-        vertices.push(&JsValue::from(point.x.floor()));
-        vertices.push(&JsValue::from(point.y.floor()));
+        vertices.push(&JsValue::from(point.x));
+        vertices.push(&JsValue::from(point.y));
         vertices.push(&0.into());
     }
 
-    for &ind in buffers.indices.iter() {
+    for &ind in buffers.indices.iter().rev() {
         let value = &JsValue::from(ind);
         indices.push(value);
     }
