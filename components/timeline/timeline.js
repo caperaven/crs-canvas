@@ -39,15 +39,25 @@ export class Timeline extends crsbinding.classes.BindableElement {
         this.configuration = {
             settings: [
                 {
+                    shapeType: "rect",
                     fromField: "receivedOn",
-                    toField: "requiredBy",
-                    shapeType: "rectangle"
+                    toField: "requiredBy"
+                },
+                {
+                    shapeType: "range_indicator",
+                    fromField: "startOn",
+                    toField: "completeBy"
+                },
+                {
+                    shapeType: "pillar",
+                    fromField: "workStartedOn",
+                    toField: "completedOn"
                 }
             ]
         }
 
         this.#canvas = this.querySelector("canvas");
-        this.scale = this.scale || 'year';
+        this.scale = this.scale || 'month';
 
         await ThemeManager.initialize(this.#canvas);
         const ready = async () => {

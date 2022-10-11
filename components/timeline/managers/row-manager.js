@@ -1,8 +1,35 @@
 import "../../../src/managers/mesh-factory-manager.js";
+import "../../../src/managers/geometry-factory-manager.js";
 import {TIMELINE_SCALE} from "../timeline_scale.js";
 
 class RowManager {
     #configuration;
+    #shapeConfig = Object.freeze({
+        "pillar": {
+            barHeight:  0.4,
+            triangleHeight: 0.1,
+            triangleWidth: 0.1,
+            theme: "row_range1",
+            yOffset: 0.15,
+            zOffset: -0.001
+        },
+        "range_indicator": {
+            barHeight: 0.05,
+            triangleHeight: 0.1,
+            triangleWidth: 0.2,
+            theme: "row_range3",
+            yOffset: 0.35,
+            zOffset: 0
+        },
+        "rect": {
+            barHeight: 0.3,
+            triangleHeight: null,
+            triangleWidth: null,
+            theme: "row_range2",
+            yOffset: 0.0075,
+            zOffset: -0.002
+        }
+    })
 
     constructor(config) {
         this.#configuration = config;
@@ -31,35 +58,130 @@ class RowManager {
         });
         await this._createOffsetRows(itemCount, canvas, result.totalWidth);
 
-        const range1Mesh = await this._createRect(1,0.5, canvas);
-        const range1Matrices = new Float32Array(16 * itemCount);
-
-        const headerOffset = 1;
-
-        const scaleVector = new BABYLON.Vector3(0, 1, 1);
-        const rotation = new BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0);
-        const transformVector = new BABYLON.Vector3(0, 0, 0);
         for (let i = 0; i < itemCount; i++) {
-            const item = items[i]
-            const result = await crs.call("gfx_timeline_manager", "get", {
-                element: canvas,
-                start: item.receivedOn,
-                end: item.requiredBy,
-                scale: scale
-            });
+            for (const settings of this.#configuration.settings) {
+                const item = items[i];
+                if (item[settings.fromField] == null || item[settings.toField] == null) continue;
 
-            scaleVector.x = result.width;
+                const result = await crs.call("gfx_timeline_manager", "get", {
+                    element: canvas,
+                    start: item[settings.fromField],
+                    end: item[settings.toField],
+                    scale: scale
+                });
 
-            const x = result.x;
-            const y = -i - headerOffset;
-            transformVector.set(x,y,0);
+                let actual_geom = await crs.call("gfx_timeline_shape_factory", settings.shapeType, {
+                    aabb: {
+                        minX: result.x1,
+                        minY: (-i - 1) - this.#shapeConfig[settings.shapeType]?.yOffset,
+                        maxX: result.x2,
+                        maxY: ((-i - 1) - this.#shapeConfig[settings.shapeType]?.yOffset) - (this.#shapeConfig[settings.shapeType]?.barHeight / 2)
+                    },
+                    triangle_height: this.#shapeConfig[settings.shapeType]?.triangleHeight,
+                    triangle_width: this.#shapeConfig[settings.shapeType]?.triangleWidth,
+                    bar_height: this.#shapeConfig[settings.shapeType]?.barHeight
+                });
 
-            const newMat = BABYLON.Matrix.Compose(scaleVector, rotation, transformVector);
-
-            newMat.copyToArray(range1Matrices, i * 16);
-
+                const mesh = await crs.call("gfx_geometry", "from", {
+                    element: canvas,
+                    data: {
+                        positions: actual_geom.vertices,
+                        indices: actual_geom.indices
+                    },
+                    name: `${settings.shapeType}_${i}`,
+                    position: {x: 0, y: 0, z: [this.#shapeConfig[settings.shapeType]?.zOffset]},
+                    material: {
+                        id: `${settings.shapeType}_${i}_mat`,
+                        color: canvas._theme[this.#shapeConfig[settings.shapeType]?.theme]
+                    }
+                });
+            }
         }
-        range1Mesh.thinInstanceSetBuffer("matrix", range1Matrices);
+
+        // //plug in shape creation - first attempt
+        // for (const settings of this.#configuration.settings) {
+        //     //may need to adjust this
+        //     let actual_geom = await crs.call("gfx_timeline_shape_factory", settings.shapeType, {
+        //         aabb: {
+        //             minX: 0.0,
+        //             minY: 0.0,
+        //             maxX: 1.0,
+        //             maxY: 1.0
+        //         },
+        //         triangle_height: this.#shapeConfig[settings.shapeType]?.triangleHeight,
+        //         triangle_width: this.#shapeConfig[settings.shapeType]?.triangleWidth,
+        //         bar_height: this.#shapeConfig[settings.shapeType]?.barHeight
+        //     });
+        //
+        //     const mesh = await crs.call("gfx_geometry", "from", {
+        //         element: canvas,
+        //         data: {
+        //             positions: actual_geom.vertices,
+        //             indices: actual_geom.indices
+        //         },
+        //         name: "act1",
+        //         position: {x: 0, y: 0, z: 0},
+        //         color: canvas._theme[this.#shapeConfig[settings.shapeType]?.theme]
+        //     });
+        //
+        //     const rangeMatrices = new Float32Array(16 * itemCount);
+        //     const scaleVector = new BABYLON.Vector3(0, 1, 1);
+        //     const rotation = new BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0);
+        //     const transformVector = new BABYLON.Vector3(0, 0, 0);
+        //     for (let i = 0; i < itemCount; i++) {
+        //         const item = items[i]
+        //         if (item[settings.fromField] == null || item[settings.toField] == null) continue;
+        //
+        //         const result = await crs.call("gfx_timeline_manager", "get", {
+        //             element: canvas,
+        //             start: item[settings.fromField],
+        //             end: item[settings.toField],
+        //             scale: scale
+        //         });
+        //
+        //         scaleVector.x = result.width;
+        //
+        //         const x = result.x;
+        //         const y = -i - 1;
+        //         transformVector.set(x,y,0);
+        //
+        //         const newMat = BABYLON.Matrix.Compose(scaleVector, rotation, transformVector);
+        //
+        //         newMat.copyToArray(rangeMatrices, i * 16);
+        //     }
+        //     mesh.thinInstanceSetBuffer("matrix", rangeMatrices);
+        // }
+
+        // //Original
+        // const range1Mesh = await this._createRect(1,0.5, canvas);
+        // const range1Matrices = new Float32Array(16 * itemCount);
+        //
+        // const headerOffset = 1;
+        //
+        // const scaleVector = new BABYLON.Vector3(0, 1, 1);
+        // const rotation = new BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0);
+        // const transformVector = new BABYLON.Vector3(0, 0, 0);
+        // for (let i = 0; i < itemCount; i++) {
+        //     const item = items[i]
+        //     const result = await crs.call("gfx_timeline_manager", "get", {
+        //         element: canvas,
+        //         start: item.receivedOn,
+        //         end: item.requiredBy,
+        //         scale: scale
+        //     });
+        //
+        //     scaleVector.x = result.width;
+        //
+        //     const x = result.x;
+        //     const y = -i - headerOffset;
+        //     transformVector.set(x,y,0);
+        //
+        //     const newMat = BABYLON.Matrix.Compose(scaleVector, rotation, transformVector);
+        //
+        //     newMat.copyToArray(range1Matrices, i * 16);
+        //
+        // }
+        // range1Mesh.thinInstanceSetBuffer("matrix", range1Matrices);
     }
 
     async _createOffsetRows(itemCount, canvas, width) {

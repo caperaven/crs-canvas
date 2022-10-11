@@ -56,7 +56,10 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             },
             id: "wob1",
             position: {x: 0, y: 0},
-            color: "#C8E5E1"
+            material: {
+                id: "light_blue",
+                color: "#C8E5E1"
+            }
         });
 
         let duration_geom = await crs.call("gfx_timeline_shape_factory", "range_indicator", {
@@ -79,7 +82,10 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             },
             id: "wod1",
             position: {x: 0, y: 0},
-            color: "#000000"
+            material: {
+                id: "black",
+                color: "#000000"
+            }
         });
 
         duration_geom = await crs.call("gfx_timeline_shape_factory", "range_indicator", {
@@ -102,7 +108,10 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             },
             id: "wod2",
             position: {x: 0, y: 0},
-            color: "#000000"
+            material: {
+                id: "black",
+                color: "#000000"
+            }
         });
 
         let actual_geom = await crs.call("gfx_timeline_shape_factory", "rect", {
@@ -123,7 +132,10 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             },
             id: "act1",
             position: {x: 0, y: 0, z: -0.001},
-            color: "#16A085",
+            material: {
+                id: "blue",
+                color: "#16A085"
+            },
             layer: 0
         });
     }

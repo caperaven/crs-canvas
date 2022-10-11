@@ -170,9 +170,10 @@ class TimelineManager {
         const x1 = await this[`_${scale}Scale`].get(getDate(this.#min), getDate(start));
         const x2 = await this[`_${scale}Scale`].get(getDate(this.#min), getDate(end));
         const width = Math.abs(x2 - x1);
-        const x = x1 + (width / 2);
+        // const x = x1 + (width / 2);
         return {
-            x: x,
+            x1: x1,
+            x2: x2,
             width: width
         }
     }

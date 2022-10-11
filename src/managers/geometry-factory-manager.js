@@ -37,17 +37,14 @@ class GeometryManagerActions {
         const diffuse = (await crs.process.getValue(step.args.diffuse) || false);
         const scene = canvas.__layers[layer];
 
-        let material = null;
-        if (color != null) {
-            material = await crs.call("gfx_materials", "get", {
-                id: step.args.id,
-                element: canvas,
-                value: color,
-                diffuse,
-                layer
-            })
-        }
-
+        const material_def = await crs.process.getValue(step.args.material, context, process, item);
+        const material = await crs.call("gfx_materials", "get", {
+            element: canvas,
+            id: material_def.id,
+            value: material_def.color,
+            diffuse,
+            layer
+        })
 
         const options = {
             material,
