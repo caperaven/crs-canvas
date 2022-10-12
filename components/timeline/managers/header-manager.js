@@ -8,18 +8,15 @@ class HeaderManager {
     #bgMesh;
     #headerMesh;
     #headerParticleSystem;
-    #scaleToShape = Object.freeze({
-        "day":   this.#getDayHeaderShapes.bind(this),
-        "week":  this.#getWeekHeaderShapes.bind(this),
-        "month": this.#getMonthHeaderShapes.bind(this),
-        "year":  this.#getYearHeaderShapes.bind(this)
-    })
-    #scaleToColour = Object.freeze({
-        "day":   this.#getDayHeaderColours.bind(this),
-        "week":  this.#getWeekHeaderColours.bind(this),
-        "month": this.#getMonthHeaderColours.bind(this),
-        "year":  this.#getYearHeaderColours.bind(this)
-    })
+    #dayHeaderManager;
+    #weekHeaderManager;
+    #monthHeaderManager;
+    #yearHeaderManager;
+    #scaleToManager;
+
+    constructor() {
+        this.#initScaleManagers();
+    }
 
     dispose() {
         this.#bgMesh?.dispose();
@@ -30,6 +27,16 @@ class HeaderManager {
 
         this.#headerParticleSystem?.dispose();
         this.#headerParticleSystem = null;
+
+        this.#dayHeaderManager?.dispose();
+        this.#dayHeaderManager = null;
+        this.#weekHeaderManager?.dispose();
+        this.#weekHeaderManager = null;
+        this.#monthHeaderManager?.dispose();
+        this.#monthHeaderManager = null;
+        this.#yearHeaderManager?.dispose();
+        this.#yearHeaderManager = null;
+        this.#scaleToManager = null;
     }
 
     async clean(canvas, scene) {
@@ -41,17 +48,16 @@ class HeaderManager {
         await crs.call("gfx_particles", "remove", {element: canvas, id: "timeline_headers"});
     }
 
-
     async render(startDate, endDate, scale, canvas, scene) {
         scale = scale || TIMELINE_SCALE.MONTH;
-        const result = await crs.call("gfx_timeline_manager", "set_range", {
+        const rangeProperties = await crs.call("gfx_timeline_manager", "set_range", {
             element: canvas,
             min: startDate,
             max: endDate,
             scale: scale
         });
 
-        this.#bgMesh = await this.#createBgMesh(canvas, result.totalWidth);
+        this.#bgMesh = await this.#createBgMesh(canvas, rangeProperties.totalWidth);
 
         const textScaling = new BABYLON.Vector3(0.25,0.25,1);
         const tempStartDate = new Date(startDate);
@@ -59,11 +65,11 @@ class HeaderManager {
 
         this.#headerParticleSystem = await crs.call("gfx_particles", "add", {
             element: canvas,
-            shapes: await this.#scaleToShape[scale](tempStartDate, tempEndDate, canvas, result.items, result.width, scale),
+            shapes: await this.#scaleToManager[scale].getShapes(tempStartDate, tempEndDate, canvas, rangeProperties, scale),
             id: "timeline_headers",
             particleCallback: (shape, particle, i) => {
                 if(shape.includes("header_plane")) {
-                    this.#scaleToColour[scale](tempStartDate, particle, i, canvas);
+                    this.#scaleToManager[scale].getColors(tempStartDate, particle, i, canvas);
                 }
                 else {
                     particle.scaling = textScaling;
@@ -71,6 +77,20 @@ class HeaderManager {
             }
         });
         await this.#observeCamera(canvas);
+    }
+
+    #initScaleManagers() {
+        this.#dayHeaderManager   = new DayHeaderManager();
+        this.#weekHeaderManager  = new WeekHeaderManager();
+        this.#monthHeaderManager = new MonthHeaderManager();
+        this.#yearHeaderManager  = new YearHeaderManager();
+
+        this.#scaleToManager = Object.freeze({
+            "day":   this.#dayHeaderManager,
+            "week":  this.#weekHeaderManager,
+            "month": this.#monthHeaderManager,
+            "year":  this.#yearHeaderManager,
+        })
     }
 
     async #observeCamera(canvas) {
@@ -96,7 +116,7 @@ class HeaderManager {
                 type: "plane",
                 options: {
                     width: size,
-                    height: 0.75
+                    height: 1.75
                 }
             }, material: {
                 id: "timeline_header_border", color: canvas._theme.header_border,
@@ -105,8 +125,47 @@ class HeaderManager {
 
         return meshes[0];
     }
+}
 
-    #getDayHeaderColours(startDate, particle, i, canvas) {
+export class HeaderManagerActions {
+    static async perform(step, context, process, item) {
+        return this[step.action]?.(step, context, process, item);
+    }
+
+    static async initialize(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        canvas.__headers = new HeaderManager();
+    }
+
+    static async dispose(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        canvas.__headers = canvas.__headers?.dispose();
+    }
+
+    static async render(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+
+        const startDate = await crs.process.getValue(step.args.start_date, context, process, item);
+        const endDate = await crs.process.getValue(step.args.end_date, context, process, item);
+        const scale = await crs.process.getValue(step.args.scale, context, process, item);
+        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        const scene = canvas.__layers[layer];
+
+        canvas.__headers.render(startDate, endDate, scale, canvas, scene);
+    }
+
+    static async clean(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+
+        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        const scene = canvas.__layers[layer];
+
+        await canvas.__headers.clean(canvas, scene);
+    }
+}
+
+class DayHeaderManager {
+    getColors(startDate, particle, i, canvas) {
         //Will need to think about the configuration here i.e. user defined working hours
         const hours = startDate.getHours();
 
@@ -119,34 +178,11 @@ class HeaderManager {
         startDate.setMinutes(startDate.getMinutes() + 30);
     }
 
-    #getWeekHeaderColours(startDate, particle, i, canvas) {
-        //Will need to think about the configuration here i.e. user defined work week
-        const dayNumber = startDate.getUTCDay();
-        if (dayNumber === 1 || dayNumber === 2) {
-            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
-        } else {
-            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
-        }
-        startDate.setUTCDate(startDate.getUTCDate() + 1);
-    }
+    async getShapes(startDate, endDate, canvas, rangeProperties, scale) {
+        const width = rangeProperties.width;
+        const numberOfItems = rangeProperties.items;
 
-    #getMonthHeaderColours(startDate, particle, i, canvas) {
-        //Will need to think about the configuration here i.e. user defined work week
-        const dayNumber = startDate.getUTCDay();
-        if (dayNumber === 1 || dayNumber === 2) {
-            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
-        } else {
-            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
-        }
-        startDate.setUTCDate(startDate.getUTCDate() + 1);
-    }
-
-    #getYearHeaderColours(startDate, particle, i, canvas) {
-        particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
-    }
-
-    async #getDayHeaderShapes(startDate, endDate, canvas, numberOfItems, width, scale) {
-        const headerPlane = await createHeaderMesh(canvas, width, 0.02);
+        const headerPlane = await createHeaderMesh(canvas, null, width, 0.02);
 
         const result = {
             header_plane: {
@@ -175,9 +211,25 @@ class HeaderManager {
 
         return result;
     }
+}
 
-    async #getWeekHeaderShapes(startDate, endDate, canvas, numberOfItems, width, scale) {
-        const headerPlane = await createHeaderMesh(canvas, width, 0.02);
+class WeekHeaderManager {
+    getColors(startDate, particle, i, canvas) {
+        //Will need to think about the configuration here i.e. user defined work week
+        const dayNumber = startDate.getUTCDay();
+        if (dayNumber === 1 || dayNumber === 2) {
+            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
+        } else {
+            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
+        }
+        startDate.setUTCDate(startDate.getUTCDate() + 1);
+    }
+
+    async getShapes(startDate, endDate, canvas, rangeProperties, scale) {
+        const width = rangeProperties.width;
+        const numberOfItems = rangeProperties.items;
+
+        const headerPlane = await createHeaderMesh(canvas, null, width, 0.02);
 
         const monMesh = await createHeaderText("Monday", canvas);
         const tueMesh = await createHeaderText("Tuesday", canvas);
@@ -244,9 +296,41 @@ class HeaderManager {
 
         return result;
     }
+}
 
-    async #getMonthHeaderShapes(startDate, endDate, canvas, numberOfItems, width, scale) {
-        const headerPlane = await createHeaderMesh(canvas, width);
+//Will need to think about the configuration here i.e. user defined work week
+class MonthHeaderManager {
+    getColors(startDate, particle, i, canvas) {
+        console.log("get colours")
+        const dayNumber = startDate.getUTCDay();
+        if (dayNumber === 1 || dayNumber === 2) {
+            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
+        } else {
+            particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
+        }
+        startDate.setUTCDate(startDate.getUTCDate() + 1);
+    }
+
+    async getShapes(startDate, endDate, canvas, rangeProperties, scale) {
+        console.log("creating shapes");
+        const width = rangeProperties.width;
+        const numberOfItems = rangeProperties.items;
+
+        const headerPlane = await createHeaderMesh(canvas, "timeline_header_primary", width);
+        const secondaryHeaderPlane = await createHeaderMesh(canvas, "timeline_header_secondary", (width * 7), 0.02, 0.45, "timeline_header_secondary", canvas._theme.secondary_header_bg);
+
+        const janMesh = await createHeaderText("January", canvas);
+        const febMesh = await createHeaderText("February", canvas);
+        const marMesh = await createHeaderText("March", canvas);
+        const aprMesh = await createHeaderText("April", canvas);
+        const mayMesh = await createHeaderText("May", canvas);
+        const junMesh = await createHeaderText("June", canvas);
+        const julMesh = await createHeaderText("July", canvas);
+        const augMesh = await createHeaderText("August", canvas);
+        const sepMesh = await createHeaderText("September", canvas);
+        const octMesh = await createHeaderText("October", canvas);
+        const novMesh = await createHeaderText("November", canvas);
+        const decMesh = await createHeaderText("December", canvas);
 
         const monMesh = await createHeaderText("Mon", canvas);
         const tueMesh = await createHeaderText("Tue", canvas);
@@ -285,8 +369,60 @@ class HeaderManager {
                 mesh: sunMesh,
                 positions: []
             },
+            month_0: {
+                mesh: janMesh,
+                positions: []
+            },
+            month_1: {
+                mesh: febMesh,
+                positions: []
+            },
+            month_2: {
+                mesh: marMesh,
+                positions: []
+            },
+            month_3: {
+                mesh: aprMesh,
+                positions: []
+            },
+            month_4: {
+                mesh: mayMesh,
+                positions: []
+            },
+            month_5: {
+                mesh: junMesh,
+                positions: []
+            },
+            month_6: {
+                mesh: julMesh,
+                positions: []
+            },
+            month_7: {
+                mesh: augMesh,
+                positions: []
+            },
+            month_8: {
+                mesh: sepMesh,
+                positions: []
+            },
+            month_9: {
+                mesh: octMesh,
+                positions: []
+            },
+            month_10: {
+                mesh: novMesh,
+                positions: []
+            },
+            month_11: {
+                mesh: decMesh,
+                positions: []
+            },
             header_plane: {
                 mesh: headerPlane,
+                positions: []
+            },
+            secondary_header_plane: {
+                mesh: secondaryHeaderPlane,
                 positions: []
             }
         }
@@ -302,20 +438,45 @@ class HeaderManager {
         for (let i = 0; i < numberOfItems; i++) {
             const day = startDate.toLocaleString('en-us', {weekday:'short'})
             const dayNumber = startDate.getDate();
+            const utcDay = startDate.getUTCDay();
 
-            result[day.toLowerCase()].positions.push(0.25 + i, -0.3, -0.02);
+            result[day.toLowerCase()].positions.push(0.25 + i, -0.8, -0.02);
 
-            result.header_plane.positions.push(0.5 + i, -0.375, -0.01);
+            result.header_plane.positions.push(0.5 + i, -0.875, -0.01);
+            if (utcDay === 2) {
+                const month = startDate.getMonth();
+                const year = startDate.getFullYear();
 
-            result[dayNumber].positions.push(0.325 + i, -0.55, -0.01);
+                if (result[`year_${year}`] == null) {
+                    result[`year_${year}`] = {
+                        positions: [],
+                        mesh: await createHeaderText(`${year}`, canvas)
+                    }
+                }
+
+                result.secondary_header_plane.positions.push(0.5 + i, -0.25, -0.01)
+
+                result[`month_${month}`].positions.push(i - 2.75, -0.325, -0.01);
+                result[`year_${year}`].positions.push(i - 1.5, -0.325, -0.01);
+            }
+
+            result[dayNumber].positions.push(0.325 + i, -1.05, -0.01);
             startDate.setUTCDate(startDate.getUTCDate() + 1);
         }
 
         return result;
     }
+}
 
-    async #getYearHeaderShapes(startDate, endDate, canvas, numberOfItems, width, scale) {
-        console.log("getting year shapes");
+class YearHeaderManager {
+    getColors(startDate, particle, i, canvas) {
+        particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
+    }
+
+    async getShapes(startDate, endDate, canvas, rangeProperties, scale) {
+        const width = rangeProperties.width;
+        const numberOfItems = rangeProperties.items;
+
         const janMesh = await createHeaderText("January", canvas);
         const febMesh = await createHeaderText("February", canvas);
         const marMesh = await createHeaderText("March", canvas);
@@ -416,43 +577,6 @@ class HeaderManager {
     }
 }
 
-export class HeaderManagerActions {
-    static async perform(step, context, process, item) {
-        return this[step.action]?.(step, context, process, item);
-    }
-
-    static async initialize(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-        canvas.__headers = new HeaderManager();
-    }
-
-    static async dispose(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-        canvas.__headers = canvas.__headers?.dispose();
-    }
-
-    static async render(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-
-        const startDate = await crs.process.getValue(step.args.start_date, context, process, item);
-        const endDate = await crs.process.getValue(step.args.end_date, context, process, item);
-        const scale = await crs.process.getValue(step.args.scale, context, process, item);
-        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
-        const scene = canvas.__layers[layer];
-
-        canvas.__headers.render(startDate, endDate, scale, canvas, scene);
-    }
-
-    static async clean(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-
-        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
-        const scene = canvas.__layers[layer];
-
-        await canvas.__headers.clean(canvas, scene);
-    }
-}
-
 async function createHeaderText(text, canvas, bold = false) {
     const min = bold ? 0.2 : 0.1;
     const max = bold ? 0.5 : 1.25;
@@ -472,14 +596,14 @@ async function createHeaderText(text, canvas, bold = false) {
     return textMesh;
 }
 
-async function createHeaderMesh(canvas, width, offset = 0.02) {
+async function createHeaderMesh(canvas, meshName = "timeline_header", width, offset = 0.02, height = 0.72, matName = "timeline_header", color = canvas._theme.header_bg) {
     const meshes = await crs.call("gfx_mesh_factory", "create", {
         element: canvas, mesh: {
-            name: "timeline_header", type: "plane", options: {
-                width: width - offset, height: 0.72
+            name: meshName, type: "plane", options: {
+                width: width - offset, height: height
             }
         }, material: {
-            id: "timeline_header", color: canvas._theme.header_bg,
+            id: matName, color: color,
         }, positions: [{x: 0, y: 0, z: 0}]
     })
 

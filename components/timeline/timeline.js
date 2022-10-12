@@ -94,7 +94,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
             max: this.#endDate,
             scale: this.scale
         });
-
+ 
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_header", "render", {

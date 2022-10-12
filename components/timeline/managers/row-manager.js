@@ -95,7 +95,7 @@ class RowManager {
                     name: `range_item_${settings.shapeType}_${i}`,
                     position: {x: 0, y: 0, z: [this.#shapeConfig[settings.shapeType]?.zOffset]},
                     material: {
-                        id: `${settings.shapeType}_${i}_mat`,
+                        id: `${settings.shapeType}_mat`,
                         color: canvas._theme[this.#shapeConfig[settings.shapeType]?.theme]
                     }
                 });

@@ -33,7 +33,6 @@ class GeometryManagerActions {
         const data = await crs.process.getValue(step.args.data, context, process, item);
         const name = (await crs.process.getValue(step.args.name, context, process, item)) || "custom_geometry";
         const position = await crs.process.getValue(step.args.position);
-        const color = await crs.process.getValue(step.args.color);
         const diffuse = (await crs.process.getValue(step.args.diffuse) || false);
         const scene = canvas.__layers[layer];
 
