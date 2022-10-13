@@ -57,7 +57,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
         }
 
         this.#canvas = this.querySelector("canvas");
-        this.scale = this.scale || 'month';
+        this.scale = this.scale || 'week';
 
         await ThemeManager.initialize(this.#canvas);
         const ready = async () => {
@@ -94,7 +94,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
             max: this.#endDate,
             scale: this.scale
         });
- 
+
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_header", "render", {
@@ -151,6 +151,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async setScale(scale) {
+        //TODO KR: not properly cleaning timeline_offset_row_bg
         this.scale = scale;
 
         await crs.call("gfx_timeline_header", "clean", {element: this.#canvas});

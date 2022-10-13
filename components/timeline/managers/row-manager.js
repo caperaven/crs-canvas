@@ -126,27 +126,6 @@ class RowManager {
         offsetRowMesh.thinInstanceSetBuffer("color", rowOffsetColors, 4);
     }
 
-    async _createRect(width, height, canvas) {
-        const meshes = await crs.call("gfx_mesh_factory", "create", {
-            element: canvas,
-            mesh: {
-                name: "timeline_row_range1",
-                type: "plane",
-                options: {
-                    width: width,
-                    height: height
-                }
-            },
-            material: {
-                id: "timeline_row_range1",
-                color: canvas._theme.row_range1,
-            },
-            positions: [{x: 0, y: 0, z: 0}]
-        })
-
-        return meshes[0];
-    }
-
     async _createMesh(width, height, canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
