@@ -7,7 +7,9 @@ export class ThemeManager {
             header_border:  await this.get_variable_color("--timeline-header-bg") || "#DBDBDB",
             offset_row_bg:  await this.get_variable_color("--timeline-offset_row_bg") || "#F9F9F9",
             row_range1:  await this.get_variable_color("--timeline-offset_row_bg") || "#C8E5E1",
-            row_range2:  await this.get_variable_color("--timeline-offset_row_bg") || "#FF0000"
+            row_range2:  await this.get_variable_color("--timeline-offset_row_bg") || "#16A085",
+            row_range3:  await this.get_variable_color("--timeline-offset_row_bg") || "#757575",
+            row_range4:  await this.get_variable_color("--timeline-offset_row_bg") || "#FF0000"
         }
     }
 
