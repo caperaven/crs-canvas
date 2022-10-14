@@ -103,7 +103,33 @@ class RowManager {
             }
         }
 
-        const virtualization = new Virtualization(canvas, canvas.__camera, 0.5, items);
+
+        const addCallback = async (item)=> {
+            const meshes = await crs.call("gfx_mesh_factory", "create", {
+                element: canvas,
+                mesh: {
+                    id: `${item.dataIndex}_my_mesh`,
+                    type: "plane",
+                    options: {
+                        width: Math.random() * (3 - 1) + 1,
+                        height: item.size - 0.05
+                    },
+                },
+                material: {
+                    id: "my_colo2r",
+                    color: "#0000ff"
+                },
+                positions: [{x: 2, y: item.position / -1 - (item.size / 2), z: 0}]
+            })
+
+            return meshes[0];
+        }
+
+        const removeCallback = (mesh)=> {
+            mesh.dispose();
+        }
+
+        const virtualization = new Virtualization(canvas, canvas.__camera, 0.5, items, addCallback, removeCallback);
     }
 
     async _createOffsetRows(itemCount, canvas, width) {

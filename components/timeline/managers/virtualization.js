@@ -8,6 +8,8 @@ export class Virtualization {
     #sizeManager;
     #indexes;
     #renderSize;
+    #addCallback;
+    #removeCallback;
 
     #lastY;
 
@@ -21,10 +23,12 @@ export class Virtualization {
 
         const count = 100000 //items.length * 100000;
 
-        console.log(count);
 
         this.#indexes = new Array(count);
         this.#sizeManager.fill(this.#size, count);
+
+        this.#addCallback = addCallback;
+        this.#removeCallback = removeCallback;
 
         globalThis.sizeManager = this;
     }
@@ -74,7 +78,7 @@ export class Virtualization {
             const value = this.#indexes[item.dataIndex];
 
             if(value == null) {
-                this.#indexes[item.dataIndex] = await this.addMesh(item);
+                this.#indexes[item.dataIndex] = await this.#addCallback(item);
             }
         }
 
@@ -82,33 +86,11 @@ export class Virtualization {
             const value = this.#indexes[i];
             if(value != null) {
                 if(i < minIndex || i > maxIndex) {
-                    value.dispose();
+                    await this.#removeCallback(value);
                     this.#indexes[i] = null;
                 }
             }
         }
-    }
-
-
-    async addMesh(item) {
-        const meshes = await crs.call("gfx_mesh_factory", "create", {
-            element: this.#canvas,
-            mesh: {
-                id: `${item.dataIndex}_my_mesh`,
-                type: "plane",
-                options: {
-                    width: Math.random() * (3 - 1) + 1,
-                    height: this.#size - 0.05
-                },
-            },
-            material: {
-                id: "my_colo2r",
-                color: "#0000ff"
-            },
-            positions: [{x: 2, y: item.position / -1 - (this.#size / 2), z: 0}]
-        })
-
-        return meshes[0];
     }
 }
 
