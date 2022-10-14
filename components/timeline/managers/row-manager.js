@@ -1,5 +1,6 @@
 import "../../../src/managers/mesh-factory-manager.js";
 import {TIMELINE_SCALE} from "../timeline_scale.js";
+import {Virtualization} from "./virtualization.js";
 
 class RowManager {
     #configuration;
@@ -60,6 +61,9 @@ class RowManager {
 
         }
         range1Mesh.thinInstanceSetBuffer("matrix", range1Matrices);
+
+
+        const virtualization = new Virtualization(canvas, canvas.__camera, 0.5, items);
     }
 
     async _createOffsetRows(itemCount, canvas, width) {
