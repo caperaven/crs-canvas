@@ -136,7 +136,9 @@ export class Timeline extends crsbinding.classes.BindableElement {
                 const cameraNewY = tangentY * camera.position.z;
 
                 camera.offset_x = cameraNewX;
-                camera.offset_y = cameraNewY;
+                camera.view_width = cameraNewX * 2;
+                camera.offset_x = cameraNewX;
+                camera.view_height = cameraNewY * 2 / -1;
 
                 camera.position.x = cameraNewX;
                 camera.position.y = cameraNewY;
