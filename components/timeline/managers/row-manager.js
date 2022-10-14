@@ -63,6 +63,7 @@ class RowManager {
         });
         await this._createOffsetRows(itemCount, canvas, result.totalWidth);
 
+        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 2 : 1
         for (let i = 0; i < itemCount; i++) {
             for (const settings of this.#configuration.settings) {
                 const item = items[i];
@@ -78,9 +79,9 @@ class RowManager {
                 let actual_geom = await crs.call("gfx_timeline_shape_factory", settings.shapeType, {
                     aabb: {
                         minX: result.x1,
-                        minY: (-i - 1) - this.#shapeConfig[settings.shapeType]?.yOffset,
+                        minY: (-i - rowOffset) - this.#shapeConfig[settings.shapeType]?.yOffset,
                         maxX: result.x2,
-                        maxY: ((-i - 1) - this.#shapeConfig[settings.shapeType]?.yOffset) - (this.#shapeConfig[settings.shapeType]?.barHeight / 2)
+                        maxY: ((-i - rowOffset) - this.#shapeConfig[settings.shapeType]?.yOffset) - (this.#shapeConfig[settings.shapeType]?.barHeight / 2)
                     },
                     triangle_height: this.#shapeConfig[settings.shapeType]?.triangleHeight,
                     triangle_width: this.#shapeConfig[settings.shapeType]?.triangleWidth,
