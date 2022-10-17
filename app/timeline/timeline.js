@@ -11,8 +11,9 @@ export default class Timeline extends crsbinding.classes.ViewBase {
     }
 
     async showInspector() {
+
         await crs.call("gfx_stats", "addInspector", {
-            element: "canvas"
+            element: document.querySelector("crs-timeline").shadowRoot.querySelector("canvas")
         });
     }
 }
