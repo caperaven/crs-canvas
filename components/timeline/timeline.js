@@ -36,6 +36,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
         this.setProperty('configuration', configuration);
     }
 
+
     get data() {
         return this.#data;
     }
@@ -43,6 +44,10 @@ export class Timeline extends crsbinding.classes.BindableElement {
     set data(newValue) {
         this.#data = newValue;
         this.render();
+    }
+
+    static get observedAttributes() {
+        return ["view"];
     }
 
     async connectedCallback() {
@@ -89,6 +94,10 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
     async disconnectedCallback() {
         this.#canvas = null;
+    }
+
+    async attributeChangedCallback(name, oldValue, newValue) {
+        await this.setScale(newValue);
     }
 
     async render() {
@@ -165,7 +174,8 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async setScale(scale) {
-        //TODO KR: not properly cleaning timeline_offset_row_bg
+        if (this.scale == scale) return;
+        if (this.#canvas == null || this.#canvas.__headers == null || this.#canvas.__rows == null) return;
         this.scale = scale;
 
         await crs.call("gfx_timeline_header", "clean", {element: this.#canvas});
