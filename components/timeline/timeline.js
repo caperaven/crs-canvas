@@ -56,8 +56,8 @@ export class Timeline extends crsbinding.classes.BindableElement {
             shapes: [
                 {
                     shapeType: "rect",
-                    fromField: "actualStart",
-                    toField: "actualEnd"
+                    fromField: "workStartedOn",
+                    toField: "completedOn"
                 },
                 {
                     shapeType: "range_indicator",
@@ -66,7 +66,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
                 },
                 {
                     shapeType: "pillar",
-                    fromField: "requestOn",
+                    fromField: "receivedOn",
                     toField: "requiredBy"
                 }
             ]
