@@ -4,40 +4,34 @@ export class Virtualization {
     #camera;
     #canvas;
     #size;
-    #items;
     #sizeManager;
     #indexes;
     #renderSize;
     #addCallback;
     #removeCallback;
-
     #lastY;
+    #busy;
 
     constructor(canvas, camera, size, items, addCallback, removeCallback) {
         this.#canvas = canvas;
         this.#camera = camera;
         this.#size = size;
-        this.#items = items;
         this.init();
         this.#sizeManager = new SizeManager(() => { });
 
-        const count = 100000 //items.length * 100000;
-
+        const count = items.length;
 
         this.#indexes = new Array(count);
         this.#sizeManager.fill(this.#size, count);
 
         this.#addCallback = addCallback;
         this.#removeCallback = removeCallback;
-
-        globalThis.sizeManager = this;
     }
 
     dispose() {
         this.#camera = null;
         this.#canvas = null;
         this.#size = null;
-        this.#items = null;
         this.#sizeManager = null;
         this.#indexes = null;
     }
@@ -58,7 +52,13 @@ export class Virtualization {
 
         if(cameraY === this.#lastY) return;
 
-        const offset = (this.#renderSize * this.#size) / 2;
+        if(this.#busy === true) {
+            return;
+        }
+
+        this.#busy = true;
+
+        const offset = (this.#renderSize * this.#size) / 4;
 
         const topY = cameraY - offset;
 
@@ -83,14 +83,16 @@ export class Virtualization {
         }
 
         for (let i = 0; i < this.#indexes.length; i++) {
-            const value = this.#indexes[i];
-            if(value != null) {
-                if(i < minIndex || i > maxIndex) {
+            if (i < minIndex || i > maxIndex) {
+
+                const value = this.#indexes[i];
+                if (value != null) {
                     await this.#removeCallback(value);
                     this.#indexes[i] = null;
                 }
             }
         }
+        this.#busy = false;
     }
 }
 

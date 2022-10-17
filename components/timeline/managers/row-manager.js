@@ -64,73 +64,68 @@ class RowManager {
         await this._createOffsetRows(itemCount, canvas, result.totalWidth);
 
         const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 2 : 1
-        for (let i = 0; i < itemCount; i++) {
-            for (const settings of this.#configuration.settings) {
-                const item = items[i];
-                if (item[settings.fromField] == null || item[settings.toField] == null) continue;
 
-                const result = await crs.call("gfx_timeline_manager", "get", {
-                    element: canvas,
-                    start: item[settings.fromField],
-                    end: item[settings.toField],
-                    scale: scale
-                });
-
-                let actual_geom = await crs.call("gfx_timeline_shape_factory", settings.shapeType, {
-                    aabb: {
-                        minX: result.x1,
-                        minY: (-i - rowOffset) - this.#shapeConfig[settings.shapeType]?.yOffset,
-                        maxX: result.x2,
-                        maxY: ((-i - rowOffset) - this.#shapeConfig[settings.shapeType]?.yOffset) - (this.#shapeConfig[settings.shapeType]?.barHeight / 2)
-                    },
-                    triangle_height: this.#shapeConfig[settings.shapeType]?.triangleHeight,
-                    triangle_width: this.#shapeConfig[settings.shapeType]?.triangleWidth,
-                    bar_height: this.#shapeConfig[settings.shapeType]?.barHeight
-                });
-
-                const mesh = await crs.call("gfx_geometry", "from", {
-                    element: canvas,
-                    data: {
-                        positions: actual_geom.vertices,
-                        indices: actual_geom.indices
-                    },
-                    name: `range_item_${settings.shapeType}_${i}`,
-                    position: {x: 0, y: 0, z: [this.#shapeConfig[settings.shapeType]?.zOffset]},
-                    material: {
-                        id: `${settings.shapeType}_mat`,
-                        color: canvas._theme[this.#shapeConfig[settings.shapeType]?.theme]
-                    }
-                });
+        const addCallback = async (sizeItem)=> {
+            let shapes = [];
+            for (const shape of this.#configuration.shapes) {
+                const item = items[sizeItem.dataIndex];
+                if (item[shape.fromField] == null || item[shape.toField] == null) continue;
+                shapes.push(await this.#drawShape(canvas, shape, item, sizeItem, scale));
             }
+
+            console.log("added", shapes.length);
+            return shapes;
+
+
         }
 
-
-        const addCallback = async (item)=> {
-            const meshes = await crs.call("gfx_mesh_factory", "create", {
-                element: canvas,
-                mesh: {
-                    id: `${item.dataIndex}_my_mesh`,
-                    type: "plane",
-                    options: {
-                        width: Math.random() * (3 - 1) + 1,
-                        height: item.size - 0.05
-                    },
-                },
-                material: {
-                    id: "my_colo2r",
-                    color: "#0000ff"
-                },
-                positions: [{x: 2, y: item.position / -1 - (item.size / 2), z: 0}]
-            })
-
-            return meshes[0];
+        const removeCallback = (shapes)=> {
+            for (const shape of shapes) {
+                shape.dispose();
+            }
+            console.log("removed", shapes.length);
         }
 
-        const removeCallback = (mesh)=> {
-            mesh.dispose();
-        }
+        const virtualization = new Virtualization(canvas, canvas.__camera, 1, items, addCallback, removeCallback);
+    }
 
-        const virtualization = new Virtualization(canvas, canvas.__camera, 0.5, items, addCallback, removeCallback);
+    async #drawShape(canvas, shape, item, sizeItem, scale) {
+
+        let rowOffset =0;
+
+        const result = await crs.call("gfx_timeline_manager", "get", {
+            element: canvas,
+            start: item[shape.fromField],
+            end: item[shape.toField],
+            scale: scale
+        });
+
+        let actual_geom = await crs.call("gfx_timeline_shape_factory", shape.shapeType, {
+            aabb: {
+                minX: result.x1,
+                minY: (-sizeItem.position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset,
+                maxX: result.x2,
+                maxY: ((-sizeItem.position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset) - (this.#shapeConfig[shape.shapeType]?.barHeight / 2)
+            },
+            triangle_height: this.#shapeConfig[shape.shapeType]?.triangleHeight,
+            triangle_width: this.#shapeConfig[shape.shapeType]?.triangleWidth,
+            bar_height: this.#shapeConfig[shape.shapeType]?.barHeight
+        });
+
+        const mesh = await crs.call("gfx_geometry", "from", {
+            element: canvas,
+            data: {
+                positions: actual_geom.vertices,
+                indices: actual_geom.indices
+            },
+            name: `range_item_${shape.shapeType}_${sizeItem.dataIndex}`,
+            position: {x: 0, y: 0, z: [this.#shapeConfig[shape.shapeType]?.zOffset]},
+            material: {
+                id: `${shape.shapeType}_mat`,
+                color: canvas._theme[this.#shapeConfig[shape.shapeType]?.theme]
+            }
+        });
+        return mesh;
     }
 
     async _createOffsetRows(itemCount, canvas, width) {

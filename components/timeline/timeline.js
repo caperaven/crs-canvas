@@ -37,7 +37,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
     async connectedCallback() {
         await super.connectedCallback();
         this.configuration = {
-            settings: [
+            shapes: [
                 {
                     shapeType: "rect",
                     fromField: "receivedOn",
@@ -57,7 +57,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
         }
 
         this.#canvas = this.querySelector("canvas");
-        this.scale = this.scale || 'week';
+        this.scale = this.scale || 'month';
 
         await ThemeManager.initialize(this.#canvas);
         const ready = async () => {
