@@ -1,4 +1,4 @@
-import {Canvas} from "../canvas_2d/canvas_2d.js";
+import "./../canvas_2d/canvas_2d.js";
 import {ThemeManager} from "./managers/theme-manager.js";
 import "./managers/header-manager.js"
 import "./managers/row-manager.js"
@@ -6,14 +6,15 @@ import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
 
+
 import {TIMELINE_SCALE} from "./timeline_scale.js";
-import {workOrderSamples} from "./sample_data.js";
 
 export class Timeline extends crsbinding.classes.BindableElement {
 
     #canvas;
     #startDate;
     #endDate;
+    #data;
 
     get html() {
         return import.meta.url.replace(".js", ".html")
@@ -33,6 +34,15 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
     set configuration(configuration) {
         this.setProperty('configuration', configuration);
+    }
+
+    get data() {
+        return this.#data;
+    }
+
+    set data(newValue) {
+        this.#data = newValue;
+        this.render();
     }
 
     async connectedCallback() {
@@ -64,7 +74,10 @@ export class Timeline extends crsbinding.classes.BindableElement {
         const ready = async () => {
             this.#canvas.removeEventListener("ready", ready);
             this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-            await this.render();
+
+            if(this.#data) {
+                await this.render();
+            }
         }
 
         if (this.#canvas.dataset.ready == "true") {
@@ -79,12 +92,10 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async render() {
+        if(this.#data == null || this.#data.length === 0) return;
+
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
-
-        this.#canvas.__camera.checkCollisions = true;
-        scene.collisionsEnabled = true;
-        camera.collisionRadius = new BABYLON.Vector3(1, 1, 1);
 
         this.#startDate = new Date(2022, 0, 1);
         this.#endDate = new Date(2024, 11, 31);
@@ -109,7 +120,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,
-            items: workOrderSamples,
+            items: this.#data,
             start_date: this.#startDate,
             end_date: this.#endDate,
             scale: this.scale
@@ -169,7 +180,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,
-            items: workOrderSamples,
+            items: this.#data,
             start_date: this.#startDate,
             end_date: this.#endDate,
             scale: this.scale
