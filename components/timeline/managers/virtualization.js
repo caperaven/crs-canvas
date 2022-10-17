@@ -9,10 +9,11 @@ export class Virtualization {
     #renderSize;
     #addCallback;
     #removeCallback;
+    #cleanCallback;
     #lastY;
     #busy;
 
-    constructor(canvas, camera, size, items, addCallback, removeCallback) {
+    constructor(canvas, camera, size, items, addCallback, removeCallback, cleanCallback) {
         this.#canvas = canvas;
         this.#camera = camera;
         this.#size = size;
@@ -26,6 +27,7 @@ export class Virtualization {
 
         this.#addCallback = addCallback;
         this.#removeCallback = removeCallback;
+        this.#cleanCallback = cleanCallback;
     }
 
     dispose() {
@@ -34,6 +36,11 @@ export class Virtualization {
         this.#size = null;
         this.#sizeManager = null;
         this.#indexes = null;
+    }
+
+    clean() {
+        const items = this.#indexes.filter(_=> _ != null);
+        this.#cleanCallback(items);
     }
 
     init() {

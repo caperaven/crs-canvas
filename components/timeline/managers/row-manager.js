@@ -82,7 +82,15 @@ class RowManager {
             }
         }
 
-        const virtualization = new Virtualization(canvas, canvas.__camera, 1, items, addCallback, removeCallback);
+        const cleanCallback = (items)=> {
+            for (const shapes of items) {
+                for (const shape of shapes) {
+                    shape.dispose();
+                }
+            }
+        }
+
+        const virtualization = new Virtualization(canvas, canvas.__camera, 1, items, addCallback, removeCallback, cleanCallback);
     }
 
     async #drawShape(canvas, shape, item, sizeItem, scale) {

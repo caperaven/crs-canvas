@@ -17,7 +17,7 @@ function getDate(date) {
     if (typeof(date) === 'string') {
         const parts = date.split(" ");
         const newDate = parts[0].split("/").reverse().join("-");
-        const fullString = [newDate, parts[1]].join("T");
+        const fullString = [newDate, parts[1]].join();
         return (new Date(Date.parse(fullString))).getTime();
     }
 }
