@@ -1,5 +1,19 @@
 export const workOrderSamples = [
     {
+        "code": "receivedOn > requiredBy",
+        "startOn": "17/01/2022 12:00:00.000",
+        "completeBy": "09/01/2022 12:00:00.000",
+        "workStartedOn": "17/01/2022 12:00:00.000",
+        "completedOn": "09/01/2022 12:00:00.000",
+        "receivedOn": "17/01/2022 14:51:32.531",
+        "requiredBy": "09/01/2022 02:00:00.000",
+    },
+    {
+        "code": "sameTime",
+        "receivedOn": "03/01/2022 00:00:00.000",
+        "requiredBy": "03/01/2022 00:00:00.000",
+    },
+    {
         "code": "1/2 hour",
         "receivedOn": "03/01/2022 00:00:00.000",
         "requiredBy": "03/01/2022 00:30:00.000",
@@ -107,11 +121,6 @@ export const workOrderSamples = [
         "code": "1 Month (December)",
         "receivedOn": "02/12/2022 00:00:00.000",
         "requiredBy": "01/01/2023 00:00:00.000",
-    },
-    {
-        "code": "receivedOn > requiredBy",
-        "receivedOn": "07/02/2022 14:51:32.531",
-        "requiredBy": "21/01/2022 02:00:00.000",
     },
     {
         "code": "R00000000001093",
