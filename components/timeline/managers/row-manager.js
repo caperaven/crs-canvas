@@ -70,7 +70,7 @@ class RowManager {
             let shapes = [];
             for (const shape of this.#configuration.shapes) {
                 const item = items[sizeItem.dataIndex];
-                if (item[shape.fromField] == null || item[shape.toField] == null) continue;
+                if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) continue;
                 shapes.push(await this.#drawShape(canvas, shape, item, sizeItem, scale));
             }
             return shapes;
