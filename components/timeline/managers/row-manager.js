@@ -50,6 +50,9 @@ class RowManager {
             const mesh = scene.getMeshByID(id);
             mesh.dispose();
         }
+
+        const offsetRowsMesh = scene.getMeshByID("timeline_offset_row_bg");
+        offsetRowsMesh.dispose();
     }
 
     async render(items, canvas, scene, startDate, endDate, scale) {
@@ -61,9 +64,7 @@ class RowManager {
             max: endDate,
             scale: scale
         });
-        await this._createOffsetRows(itemCount, canvas, result.totalWidth);
-
-        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 2 : 1
+        await this._createOffsetRows(itemCount, canvas, result.totalWidth, scale);
 
         const addCallback = async (sizeItem)=> {
             let shapes = [];
@@ -86,7 +87,7 @@ class RowManager {
 
     async #drawShape(canvas, shape, item, sizeItem, scale) {
 
-        let rowOffset =0;
+        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
 
         const result = await crs.call("gfx_timeline_manager", "get", {
             element: canvas,
@@ -123,8 +124,9 @@ class RowManager {
         return mesh;
     }
 
-    async _createOffsetRows(itemCount, canvas, width) {
-        const offsetRowMesh = await this._createMesh(width, 1, canvas);
+    async _createOffsetRows(itemCount, canvas, width, scale) {
+        const yOffset = scale !== TIMELINE_SCALE.YEAR ? 0.25 : 0;
+        const offsetRowMesh = await this._createMesh(width, 1, yOffset, canvas);
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
         const rowOffsetColors = new Float32Array(4 * offsetRowCount);
@@ -146,7 +148,7 @@ class RowManager {
         offsetRowMesh.thinInstanceSetBuffer("color", rowOffsetColors, 4);
     }
 
-    async _createMesh(width, height, canvas) {
+    async _createMesh(width, height, y = 0, canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
             mesh: {
@@ -161,7 +163,7 @@ class RowManager {
                 id: "timeline_row",
                 color: canvas._theme.offset_row_bg,
             },
-            positions: [{x: width / 2, y: 0, z: 0}]
+            positions: [{x: width / 2, y: y, z: 0}]
         })
 
         return meshes[0];
