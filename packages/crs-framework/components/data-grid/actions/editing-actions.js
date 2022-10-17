@@ -1,0 +1,1 @@
+class l{static#t="gridcell";static async perform(t,i,e,c){await this[t.action]?.(t,i,e,c)}static async edit(t,i,e,c){const s=await crs.dom.get_element(t,i,e,c);s?.getAttribute("role")==this.#t&&console.log(s)}}crs.intent.grid_editing=l;export{l as EditingActions};

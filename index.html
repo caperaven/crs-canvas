@@ -63,10 +63,10 @@
     </footer>
 
     <script type="module">
-        import "./packages/crs-binding/crs-binding.js";
-        import "./packages/crs-modules/crs-modules.js";
-        import "./packages/crs-router/crs-router.js";
-        import {initialize} from "./packages/crs-process-api/crs-process-api.js";
+        import "./packages/crs-framework/packages/crs-binding/crs-binding.js";
+        import "./packages/crs-framework/packages/crs-modules/crs-modules.js";
+        import "./packages/crs-framework/packages/crs-router/crs-router.js";
+        import {initialize} from "./packages/crs-framework/packages/crs-process-api/crs-process-api.js";
         import "./packages/babylonjs/babylon.js";
         import "./packages/babylonjs/babylonjs.materials.min.js";
         import "./packages/babylonjs/babylon.gui.min.js";
@@ -81,7 +81,7 @@
             await document.viewModel.connectedCallback();
         });
 
-        await initialize("/packages/crs-process-api");
+        await initialize("/packages/crs-framework/packages/crs-process-api");
     </script>
 </body>
 </html>

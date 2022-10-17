@@ -1,0 +1,42 @@
+@import "./lib/variables.css";
+@import "./lib/text.css";
+@import "./lib/footer.css";
+@import "./lib/header.css";
+@import "./lib/main.css";
+@import "./lib/icons.css";
+@import "./lib/buttons.css";
+@import "./lib/aside.css";
+@import "./lib/color-classes.css";
+@import "./lib/input.css";
+@import "./lib/label-input.css";
+
+@font-face {
+    font-family: SourceSansPro;
+    src: url(/resources/fonts/Source_Sans_Pro/SourceSansPro-Regular.ttf);
+}
+
+@font-face {
+    font-family: selection;
+    src: url(/resources/fonts/icons/selection.ttf);
+}
+
+@font-face {
+    font-family: crsfrw;
+    src: url('/resources/fonts/icons/crs-framework.woff?ydxlqn');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+*:focus {
+    border: solid 1px var(--cl-focus-dark);
+}
+
+
+i {
+    font-style: normal;
+}

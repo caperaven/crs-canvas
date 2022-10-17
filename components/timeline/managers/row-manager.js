@@ -72,18 +72,13 @@ class RowManager {
                 if (item[shape.fromField] == null || item[shape.toField] == null) continue;
                 shapes.push(await this.#drawShape(canvas, shape, item, sizeItem, scale));
             }
-
-            console.log("added", shapes.length);
             return shapes;
-
-
         }
 
         const removeCallback = (shapes)=> {
             for (const shape of shapes) {
                 shape.dispose();
             }
-            console.log("removed", shapes.length);
         }
 
         const virtualization = new Virtualization(canvas, canvas.__camera, 1, items, addCallback, removeCallback);

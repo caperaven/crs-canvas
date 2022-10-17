@@ -1,3 +1,4 @@
+import {Canvas} from "../canvas_2d/canvas_2d.js";
 import {ThemeManager} from "./managers/theme-manager.js";
 import "./managers/header-manager.js"
 import "./managers/row-manager.js"
@@ -6,7 +7,7 @@ import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
 
 import {TIMELINE_SCALE} from "./timeline_scale.js";
-import {workOrderSamples} from "../../app/timeline/sample_data.js";
+import {workOrderSamples} from "./sample_data.js";
 
 export class Timeline extends crsbinding.classes.BindableElement {
 
@@ -56,7 +57,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
             ]
         }
 
-        this.#canvas = this.querySelector("canvas");
+        this.#canvas = this.querySelector("canvas") || this.canvas;
         this.scale = this.scale || 'month';
 
         await ThemeManager.initialize(this.#canvas);
