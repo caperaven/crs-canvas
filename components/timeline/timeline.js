@@ -42,8 +42,18 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     set data(newValue) {
-        this.#data = newValue;
-        this.render();
+        this.setData(newValue);
+    }
+
+    async setData(data) {
+        if(this.#startDate == null) {
+            await this.init();
+        }
+        if(this.#data != null) {
+            await this.clean();
+        }
+        this.#data = data;
+        await this.render();
     }
 
     static get observedAttributes() {
@@ -100,14 +110,9 @@ export class Timeline extends crsbinding.classes.BindableElement {
         await this.setScale(newValue);
     }
 
-    async render() {
-        if(this.#data == null || this.#data.length === 0) return;
-
-        const scene = this.#canvas.__layers[0];
-        const camera = this.#canvas.__camera;
-
+    async init() {
         this.#startDate = new Date(2022, 0, 1);
-        this.#endDate = new Date(2024, 11, 31);
+        this.#endDate = new Date(2023, 11, 31);
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
@@ -118,6 +123,17 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
+        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.configuration});
+
+        const scene = this.#canvas.__layers[0];
+        const camera = this.#canvas.__camera;
+        await this.#configureCamera(camera, scene);
+        await this.render()
+    }
+
+    async render() {
+        if(this.#data == null || this.#data.length === 0) return;
+
         await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
             start_date: this.#startDate,
@@ -125,16 +141,15 @@ export class Timeline extends crsbinding.classes.BindableElement {
             scale: this.scale
         });
 
-        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.configuration});
-
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,
             items: this.#data,
             start_date: this.#startDate,
             end_date: this.#endDate,
-            scale: this.scale
+            scale: this.scale,
+            forceRender: true
         });
-        await this.#configureCamera(camera, scene);
+
     }
 
     async #configureCamera(camera, scene) {
@@ -177,24 +192,14 @@ export class Timeline extends crsbinding.classes.BindableElement {
         if (this.scale == scale) return;
         if (this.#canvas == null || this.#canvas.__headers == null || this.#canvas.__rows == null) return;
         this.scale = scale;
+        await this.clean();
+      await  this.render();
 
+    }
+
+    async clean() {
         await crs.call("gfx_timeline_header", "clean", {element: this.#canvas});
         await crs.call("gfx_timeline_rows", "clean", {element: this.#canvas});
-
-        await crs.call("gfx_timeline_header", "render", {
-            element: this.#canvas,
-            start_date: this.#startDate,
-            end_date: this.#endDate,
-            scale: this.scale
-        });
-
-        await crs.call("gfx_timeline_rows", "render", {
-            element: this.#canvas,
-            items: this.#data,
-            start_date: this.#startDate,
-            end_date: this.#endDate,
-            scale: this.scale
-        });
     }
 }
 

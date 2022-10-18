@@ -12,18 +12,19 @@ export class Virtualization {
     #cleanCallback;
     #lastY;
     #busy;
+    #count;
 
     constructor(canvas, camera, size, items, addCallback, removeCallback, cleanCallback) {
         this.#canvas = canvas;
         this.#camera = camera;
         this.#size = size;
-        this.init();
+
         this.#sizeManager = new SizeManager(() => { });
 
-        const count = items.length;
+        this.#count = items.length;
 
-        this.#indexes = new Array(count);
-        this.#sizeManager.fill(this.#size, count);
+        this.#indexes = new Array(this.#count);
+        this.#sizeManager.fill(this.#size, this.#count);
 
         this.#addCallback = addCallback;
         this.#removeCallback = removeCallback;
@@ -36,11 +37,21 @@ export class Virtualization {
         this.#size = null;
         this.#sizeManager = null;
         this.#indexes = null;
+        this.#count = null;
+
+        this.#addCallback = null;
+        this.#removeCallback = null;
+        this.#cleanCallback = null;
     }
 
     clean() {
         const items = this.#indexes.filter(_=> _ != null);
         this.#cleanCallback(items);
+
+        this.#indexes = null;
+        this.#indexes = new Array(this.#count);
+
+        this.#lastY = null;
     }
 
     init() {
@@ -49,9 +60,19 @@ export class Virtualization {
         });
 
         this.#camera.onViewMatrixChangedObservable.add(async (camera) => {
-            const cameraY = this.#camera.position.y / -1;
-            await this.move(cameraY);
+           await this.render();
         });
+    }
+
+    reset(addCallback, removeCallback, cleanCallback) {
+        this.#addCallback = addCallback;
+        this.#removeCallback = removeCallback;
+        this.#cleanCallback = cleanCallback;
+    }
+
+    async render() {
+        const cameraY = this.#camera.position.y / -1;
+        await this.move(cameraY);
     }
 
     async move(cameraY) {
@@ -65,7 +86,7 @@ export class Virtualization {
 
         this.#busy = true;
 
-        const offset = (this.#renderSize * this.#size) / 4;
+        const offset = (this.#renderSize * this.#size) / 2;
 
         const topY = cameraY - offset;
 

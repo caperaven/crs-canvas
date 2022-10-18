@@ -5,9 +5,10 @@ import {Virtualization} from "./virtualization.js";
 
 class RowManager {
     #configuration;
+    #virtualization;
     #shapeConfig = Object.freeze({
         "pillar": {
-            barHeight:  0.4,
+            barHeight: 0.4,
             triangleHeight: 0.1,
             triangleWidth: 0.1,
             theme: "row_range1",
@@ -38,6 +39,7 @@ class RowManager {
 
     dispose() {
         this.#configuration = null;
+        this.#virtualization = this.#virtualization.dispose();
     }
 
     clean(canvas, scene) {
@@ -53,9 +55,10 @@ class RowManager {
 
         const offsetRowsMesh = scene.getMeshByID("timeline_offset_row_bg");
         offsetRowsMesh.dispose();
+        this.#virtualization.clean();
     }
 
-    async render(items, canvas, scene, startDate, endDate, scale) {
+    async render(items, canvas, scene, startDate, endDate, scale, forceRender) {
         const itemCount = items.length;
 
         const result = await crs.call("gfx_timeline_manager", "set_range", {
@@ -66,7 +69,39 @@ class RowManager {
         });
         await this._createOffsetRows(itemCount, canvas, result.totalWidth, scale);
 
-        const addCallback = async (sizeItem)=> {
+        if(this.#virtualization == null) {
+            await this.#initVirtualization(canvas, items, scale, forceRender);
+        } else if (forceRender) {
+            const addCallback = async (sizeItem) => {
+                let shapes = [];
+                for (const shape of this.#configuration.shapes) {
+                    const item = items[sizeItem.dataIndex];
+                    if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) continue;
+                    shapes.push(await this.#drawShape(canvas, shape, item, sizeItem, scale));
+                }
+                return shapes;
+            }
+
+            const removeCallback = (shapes) => {
+                for (const shape of shapes) {
+                    shape.dispose();
+                }
+            }
+
+            const cleanCallback = (items) => {
+                for (const shapes of items) {
+                    for (const shape of shapes) {
+                        shape.dispose();
+                    }
+                }
+            }
+            this.#virtualization.reset(addCallback, removeCallback, cleanCallback);
+            this.#virtualization.render();
+        }
+    }
+
+    async #initVirtualization(canvas, items, scale) {
+        const addCallback = async (sizeItem) => {
             let shapes = [];
             for (const shape of this.#configuration.shapes) {
                 const item = items[sizeItem.dataIndex];
@@ -76,13 +111,13 @@ class RowManager {
             return shapes;
         }
 
-        const removeCallback = (shapes)=> {
+        const removeCallback = (shapes) => {
             for (const shape of shapes) {
                 shape.dispose();
             }
         }
 
-        const cleanCallback = (items)=> {
+        const cleanCallback = (items) => {
             for (const shapes of items) {
                 for (const shape of shapes) {
                     shape.dispose();
@@ -90,7 +125,9 @@ class RowManager {
             }
         }
 
-        const virtualization = new Virtualization(canvas, canvas.__camera, 1, items, addCallback, removeCallback, cleanCallback);
+        this.#virtualization = new Virtualization(canvas, canvas.__camera, 1, items, addCallback, removeCallback, cleanCallback);
+        await this.#virtualization.init();
+
     }
 
     async #drawShape(canvas, shape, item, sizeItem, scale) {
@@ -146,7 +183,7 @@ class RowManager {
         for (let i = 0; i < offsetRowCount; i++) {
             const y = -i - headerOffset;
 
-            const matrix = BABYLON.Matrix.Translation(0, y*2, 0);
+            const matrix = BABYLON.Matrix.Translation(0, y * 2, 0);
             matrix.copyToArray(rowOffsetMatrices, i * 16);
             colors.push(...[0.976, 0.976, 0.976, 1]);
         }
@@ -211,10 +248,11 @@ export class RowManagerActions {
         const startDate = await crs.process.getValue(step.args.start_date, context, process, item);
         const endDate = await crs.process.getValue(step.args.end_date, context, process, item);
         const scale = await crs.process.getValue(step.args.scale, context, process, item);
+        const forceRender = await crs.process.getValue(step.args.forceRender, context, process, item);
 
         const scene = canvas.__layers[layer];
 
-        canvas.__rows.render(items, canvas, scene, startDate, endDate, scale);
+        canvas.__rows.render(items, canvas, scene, startDate, endDate, scale, forceRender);
     }
 }
 
