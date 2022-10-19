@@ -59,9 +59,9 @@ export class CustomPanInput {
             let yDelta = speed * -ydir;
 
 
-            if ((this.#camera.position.x + xDelta) < this.#camera.offset_x) {
-                xDelta = 0;
-            }
+            // if ((this.#camera.position.x + xDelta) < this.#camera.offset_x) {
+            //     xDelta = 0;
+            // }
 
             if ((this.#camera.position.y + yDelta) > this.#camera.offset_y) {
                 yDelta = 0;

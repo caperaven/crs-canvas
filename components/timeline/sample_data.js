@@ -1,5 +1,14 @@
 export const workOrderSamples = [
     {
+        "code": "Oct Dates",
+        "startOn": "14/10/2022 00:00:00.000",
+        "completeBy": "17/10/2022 00:00:00.000",
+        "receivedOn": "14/10/2022 00:00:00.000",
+        "requiredBy": "17/10/2022 00:00:00.000",
+        "workStartedOn": "14/10/2022 00:00:00.000",
+        "completedOn": "17/10/2022 00:00:00.000",
+    },
+    {
         "code": "receivedOn > requiredBy",
         "startOn": "17/01/2022 12:00:00.000",
         "completeBy": "09/01/2022 12:00:00.000",

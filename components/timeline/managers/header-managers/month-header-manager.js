@@ -2,22 +2,23 @@ import {createHeaderText, createHeaderMesh} from "./header-manager-utils.js";
 
 //Will need to think about the configuration here i.e. user defined work week
 export class MonthHeaderManager {
-    getColors(startDate, shape, particle, i, canvas) {
+    getColors(date, shape, particle, i, canvas) {
         if (shape === "header_plane") {
-            const dayNumber = startDate.getUTCDay();
+            const dayNumber = date.getUTCDay();
             if (dayNumber === 5 || dayNumber === 6) {
                 particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
             } else {
                 particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
             }
-            startDate.setUTCDate(startDate.getUTCDate() + 1);
+            date.setUTCDate(date.getUTCDate() + 1);
         }
     }
 
-    async getShapes(startDate, endDate, canvas, rangeProperties, scale) {
+    async getShapes(baseDate, canvas, rangeProperties, scale) {
         const width = rangeProperties.width;
         const secondaryWidth = width * 7;
-        const numberOfItems = rangeProperties.items;
+        const numberOfItemsToRender = 35;
+        // const numberOfItems = rangeProperties.items;
 
         const headerPlane = await createHeaderMesh(canvas, "timeline_header_primary", width);
         const secondaryHeaderPlane = await createHeaderMesh(canvas, "timeline_header_secondary", secondaryWidth, 0.02, 0.45, "timeline_header_secondary", canvas._theme.secondary_header_bg);
@@ -138,40 +139,62 @@ export class MonthHeaderManager {
             }
         }
 
-        const startingDay = startDate.getUTCDay();
-        if (startingDay < 6) {
-            result.secondary_header_plane.positions.push((secondaryWidth / 2) - (startingDay + 1), -0.25, -0.01);
+        //This is just to render that initial item - won't be necessary with new rendering process
+        const baseDay = baseDate.getUTCDay();
+        if (baseDay < 6) {
+            result.secondary_header_plane.positions.push((secondaryWidth / 2) - (baseDay + 1), -0.25, -0.01);
 
-            if (startingDay <= 4) {
-                await this.#setSecondaryShapes(result, startDate,  canvas,   0.2, 1.4)
+            if (baseDay <= 4) {
+                await this.#setSecondaryShape(result, baseDate,  canvas,  0.2, 1.4)
             }
         }
 
-        for (let i = 0; i < numberOfItems; i++) {
-            const day = startDate.toLocaleString('en-us', {weekday:'short'})
-            const dayNumber = startDate.getDate();
-            const utcDay = startDate.getUTCDay();
+        //This will probably become a call which the virtualization uses to add items as you scroll
+        for (let i = 0; i < numberOfItemsToRender; i++) {
+            const day = baseDate.toLocaleString('en-us', {weekday:'short'})
+            const dayNumber = baseDate.getDate();
+            const utcDay = baseDate.getUTCDay();
 
             result[day.toLowerCase()].positions.push(0.25 + i, -0.8, -0.02);
 
             result.header_plane.positions.push(0.5 + i, -0.875, -0.01);
             if (utcDay === 6) {
                 result.secondary_header_plane.positions.push((secondaryWidth / 2) + (i * width), -0.25, -0.01);
-                await this.#setSecondaryShapes(result, startDate,  canvas,  i + 0.2, i + 1.4)
+                await this.#setSecondaryShape(result, baseDate,  canvas,  i + 0.2, i + 1.4)
             }
 
             result[dayNumber].positions.push(0.325 + i, -1.05, -0.01);
-            startDate.setUTCDate(startDate.getUTCDate() + 1);
+            baseDate.setUTCDate(baseDate.getUTCDate() + 1);
+
+            // await this.setShape(result, baseDate, i, width, secondaryWidth, canvas);
         }
 
         return result;
     }
 
-    async #setSecondaryShapes(result, startDate, canvas, monthX, yearX) {
-        const month = startDate.getMonth();
+    async setShape(particleStore, date, x, width, secondaryWidth, canvas) {
+        const day = date.toLocaleString('en-us', {weekday:'short'})
+        const dayNumber = date.getDate();
+        const utcDay = date.getUTCDay();
+
+        particleStore[day.toLowerCase()].positions.push(0.25 + x, -0.8, -0.02);
+
+        particleStore.header_plane.positions.push(0.5 + x, -0.875, -0.01);
+        if (utcDay === 6) {
+            particleStore.secondary_header_plane.positions.push((secondaryWidth / 2) + (x * width), -0.25, -0.01);
+            await this.#setSecondaryShape(particleStore, date, canvas,  x + 0.2, x + 1.4)
+        }
+
+        particleStore[dayNumber].positions.push(0.325 + x, -1.05, -0.01);
+
+        date.setUTCDate(date.getUTCDate() + 1); //This will most likely move out to where the virtualization is calling it, in order to either add 1 or remove 1 depending on if we're scrolling left or right
+    }
+
+    async #setSecondaryShape(result, date, canvas, monthX, yearX) {
+        const month = date.getMonth();
         result[`month_${month}`].positions.push(monthX, -0.325, -0.01);
 
-        const year = startDate.getFullYear();
+        const year = date.getFullYear();
         if (result[`year_${year}`] == null) {
             result[`year_${year}`] = {
                 positions: [],

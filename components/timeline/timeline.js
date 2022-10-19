@@ -5,15 +5,14 @@ import "./managers/row-manager.js"
 
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
-
+import {workOrderSamples} from "./sample_data.js"; //TODO KR: revert when done
 
 import {TIMELINE_SCALE} from "./timeline_scale.js";
 
 export class Timeline extends crsbinding.classes.BindableElement {
 
     #canvas;
-    #startDate;
-    #endDate;
+    #baseDate;
     #data;
 
     get html() {
@@ -46,7 +45,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async setData(data) {
-        if(this.#startDate == null) {
+        if(this.#baseDate == null) {
             await this.init();
         }
         if(this.#data != null) {
@@ -90,9 +89,11 @@ export class Timeline extends crsbinding.classes.BindableElement {
             this.#canvas.removeEventListener("ready", ready);
             this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
-            if(this.#data) {
-                await this.render();
-            }
+            this.#data = workOrderSamples;  //TODO KR: revert when done
+            await this.init()
+            // if(this.#data) {
+            //     await this.render();
+            // }
         }
 
         if (this.#canvas.dataset.ready == "true") {
@@ -111,13 +112,11 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async init() {
-        this.#startDate = new Date(2022, 0, 1);
-        this.#endDate = new Date(2023, 11, 31);
+        if (this.#baseDate == null) this.#baseDate = new Date(new Date().toDateString());
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
-            min: this.#startDate,
-            max: this.#endDate,
+            base: this.#baseDate,
             scale: this.scale
         });
 
@@ -136,16 +135,14 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
         await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
-            start_date: this.#startDate,
-            end_date: this.#endDate,
+            base_date: this.#baseDate,
             scale: this.scale
         });
 
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,
             items: this.#data,
-            start_date: this.#startDate,
-            end_date: this.#endDate,
+            base_date: this.#baseDate,
             scale: this.scale,
             forceRender: true
         });
