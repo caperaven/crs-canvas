@@ -6,36 +6,14 @@ import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
 
-
-import {TIMELINE_SCALE} from "./timeline_scale.js";
-
-export class Timeline extends crsbinding.classes.BindableElement {
+export class Timeline extends HTMLElement {
 
     #canvas;
     #startDate;
     #endDate;
     #data;
-
-    get html() {
-        return import.meta.url.replace(".js", ".html")
-    }
-
-    get scale() {
-        return this.getProperty('scale');
-    }
-
-    set scale(scale) {
-        this.setProperty('scale', scale);
-    }
-
-    get configuration() {
-        return this.getProperty('configuration');
-    }
-
-    set configuration(configuration) {
-        this.setProperty('configuration', configuration);
-    }
-
+    #configuration;
+    #scale;
 
     get data() {
         return this.#data;
@@ -46,10 +24,10 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async setData(data) {
-        if(this.#startDate == null) {
+        if (this.#startDate == null) {
             await this.init();
         }
-        if(this.#data != null) {
+        if (this.#data != null) {
             await this.clean();
         }
         this.#data = data;
@@ -61,8 +39,8 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async connectedCallback() {
-        await super.connectedCallback();
-        this.configuration = {
+        this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
+        this.#configuration = { // TODO Fetch this from json path
             shapes: [
                 {
                     shapeType: "rect",
@@ -83,17 +61,19 @@ export class Timeline extends crsbinding.classes.BindableElement {
         }
 
         this.#canvas = this.querySelector("canvas") || this.canvas;
-        this.scale = this.scale || 'month';
+        this.#scale = this.dataset.scale || 'month';
 
-        await ThemeManager.initialize(this.#canvas);
         const ready = async () => {
             this.#canvas.removeEventListener("ready", ready);
-            this.dispatchEvent(new CustomEvent("timeline-ready"));
+
+            await ThemeManager.initialize(this.#canvas);
             this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
-            if(this.#data) {
+            if (this.#data) {
                 await this.render();
             }
+
+            await crs.call("component", "notify_ready", {element: this});
         }
 
         if (this.#canvas.dataset.ready == "true") {
@@ -101,6 +81,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
         } else {
             this.#canvas.addEventListener("ready", ready);
         }
+
     }
 
     async disconnectedCallback() {
@@ -124,7 +105,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
 
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
-        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.configuration});
+        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.#configuration});
 
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
@@ -133,13 +114,13 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async render() {
-        if(this.#data == null || this.#data.length === 0) return;
+        if (this.#data == null || this.#data.length === 0) return;
 
         await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
             start_date: this.#startDate,
             end_date: this.#endDate,
-            scale: this.scale
+            scale: this.#scale
         });
 
         await crs.call("gfx_timeline_rows", "render", {
@@ -147,7 +128,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
             items: this.#data,
             start_date: this.#startDate,
             end_date: this.#endDate,
-            scale: this.scale,
+            scale: this.#scale,
             forceRender: true
         });
 
@@ -190,11 +171,11 @@ export class Timeline extends crsbinding.classes.BindableElement {
     }
 
     async setScale(scale) {
-        if (this.scale == scale) return;
+        if (this.#scale == scale) return;
         if (this.#canvas == null || this.#canvas.__headers == null || this.#canvas.__rows == null) return;
-        this.scale = scale;
+        this.#scale = scale;
         await this.clean();
-      await  this.render();
+        await this.render();
 
     }
 
