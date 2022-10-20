@@ -88,6 +88,7 @@ export class Timeline extends crsbinding.classes.BindableElement {
         await ThemeManager.initialize(this.#canvas);
         const ready = async () => {
             this.#canvas.removeEventListener("ready", ready);
+            this.dispatchEvent(new CustomEvent("timeline-ready"));
             this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
             if(this.#data) {

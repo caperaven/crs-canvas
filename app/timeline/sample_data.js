@@ -17,7 +17,7 @@ function getDate(min, max) {
     if(value < 10) {
         value = `0${value}`;
     }
-    return `${value}/01/2022 12:00:00.000`;
+    return `2022/01/${value} 12:00:00.000`;
 }
 
 function randomIntFromInterval(min, max) { // min and max included
@@ -33,4 +33,3 @@ function getWorkOrders() {
 }
 
 export const workOrderSamples = getWorkOrders();
-console.log(workOrderSamples);
