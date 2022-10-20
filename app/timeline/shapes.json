@@ -1,0 +1,19 @@
+{
+  "shapes": [
+    {
+      "shapeType": "rect",
+      "fromField": "workStartedOn",
+      "toField": "completedOn"
+    },
+    {
+      "shapeType": "range_indicator",
+      "fromField": "startOn",
+      "toField": "completeBy"
+    },
+    {
+      "shapeType": "pillar",
+      "fromField": "receivedOn",
+      "toField": "requiredBy"
+    }
+  ]
+}

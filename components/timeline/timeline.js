@@ -40,25 +40,7 @@ export class Timeline extends HTMLElement {
 
     async connectedCallback() {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
-        this.#configuration = { // TODO Fetch this from json path
-            shapes: [
-                {
-                    shapeType: "rect",
-                    fromField: "workStartedOn",
-                    toField: "completedOn"
-                },
-                {
-                    shapeType: "range_indicator",
-                    fromField: "startOn",
-                    toField: "completeBy"
-                },
-                {
-                    shapeType: "pillar",
-                    fromField: "receivedOn",
-                    toField: "requiredBy"
-                }
-            ]
-        }
+        this.#configuration = await fetch(this.dataset.config).then(result => result.json());
 
         this.#canvas = this.querySelector("canvas") || this.canvas;
         this.#scale = this.dataset.scale || 'month';
