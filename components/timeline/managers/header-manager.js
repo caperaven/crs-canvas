@@ -146,6 +146,7 @@ export class HeaderManagerActions {
     }
 
     static async render(step, context, process, item) {
+        return;
         const canvas = await crs.dom.get_element(step, context, process, item);
 
         const startDate = await crs.process.getValue(step.args.start_date, context, process, item);

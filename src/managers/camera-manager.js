@@ -121,13 +121,15 @@ class CameraFactory {
 
     static async custom_pan(parts, scene) {
         //WIP
-        const camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, -13), scene);
+        const camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, -15), scene);
 
         camera.attachControl(scene, true);
         camera.inputs.remove(camera.inputs.attached.mouse);
 
         camera._input =  new CustomPanInput(scene, camera);
         camera.__forceDisableControls = true;
+
+        globalThis.camera = camera; // remove this when done testing camera
         return camera;
     }
 }

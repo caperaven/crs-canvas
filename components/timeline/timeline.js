@@ -1,6 +1,7 @@
 import "./../canvas_2d/canvas_2d.js";
 import {ThemeManager} from "./managers/theme-manager.js";
 import "./managers/header-manager.js"
+import "./managers/virtualization-header-manager.js"
 import "./managers/row-manager.js"
 
 import "./../../src/managers/mesh-factory-manager.js";
@@ -86,6 +87,7 @@ export class Timeline extends HTMLElement {
         });
 
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
+        await crs.call("gfx_timeline_virtual_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.#configuration});
 
@@ -97,6 +99,14 @@ export class Timeline extends HTMLElement {
 
     async render() {
         if (this.#data == null || this.#data.length === 0) return;
+
+
+        await crs.call("gfx_timeline_virtual_header", "render", {
+            element: this.#canvas,
+            base_date: this.#startDate,
+            end_date: this.#endDate,
+            scale: this.#scale
+        });
 
         await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
