@@ -8,8 +8,6 @@ export async function configureCamera(camera, scene) {
         const pos = BABYLON.Vector3.TransformCoordinates(topLeftNormalised, camera.getTransformationMatrix().invert());
 
         if (pos.x) {
-            camera._transformed = true;
-
             const zDistance = pos.z - camera.position.z;
             const tangentX = calculateTangent(zDistance, pos.x);
             const cameraNewX = tangentX * camera.position.z;

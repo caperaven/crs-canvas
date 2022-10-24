@@ -106,7 +106,6 @@ export class Timeline extends HTMLElement {
         this.#scale = scale;
         await this.clean();
         await this.render(this.#data);
-
     }
 
     async clean() {
