@@ -41,7 +41,6 @@ export class Timeline extends HTMLElement {
         } else {
             this.#canvas.addEventListener("ready", ready);
         }
-
     }
 
     async disconnectedCallback() {
@@ -52,7 +51,7 @@ export class Timeline extends HTMLElement {
     }
 
     async attributeChangedCallback(name, oldValue, newValue) {
-        if(name === "data-scale") {
+        if (name === "data-scale") {
             await this.setScale(newValue);
         }
     }
@@ -75,7 +74,6 @@ export class Timeline extends HTMLElement {
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
         await configureCamera(camera, scene);
-        await this.render()
     }
 
     async render(items) {
