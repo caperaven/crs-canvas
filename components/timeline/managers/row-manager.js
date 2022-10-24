@@ -58,16 +58,17 @@ class RowManager {
         this.#virtualization.clean();
     }
 
-    async render(items, canvas, scene, startDate, endDate, scale, forceRender) {
+    async render(items, canvas, scene, baseDate, scale, forceRender) {
         const itemCount = items.length;
 
         const result = await crs.call("gfx_timeline_manager", "set_range", {
             element: canvas,
-            min: startDate,
-            max: endDate,
+            base: baseDate,
             scale: scale
         });
-        await this._createOffsetRows(itemCount, canvas, result.totalWidth, scale);
+
+        //NOTE KR: Similar to background mesh on headers, may want to keep the offset row background meshes to be sticky to camera
+        await this._createOffsetRows(itemCount, canvas, result.width * 1000, scale);
 
         if(this.#virtualization == null) {
             await this.#initVirtualization(canvas, items, scale, forceRender);
@@ -245,14 +246,13 @@ export class RowManagerActions {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const items = await crs.process.getValue(step.args.items, context, process, item);
-        const startDate = await crs.process.getValue(step.args.start_date, context, process, item);
-        const endDate = await crs.process.getValue(step.args.end_date, context, process, item);
+        const baseDate = await crs.process.getValue(step.args.base_date, context, process, item);
         const scale = await crs.process.getValue(step.args.scale, context, process, item);
         const forceRender = await crs.process.getValue(step.args.forceRender, context, process, item);
 
         const scene = canvas.__layers[layer];
 
-        canvas.__rows.render(items, canvas, scene, startDate, endDate, scale, forceRender);
+        canvas.__rows.render(items, canvas, scene, baseDate, scale, forceRender);
     }
 }
 

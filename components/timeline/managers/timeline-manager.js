@@ -16,13 +16,17 @@ function getDate(date) {
 
     if (typeof(date) === 'string') {
         const parts = date.split(" ");
-        const newDate = parts[0].split("/").join("-");
-        const fullString = [newDate, parts[1]].join("T");
-        const result =  (new Date(Date.parse(fullString))).getTime();
-        if(!result) {
-            throw Error(`date: ${date}, full string: ${fullString} could not be converted.`);
-        }
-        return result;
+        const newDate = parts[0].split("/").reverse().join("-");  //TODO KR: revert when done
+        const fullString = [newDate, parts[1]].join();
+        return (new Date(Date.parse(fullString))).getTime();
+
+        // const newDate = parts[0].split("/").join("-");
+        // const fullString = [newDate, parts[1]].join("T");
+        // const result =  (new Date(Date.parse(fullString))).getTime();
+        // if(!result) {
+        //     throw Error(`date: ${date}, full string: ${fullString} could not be converted.`);
+        // }
+        // return result;
     }
 }
 
@@ -32,11 +36,9 @@ class DayScale {
         return differenceInHours * (ViewToScaleFactor.day + zoomFactor);
     }
 
-    async setScale(min, max, zoomFactor = 0) {
-        const difference = Math.abs(getDate(max) - getDate(min)) / 3.6e+6;
-        const items = Math.round(difference * (ViewToScaleFactor.day + zoomFactor));
+    async setScale(base, zoomFactor = 0) {
         const width = (1 + zoomFactor);
-        return {items: items, width: width, totalWidth: items * width};
+        return {width: width};
     }
 }
 
@@ -46,11 +48,9 @@ class WeekScale {
         return differenceInHours * ((ViewToScaleFactor.week / 24) + (zoomFactor / 24));
     }
 
-    async setScale(min, max, zoomFactor = 0) {
-        const difference = Math.abs(getDate(max) - getDate(min)) / 3.6e+6;
-        const items = Math.round(difference * ((1 / 24) + (zoomFactor / 24)));
+    async setScale(base, zoomFactor = 0) {
         const width = (ViewToScaleFactor.week + (zoomFactor / 24));
-        return {items: items, width: width, totalWidth: items * width};
+        return {width: width};
     }
 }
 
@@ -60,11 +60,9 @@ class MonthScale {
         return differenceInHours * ((ViewToScaleFactor.month / 24) + (zoomFactor / 24));
     }
 
-    async setScale(min, max, zoomFactor = 0) {
-        const difference = Math.abs(getDate(max) - getDate(min)) / 3.6e+6;
-        const items = Math.round(difference * ((1 / 24) + (zoomFactor/24)));
+    async setScale(base, zoomFactor = 0) {
         const width = (1 + (zoomFactor / 24));
-        return {items: items, width: width, totalWidth: items * width};
+        return {width: width};
     }
 }
 
@@ -138,18 +136,15 @@ class YearScale {
 }
 
 class TimelineManager {
-    #min;
-    #max;
+    #baseDate;
 
-    constructor(min, max) {
-        this.#min = getDate(min);
-        this.#max = getDate(max);
+    constructor(base) {
+        this.#baseDate = getDate(base);
         this.setScales();
     }
 
     dispose() {
-        this.#min = null;
-        this.#max = null;
+        this.#baseDate = null;
     }
 
     setScales() {
@@ -159,9 +154,9 @@ class TimelineManager {
         this._yearScale  = this._yearScale  || new YearScale();
     }
 
-    async setScale(canvas, min, max, scale) {
+    async setScale(canvas, base, scale) {
         if (this[`_${scale}Scale`] == null) this.setScales();
-        if (scale != null) return await this[`_${scale}Scale`].setScale(getDate(min), getDate(max));
+        if (scale != null) return await this[`_${scale}Scale`].setScale(getDate(base));
     }
 
     /**
@@ -171,10 +166,9 @@ class TimelineManager {
      * @param scale - day/week/month/year
      */
     async get(start, end, scale) {
-        const x1 = await this[`_${scale}Scale`].get(getDate(this.#min), getDate(start));
-        const x2 = await this[`_${scale}Scale`].get(getDate(this.#min), getDate(end));
+        const x1 = await this[`_${scale}Scale`].get(getDate(this.#baseDate), getDate(start));
+        const x2 = await this[`_${scale}Scale`].get(getDate(this.#baseDate), getDate(end));
         const width = Math.abs(x2 - x1);
-        // const x = x1 + (width / 2);
         return {
             x1: x1,
             x2: x2,
@@ -190,11 +184,10 @@ class TimelineManagerActions {
 
     static async initialize(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
-        const min = (await crs.process.getValue(step.args.min, context, process, item));
-        const max = (await crs.process.getValue(step.args.max, context, process, item));
+        const base = (await crs.process.getValue(step.args.base, context, process, item));
         const scale = (await crs.process.getValue(step.args.scale, context, process, item));
-        canvas.__timelineManager = new TimelineManager(min, max);
-        return await canvas.__timelineManager.setScale(canvas, min, max, scale);
+        canvas.__timelineManager = new TimelineManager(base);
+        return await canvas.__timelineManager.setScale(canvas, base, scale);
     }
 
     static async dispose(step, context, process, item) {
@@ -204,10 +197,9 @@ class TimelineManagerActions {
 
     static async set_range(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
-        const min = (await crs.process.getValue(step.args.min, context, process, item));
-        const max = (await crs.process.getValue(step.args.max, context, process, item));
+        const base = (await crs.process.getValue(step.args.base, context, process, item));
         const scale = (await crs.process.getValue(step.args.scale, context, process, item));
-        return await canvas.__timelineManager.setScale(canvas, min, max, scale);
+        return await canvas.__timelineManager.setScale(canvas, base, scale);
     }
 
     static async get(step, context, process, item) {

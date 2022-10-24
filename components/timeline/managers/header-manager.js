@@ -52,27 +52,28 @@ class HeaderManager {
         await crs.call("gfx_particles", "remove", {element: canvas, id: "timeline_headers"});
     }
 
-    async render(startDate, endDate, scale, canvas, scene) {
+    async render(baseDate, scale, canvas, scene) {
         scale = scale || TIMELINE_SCALE.MONTH;
         const rangeProperties = await crs.call("gfx_timeline_manager", "set_range", {
             element: canvas,
-            min: startDate,
-            max: endDate,
+            base: baseDate,
             scale: scale
         });
 
         const bigMeshHeight = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 0.75
-        this.#bgMesh = await this.#createBgMesh(canvas, rangeProperties.totalWidth, bigMeshHeight);
+
+        //NOTE KR: will need to keep background mesh sticky to camera
+        this.#bgMesh = await this.#createBgMesh(canvas, rangeProperties.width * 1000, bigMeshHeight);
 
         const textScaling = new BABYLON.Vector3(0.25,0.25,1);
-        const tempStartDate = new Date(startDate);
+        const tempBaseDate = new Date(baseDate);
         this.#headerParticleSystem = await crs.call("gfx_particles", "add", {
             element: canvas,
-            shapes: await this.#scaleToManager[scale].getShapes(new Date(startDate), new Date(endDate), canvas, rangeProperties, scale),
+            shapes: await this.#scaleToManager[scale].getShapes(new Date(baseDate), canvas, rangeProperties, scale),
             id: "timeline_headers",
             particleCallback: (shape, particle, i) => {
                 if(shape.includes("header_plane")) {
-                    this.#scaleToManager[scale].getColors(tempStartDate, shape, particle, i, canvas);
+                    this.#scaleToManager[scale].getColors(tempBaseDate, shape, particle, i, canvas);
                 }
                 else {
                     particle.scaling = textScaling;
@@ -149,13 +150,12 @@ export class HeaderManagerActions {
         return;
         const canvas = await crs.dom.get_element(step, context, process, item);
 
-        const startDate = await crs.process.getValue(step.args.start_date, context, process, item);
-        const endDate = await crs.process.getValue(step.args.end_date, context, process, item);
+        const baseDate = await crs.process.getValue(step.args.base_date, context, process, item);
         const scale = await crs.process.getValue(step.args.scale, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const scene = canvas.__layers[layer];
 
-        canvas.__headers.render(startDate, endDate, scale, canvas, scene);
+        canvas.__headers.render(baseDate, scale, canvas, scene);
     }
 
     static async clean(step, context, process, item) {

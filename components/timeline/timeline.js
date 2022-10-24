@@ -10,8 +10,7 @@ import "./managers/timeline-manager.js";
 export class Timeline extends HTMLElement {
 
     #canvas;
-    #startDate;
-    #endDate;
+    #baseDate;
     #data;
     #configuration;
     #scale;
@@ -25,7 +24,7 @@ export class Timeline extends HTMLElement {
     }
 
     async setData(data) {
-        if (this.#startDate == null) {
+        if(this.#baseDate == null) {
             await this.init();
         }
         if (this.#data != null) {
@@ -76,13 +75,11 @@ export class Timeline extends HTMLElement {
     }
 
     async init() {
-        this.#startDate = new Date(2022, 0, 1);
-        this.#endDate = new Date(2023, 11, 31);
+        if (this.#baseDate == null) this.#baseDate = new Date(new Date().toDateString());
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
-            min: this.#startDate,
-            max: this.#endDate,
+            base: this.#baseDate,
             scale: this.scale
         });
 
@@ -103,24 +100,21 @@ export class Timeline extends HTMLElement {
 
         await crs.call("gfx_timeline_virtual_header", "render", {
             element: this.#canvas,
-            base_date: this.#startDate,
-            end_date: this.#endDate,
+            base_date: this.#baseDate,
             scale: this.#scale
         });
 
         await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
-            start_date: this.#startDate,
-            end_date: this.#endDate,
-            scale: this.#scale
+            base_date: this.#baseDate,
+            scale: this.scale
         });
 
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,
             items: this.#data,
-            start_date: this.#startDate,
-            end_date: this.#endDate,
-            scale: this.#scale,
+            base_date: this.#baseDate,
+            scale: this.scale,
             forceRender: true
         });
 

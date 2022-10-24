@@ -1,11 +1,11 @@
 import {createHeaderText} from "./header-manager-utils.js";
 
 export class YearHeaderManager {
-    getColors(startDate, shape, particle, i, canvas) {
+    getColors(date, shape, particle, i, canvas) {
         particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
     }
 
-    async getShapes(startDate, endDate, canvas, rangeProperties, scale) {
+    async getShapes(baseDate, canvas, rangeProperties, scale) {
         const width = rangeProperties.width;
         const numberOfItems = rangeProperties.items;
 
@@ -99,10 +99,10 @@ export class YearHeaderManager {
 
             result[`header_plane_${width[i]}`].positions.push(totalHeaderDistance + (width[0] / 2), -0.375, -0.01);
 
-            const month = startDate.getMonth();
+            const month = baseDate.getMonth();
             result[month].positions.push((totalTextDistance + (width[0] / 2)) - 0.45, -0.4, -0.02);
 
-            startDate.setMonth(month + 1);
+            baseDate.setMonth(month + 1);
         }
 
         return result;

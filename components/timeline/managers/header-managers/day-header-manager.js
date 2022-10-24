@@ -2,9 +2,9 @@ import {createHeaderText, createHeaderMesh} from "./header-manager-utils.js";
 
 //Will need to think about the configuration here i.e. user defined working hours
 export class DayHeaderManager {
-    getColors(startDate, shape, particle, i, canvas) {
+    getColors(date, shape, particle, i, canvas) {
         if (shape === "header_plane") {
-            const hours = startDate.getHours();
+            const hours = date.getHours();
 
             if (hours < 8 || hours > 17) {
                 particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_offset_bg);
@@ -12,11 +12,11 @@ export class DayHeaderManager {
                 particle.color = BABYLON.Color4.FromHexString(canvas._theme.header_bg);
             }
 
-            startDate.setMinutes(startDate.getMinutes() + 30);
+            date.setMinutes(date.getMinutes() + 30);
         }
     }
 
-    async getShapes(startDate, endDate, canvas, rangeProperties, scale) {
+    async getShapes(baseDate, canvas, rangeProperties, scale) {
         const width = rangeProperties.width;
         const secondaryWidth = width * 48;
         const numberOfItems = rangeProperties.items;
@@ -113,36 +113,36 @@ export class DayHeaderManager {
             }
         }
 
-        const hourNumber = startDate.getHours();
+        const hourNumber = baseDate.getHours();
         if (hourNumber > 0) {
             result.secondary_header_plane.positions.push((secondaryWidth / 2) - (hourNumber * 2), -0.25, -0.01);
 
             if (hourNumber < 23) {
-                await this.#setSecondaryShapes(result, startDate, canvas, 0.2, 0.5, 1.7);
+                await this.#setSecondaryShapes(result, baseDate, canvas, 0.2, 0.5, 1.7);
             }
         }
 
         for (let i = 0; i < numberOfItems; i++) {
-            const hourNumber = startDate.getHours();
+            const hourNumber = baseDate.getHours();
 
             result[`hour_${hourNumber}`].positions.push(-0.275 + (i * 2), -0.8, -0.02);
             result.header_plane.positions.push(0.5 + i, -0.875, -0.01);
             if (hourNumber === 0) {
                 result.secondary_header_plane.positions.push((secondaryWidth / 2) + (i * 2), -0.25, -0.01);
 
-                await this.#setSecondaryShapes(result, startDate, canvas, (i * 2) + 0.2, (i * 2) + 0.5, (i * 2) + 1.7);
+                await this.#setSecondaryShapes(result, baseDate, canvas, (i * 2) + 0.2, (i * 2) + 0.5, (i * 2) + 1.7);
             }
 
-            startDate.setHours(hourNumber + 1);
+            baseDate.setHours(hourNumber + 1);
         }
 
         return result;
     }
 
-    async #setSecondaryShapes(result, startDate, canvas, dayX, monthX, yearX) {
-        const day = startDate.getDate();
-        const month = startDate.getMonth();
-        const year = startDate.getFullYear();
+    async #setSecondaryShapes(result, baseDate, canvas, dayX, monthX, yearX) {
+        const day = baseDate.getDate();
+        const month = baseDate.getMonth();
+        const year = baseDate.getFullYear();
 
         result[`day_${day}`].positions.push(dayX, -0.325, -0.01);
         result[`month_${month}`].positions.push(monthX, -0.325, -0.01);
