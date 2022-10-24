@@ -1,6 +1,8 @@
 /**
  * This class maintains a collection if size data used during virtualization operations.
  */
+
+// TODO GM Remove this and use process api
 export class SizeManager {
     get size() {
         return this._size;

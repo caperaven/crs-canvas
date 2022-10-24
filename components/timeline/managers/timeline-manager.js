@@ -153,6 +153,8 @@ class TimelineManager {
     }
 
     setScales() {
+        //Note GM TODO KR we do not need to instantiate all these at start.  
+
         this._dayScale   = this._dayScale   || new DayScale();
         this._weekScale  = this._weekScale  || new WeekScale();
         this._monthScale = this._monthScale || new MonthScale();

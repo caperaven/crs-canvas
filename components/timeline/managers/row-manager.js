@@ -1,6 +1,6 @@
 import "../../../src/managers/mesh-factory-manager.js";
 import "../../../src/managers/geometry-factory-manager.js";
-import {TIMELINE_SCALE} from "../timeline_scale.js";
+import {TIMELINE_SCALE} from "../timeline-scale.js";
 import {Virtualization} from "./virtualization.js";
 
 class RowManager {
@@ -40,6 +40,7 @@ class RowManager {
     dispose() {
         this.#configuration = null;
         this.#virtualization = this.#virtualization.dispose();
+        this.#shapeConfig = null;
     }
 
     clean(canvas, scene) {
@@ -48,7 +49,6 @@ class RowManager {
         });
 
         for (const id of meshesToDispose) {
-            if (id == null) continue;
             const mesh = scene.getMeshByID(id);
             mesh.dispose();
         }
@@ -67,37 +67,9 @@ class RowManager {
             max: endDate,
             scale: scale
         });
-        await this._createOffsetRows(itemCount, canvas, result.totalWidth, scale);
+        await this.#createOffsetRows(itemCount, canvas, result.totalWidth, scale);
 
-        if(this.#virtualization == null) {
-            await this.#initVirtualization(canvas, items, scale, forceRender);
-        } else if (forceRender) {
-            const addCallback = async (sizeItem) => {
-                let shapes = [];
-                for (const shape of this.#configuration.shapes) {
-                    const item = items[sizeItem.dataIndex];
-                    if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) continue;
-                    shapes.push(await this.#drawShape(canvas, shape, item, sizeItem, scale));
-                }
-                return shapes;
-            }
-
-            const removeCallback = (shapes) => {
-                for (const shape of shapes) {
-                    shape.dispose();
-                }
-            }
-
-            const cleanCallback = (items) => {
-                for (const shapes of items) {
-                    for (const shape of shapes) {
-                        shape.dispose();
-                    }
-                }
-            }
-            this.#virtualization.reset(addCallback, removeCallback, cleanCallback);
-            this.#virtualization.render();
-        }
+        await this.#initVirtualization(canvas, items, scale, forceRender);
     }
 
     async #initVirtualization(canvas, items, scale) {
@@ -131,7 +103,6 @@ class RowManager {
     }
 
     async #drawShape(canvas, shape, item, sizeItem, scale) {
-
         const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
 
         const result = await crs.call("gfx_timeline_manager", "get", {
@@ -169,9 +140,9 @@ class RowManager {
         return mesh;
     }
 
-    async _createOffsetRows(itemCount, canvas, width, scale) {
+    async #createOffsetRows(itemCount, canvas, width, scale) {
         const yOffset = scale !== TIMELINE_SCALE.YEAR ? 0.25 : 0;
-        const offsetRowMesh = await this._createMesh(width, 1, yOffset, canvas);
+        const offsetRowMesh = await this.#createOffsetRowMesh(width, 1, yOffset, canvas);
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
         const rowOffsetColors = new Float32Array(4 * offsetRowCount);
@@ -185,7 +156,7 @@ class RowManager {
 
             const matrix = BABYLON.Matrix.Translation(0, y * 2, 0);
             matrix.copyToArray(rowOffsetMatrices, i * 16);
-            colors.push(...[0.976, 0.976, 0.976, 1]);
+            colors.push(...[0.976, 0.976, 0.976, 1]); // TODO get color from theme
         }
 
         rowOffsetColors.set(colors);
@@ -193,7 +164,7 @@ class RowManager {
         offsetRowMesh.thinInstanceSetBuffer("color", rowOffsetColors, 4);
     }
 
-    async _createMesh(width, height, y = 0, canvas) {
+    async #createOffsetRowMesh(width, height, y = 0, canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
             mesh: {
