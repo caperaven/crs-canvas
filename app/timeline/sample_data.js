@@ -17,7 +17,7 @@ function getDate(min, max) {
     if(value < 10) {
         value = `0${value}`;
     }
-    return `2022/01/${value} 12:00:00.000`;
+    return `2022/10/${value} 12:00:00.000`;
 }
 
 function randomIntFromInterval(min, max) { // min and max included

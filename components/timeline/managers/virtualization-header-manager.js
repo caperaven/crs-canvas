@@ -32,16 +32,24 @@ class VirtualizationHeaderManager {
 
 
 
+        const rangeProperties = await crs.call("gfx_timeline_manager", "set_range", {
+            element: canvas,
+            base: baseDate,
+            scale: scale
+        });
+
 
         const add = (position) => {
-            return this.#drawRect(position, canvas, scale);
+            return this.#drawRect(position, canvas, rangeProperties.width);
         }
 
         const remove = (instance) => {
             instance.dispose();
         }
 
-        this.#virtualization = new StaticVirtualization(scale, 20,add, remove);
+        console.log(rangeProperties);
+
+        this.#virtualization = new StaticVirtualization(4, 20,add, remove);
 
 
         canvas.__camera.onViewMatrixChangedObservable.add((camera) => {

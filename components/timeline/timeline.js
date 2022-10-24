@@ -8,31 +8,10 @@ import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
 
 export class Timeline extends HTMLElement {
-
     #canvas;
     #baseDate;
-    #data;
     #configuration;
     #scale;
-
-    get data() {
-        return this.#data;
-    }
-
-    set data(newValue) {
-        this.setData(newValue);
-    }
-
-    async setData(data) {
-        if(this.#baseDate == null) {
-            await this.init();
-        }
-        if (this.#data != null) {
-            await this.clean();
-        }
-        this.#data = data;
-        await this.render();
-    }
 
     static get observedAttributes() {
         return ["view"];
@@ -51,9 +30,7 @@ export class Timeline extends HTMLElement {
             await ThemeManager.initialize(this.#canvas);
             this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
-            if (this.#data) {
-                await this.render();
-            }
+            await this.#init();
 
             await crs.call("component", "notify_ready", {element: this});
         }
@@ -63,58 +40,58 @@ export class Timeline extends HTMLElement {
         } else {
             this.#canvas.addEventListener("ready", ready);
         }
-
     }
 
     async disconnectedCallback() {
         this.#canvas = null;
+        this.#baseDate = null;
+        this.#scale = null;
     }
 
     async attributeChangedCallback(name, oldValue, newValue) {
         await this.setScale(newValue);
     }
 
-    async init() {
-        if (this.#baseDate == null) this.#baseDate = new Date(new Date().toDateString());
+    async #init() {
+        this.#baseDate = new Date(new Date().toDateString());
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
             base: this.#baseDate,
-            scale: this.scale
+            scale: this.#scale
         });
 
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
-        await crs.call("gfx_timeline_virtual_header", "initialize", {element: this.#canvas});
+        // await crs.call("gfx_timeline_virtual_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.#configuration});
 
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
         await this.#configureCamera(camera, scene);
-        await this.render()
     }
 
-    async render() {
-        if (this.#data == null || this.#data.length === 0) return;
+    async render(items) {
+        console.log(items);
+        if (this.dataset.ready == null || items == null || items.length === 0) return;
 
+        // await crs.call("gfx_timeline_virtual_header", "render", {
+        //     element: this.#canvas,
+        //     base_date: this.#baseDate,
+        //     scale: this.#scale
+        // });
 
-        await crs.call("gfx_timeline_virtual_header", "render", {
+        await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
             base_date: this.#baseDate,
             scale: this.#scale
         });
 
-        await crs.call("gfx_timeline_header", "render", {
-            element: this.#canvas,
-            base_date: this.#baseDate,
-            scale: this.scale
-        });
-
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,
-            items: this.#data,
+            items: items,
             base_date: this.#baseDate,
-            scale: this.scale,
+            scale: this.#scale,
             forceRender: true
         });
 
@@ -162,7 +139,6 @@ export class Timeline extends HTMLElement {
         this.#scale = scale;
         await this.clean();
         await this.render();
-
     }
 
     async clean() {

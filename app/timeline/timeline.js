@@ -21,6 +21,6 @@ export default class Timeline extends crsbinding.classes.ViewBase {
 
     setTimelineData(){
         const timeline = this._element.querySelector("crs-timeline");
-        timeline.data = workOrderSamples
+        timeline.render(workOrderSamples);
     }
 }

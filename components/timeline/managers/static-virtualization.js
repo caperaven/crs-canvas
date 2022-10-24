@@ -1,6 +1,4 @@
 export class StaticVirtualization {
-
-    #cameraX;
     #size;
     #roundValue;
     #instances = {};
@@ -9,15 +7,6 @@ export class StaticVirtualization {
 
     #addCallback;
     #removeCallback;
-
-
-    dispose() {
-        this.#size = null;
-        this.#roundValue = null;
-        this.#instances = null;
-        this.#position = null;
-        this.#buffer = null;
-    }
 
     constructor(size, viewPortSize, addCallback, removeCallback) {
         this.#size = size;
@@ -30,12 +19,21 @@ export class StaticVirtualization {
         this.#roundValue = Math.pow(10, parts[1]?.length || 0);
     }
 
+    dispose() {
+        this.#size = null;
+        this.#roundValue = null;
+        this.#instances = null;
+        this.#position = null;
+        this.#buffer = null;
+        this.#addCallback = null;
+        this.#removeCallback = null;
+    }
+
     async draw(position) {
         const roundedPosition = Math.round(position * this.#roundValue) / this.#roundValue;
         if (this.#position === roundedPosition) return;
 
         this.#position = roundedPosition;
-
         await this.#drawForCurrent()
     }
 

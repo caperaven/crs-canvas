@@ -16,17 +16,14 @@ function getDate(date) {
 
     if (typeof(date) === 'string') {
         const parts = date.split(" ");
-        const newDate = parts[0].split("/").reverse().join("-");  //TODO KR: revert when done
-        const fullString = [newDate, parts[1]].join();
-        return (new Date(Date.parse(fullString))).getTime();
 
-        // const newDate = parts[0].split("/").join("-");
-        // const fullString = [newDate, parts[1]].join("T");
-        // const result =  (new Date(Date.parse(fullString))).getTime();
-        // if(!result) {
-        //     throw Error(`date: ${date}, full string: ${fullString} could not be converted.`);
-        // }
-        // return result;
+        const newDate = parts[0].split("/").join("-");
+        const fullString = [newDate, parts[1]].join("T");
+        const result =  (new Date(Date.parse(fullString))).getTime();
+        if(!result) {
+            throw Error(`date: ${date}, full string: ${fullString} could not be converted.`);
+        }
+        return result;
     }
 }
 
