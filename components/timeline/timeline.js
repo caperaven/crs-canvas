@@ -3,18 +3,18 @@ import {ThemeManager} from "./managers/theme-manager.js";
 import "./managers/header-manager.js"
 import "./managers/virtualization-header-manager.js"
 import "./managers/row-manager.js"
-
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
+import {configureCamera} from "./timeline-camera.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
-    #baseDate;
     #configuration;
     #scale;
+    #data;
 
     static get observedAttributes() {
-        return ["view"];
+        return ["data-scale"];
     }
 
     async connectedCallback() {
@@ -45,11 +45,15 @@ export class Timeline extends HTMLElement {
     async disconnectedCallback() {
         this.#canvas = null;
         this.#baseDate = null;
+        this.#configuration = null;
+        this.#data = null;
         this.#scale = null;
     }
 
     async attributeChangedCallback(name, oldValue, newValue) {
-        await this.setScale(newValue);
+        if (name === "data-scale") {
+            await this.setScale(newValue);
+        }
     }
 
     async #init() {
@@ -68,18 +72,13 @@ export class Timeline extends HTMLElement {
 
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
-        await this.#configureCamera(camera, scene);
+        await configureCamera(camera, scene);
     }
 
     async render(items) {
-        console.log(items);
-        if (this.dataset.ready == null || items == null || items.length === 0) return;
+        if (items == null || items.length === 0) return;
 
-        // await crs.call("gfx_timeline_virtual_header", "render", {
-        //     element: this.#canvas,
-        //     base_date: this.#baseDate,
-        //     scale: this.#scale
-        // });
+        this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
 
         await crs.call("gfx_timeline_header", "render", {
             element: this.#canvas,
@@ -94,43 +93,6 @@ export class Timeline extends HTMLElement {
             scale: this.#scale,
             forceRender: true
         });
-
-    }
-
-    async #configureCamera(camera, scene) {
-        let observer = scene.onBeforeRenderObservable.add(() => {
-            camera.getViewMatrix();
-
-            const topLeftNormalised = new BABYLON.Vector3(-1, 1, 1)
-
-            // Calculate top_left corner on the far plane. We need it to calculate our tangent
-            const pos = BABYLON.Vector3.TransformCoordinates(topLeftNormalised, camera.getTransformationMatrix().invert());
-
-            if (pos.x) {
-                camera._transformed = true;
-
-                const zDistance = pos.z - camera.position.z;
-                const tangentX = this.#calculateTangent(zDistance, pos.x);
-                const cameraNewX = tangentX * camera.position.z;
-
-                const tangentY = this.#calculateTangent(zDistance, pos.y);
-                const cameraNewY = tangentY * camera.position.z;
-
-                camera.offset_x = cameraNewX;
-                camera.view_width = cameraNewX * 2;
-                camera.offset_y = cameraNewY;
-                camera.view_height = cameraNewY * 2 / -1;
-
-                camera.position.x = cameraNewX;
-                camera.position.y = cameraNewY;
-
-                scene.onBeforeRenderObservable.remove(observer)
-            }
-        })
-    }
-
-    #calculateTangent(adjacent, opposite) {
-        return opposite / adjacent;
     }
 
     async setScale(scale) {
@@ -138,7 +100,7 @@ export class Timeline extends HTMLElement {
         if (this.#canvas == null || this.#canvas.__headers == null || this.#canvas.__rows == null) return;
         this.#scale = scale;
         await this.clean();
-        await this.render();
+        await this.render(this.#data);
     }
 
     async clean() {

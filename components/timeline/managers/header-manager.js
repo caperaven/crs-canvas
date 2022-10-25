@@ -1,4 +1,4 @@
-import {TIMELINE_SCALE} from "../timeline_scale.js";
+import {TIMELINE_SCALE} from "../timeline-scale.js";
 import "../../../src/managers/mesh-factory-manager.js";
 import "../../../src/managers/particle-manager.js";
 import "../../../src/managers/text-manager.js";
