@@ -1,5 +1,4 @@
 import "./../canvas_2d/canvas_2d.js";
-import {ThemeManager} from "./managers/theme-manager.js";
 import "./managers/header-manager.js"
 import "./managers/virtualization-header-manager.js"
 import "./managers/row-manager.js"
@@ -22,25 +21,30 @@ export class Timeline extends HTMLElement {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
         this.#configuration = await fetch(this.dataset.config).then(result => result.json());
 
-        this.#canvas = this.querySelector("canvas") || this.canvas;
         this.#scale = this.dataset.scale || 'month';
 
-        const ready = async () => {
-            this.#canvas.removeEventListener("ready", ready);
+        requestAnimationFrame(async () => {
+            this.#canvas = this.querySelector("canvas") || this.canvas;
 
-            await ThemeManager.initialize(this.#canvas);
-            this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+            const ready = async () => {
+                await crs.call("gfx_theme", "set", {
+                    element: this.#canvas,
+                    theme: this.#configuration.theme
+                });
 
-            await this.#init();
+                this.#canvas.removeEventListener("ready", ready);
+                this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
-            await crs.call("component", "notify_ready", {element: this});
-        }
+                await this.#init();
+                await crs.call("component", "notify_ready", {element: this});
+            }
 
-        if (this.#canvas.dataset.ready == "true") {
-            await ready();
-        } else {
-            this.#canvas.addEventListener("ready", ready);
-        }
+            if (this.#canvas.dataset.ready == "true") {
+                await ready();
+            } else {
+                this.#canvas.addEventListener("ready", ready);
+            }
+        })
     }
 
     async disconnectedCallback() {

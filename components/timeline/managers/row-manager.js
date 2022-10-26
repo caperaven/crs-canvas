@@ -143,6 +143,7 @@ class RowManager {
         }
 
         const mesh = await crs.call("gfx_geometry", "from", args);
+        mesh.freezeWorldMatrix();
         return mesh;
     }
 
