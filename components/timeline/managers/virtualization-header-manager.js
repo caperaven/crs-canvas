@@ -1,7 +1,6 @@
 import "../../../src/managers/mesh-factory-manager.js";
 import "../../../src/managers/particle-manager.js";
 import "../../../src/managers/text-manager.js";
-import {createHeaderText} from "./header-managers/header-manager-utils.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 import {TIMELINE_SCALE} from "../timeline-scale.js";
 import {HeaderMeshManager} from "./header-mesh-manager.js";
@@ -9,6 +8,8 @@ import {HeaderMeshManager} from "./header-mesh-manager.js";
 class VirtualizationHeaderManager {
 
     #virtualization;
+    #renderer;
+    #meshStore;
 
     constructor() {
     }
@@ -23,7 +24,9 @@ class VirtualizationHeaderManager {
 
     async render(baseDate, scale, canvas, scene) {
         scale = scale || TIMELINE_SCALE.MONTH;
-        await this.addTempDot(canvas)
+        await this.addTempDot(canvas);
+
+        this.#meshStore = {};
 
         canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
 
@@ -60,27 +63,6 @@ class VirtualizationHeaderManager {
         });
     }
 
-
-
-
-    async #drawRect(x, canvas, size) {
-
-        const meshes = await crs.call("gfx_mesh_factory", "create", {
-            element: canvas,
-            mesh: {
-                id: "my_mesh",
-                type: "plane",
-                options: {width: size - 0.05, height: 0.5},
-            },
-            material: {
-                id: "test",
-                color: "#dddddd"
-            },
-            positions: [{x: x+0.5 , y: -0.5, z: 0}]
-        })
-
-        return meshes[0];
-    }
 
     async addTempDot(canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
