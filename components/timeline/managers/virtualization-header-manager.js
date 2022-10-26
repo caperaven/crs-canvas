@@ -8,7 +8,6 @@ import {HeaderMeshManager} from "./header-mesh-manager.js";
 class VirtualizationHeaderManager {
 
     #virtualization;
-    #renderer;
     #meshStore;
 
     constructor() {
@@ -36,23 +35,15 @@ class VirtualizationHeaderManager {
             scale: scale
         });
 
+        let headerManager = new HeaderMeshManager();
 
         const add = async (position, index) => {
-
-            const date = new Date(baseDate.getTime());
-            date.setDate(date.getDate()+index);
-
-           return await HeaderMeshManager.create(scale, position, index, baseDate, canvas);
+           return await headerManager.create(scale, position, index, baseDate, canvas);
         }
 
         const remove = async (instance) => {
-            return await HeaderMeshManager.remove(scale, instance);
+            return await headerManager.remove(scale, instance);
         }
-
-
-
-        // this.#virtualization = new StaticVirtualization(rangeProperties.width, 20,add, remove);
-
 
         scene.onBeforeRenderObservable.addOnce(()=> {
             this.#virtualization =  new StaticVirtualization(rangeProperties.width, canvas.__camera.view_width,add, remove);

@@ -15,7 +15,7 @@ export class HeaderMeshManager {
     }
 
     async create(scale, position, index, baseDate, canvas) {
-        return this[`#${scale}`](position, index, baseDate, canvas);
+        return this[scale](position, index, baseDate, canvas);
     }
 
     async remove(scale, instance) {
@@ -23,15 +23,15 @@ export class HeaderMeshManager {
         instance.bg.dispose();
     }
 
-    async #day(value) {
+    async day(value) {
 
     }
 
-    async #week(value) {
+    async week(value) {
 
     }
 
-    async #month(position, index, baseDate, canvas) {
+    async month(position, index, baseDate, canvas) {
         const date = new Date(baseDate.getTime());
         date.setDate(date.getDate() + index);
         const key = date.getDate();
@@ -48,7 +48,7 @@ export class HeaderMeshManager {
         }
         else {
              instance = {
-                text: await createHeaderText(key, canvas, xText, -0.82, canvas._text_scale),
+                text: await createHeaderText(key.toString(), canvas, xText, -0.82, canvas._text_scale),
                 bg: await createRect(key, canvas._theme.header_offset_bg, xBg, -0.75, 0.95, 0.5, canvas)
             }
         }
@@ -56,7 +56,7 @@ export class HeaderMeshManager {
         return instance;
     }
 
-    async #year(value) {
+    async year(value) {
 
     }
 }
