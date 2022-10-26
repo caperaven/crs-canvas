@@ -1,32 +1,36 @@
 class MaterialsManager {
+    #store;
+    #textures;
+    #shaders;
+
     constructor(scene) {
-        this.store = {
+        this.#store = {
             "transparent": new BABYLON.StandardMaterial("#000000", scene)
         }
 
-        this.textures = {}
-        this.shaders = {}
+        this.#textures = {}
+        this.#shaders = {}
 
-        this.store.transparent.diffuseColor = BABYLON.Color3.FromHexString("#ff0010");
-        this.store.transparent.alpha = 0;
+        this.#store.transparent.diffuseColor = BABYLON.Color3.FromHexString("#ff0010");
+        this.#store.transparent.alpha = 0;
     }
 
     dispose() {
-        for (const key of Object.keys(this.store)) {
-            this.store[key]?.dispose();
+        for (const key of Object.keys(this.#store)) {
+            this.#store[key]?.dispose();
         }
-        this.store = null;
+        this.#store = null;
 
-        for (const key of Object.keys(this.textures)) {
-            this.textures[key]?.dispose();
+        for (const key of Object.keys(this.#textures)) {
+            this.#textures[key]?.dispose();
         }
-        this.textures = null;
+        this.#textures = null;
     }
 
     async getMaterial(id, value, diffuse, scene) {
-        if (this.store[id] == null) {
+        if (this.#store[id] == null) {
             const color = BABYLON.Color3.FromHexString(value);
-            const material = new BABYLON.StandardMaterial(value, scene);
+            const material = new BABYLON.StandardMaterial(id, scene);
 
             if (diffuse) {
                 material.diffuseColor = color;
@@ -35,32 +39,32 @@ class MaterialsManager {
                 material.emissiveColor = color;
             }
 
-            this.store[id] = material;
+            this.#store[id] = material;
         }
 
-        return this.store[id];
+        return this.#store[id];
     }
 
     async getTexture(id, texture) {
-        if (this.textures[id] == null) {
-            this.textures[id] = new BABYLON.Texture(`${crs.intent.gfx.assetsLocation}/${texture}`);
+        if (this.#textures[id] == null) {
+            this.#textures[id] = new BABYLON.Texture(`${crs.intent.gfx.assetsLocation}/${texture}`);
         }
 
-        return this.textures[id];
+        return this.#textures[id];
     }
 
     async getTextureMaterial(id, texture, scene) {
-        if (this.store[id] == null) {
+        if (this.#store[id] == null) {
             const material = new BABYLON.StandardMaterial(id, scene);
             material.emissiveTexture = await this.getTexture(id, texture);
-            this.store[id] = material;
+            this.#store[id] = material;
         }
 
-        return this.store[id];
+        return this.#store[id];
     }
 
     async getShader(id, texture, attributes, scene) {
-        if (this.shaders[id] == null) {
+        if (this.#shaders[id] == null) {
             const fragCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.frag`).then(result => result.text());
             const vertCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.vert`).then(result => result.text());
 
@@ -91,10 +95,10 @@ class MaterialsManager {
                 }
             }
 
-            this.shaders[id] = material;
+            this.#shaders[id] = material;
         }
 
-        return this.shaders[id];
+        return this.#shaders[id];
     }
 
     /**
@@ -128,7 +132,7 @@ class MaterialsManagerActions {
         const diffuse = await crs.process.getValue(step.args.diffuse, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const scene = canvas.__layers[layer];
-        return await canvas.__materials.getMaterial(id, value, diffuse, scene);
+        return await canvas.__materials.getMaterial(id || value, value, diffuse, scene);
     }
 
     static async get_textured(step, context, process, item) {

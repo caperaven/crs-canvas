@@ -3,7 +3,8 @@
     {
       "shapeType": "rect",
       "fromField": "workStartedOn",
-      "toField": "completedOn"
+      "toField": "completedOn",
+      "condition": "completedOn > requiredBy ? 'row_range4' : 'row_range2'"
     },
     {
       "shapeType": "range_indicator",
