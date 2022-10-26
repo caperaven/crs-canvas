@@ -49,7 +49,7 @@ export class HeaderMeshManager {
         else {
              instance = {
                 text: await createHeaderText(key.toString(), canvas, xText, -0.82, canvas._text_scale),
-                bg: await createRect(key, canvas._theme.header_offset_bg, xBg, -0.75, 0.95, 0.5, canvas)
+                bg: await createRect(key, canvas._theme.header_bg, xBg, -0.75, 0.95, 0.5, canvas)
             }
         }
 
