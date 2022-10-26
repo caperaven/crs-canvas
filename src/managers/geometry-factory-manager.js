@@ -61,7 +61,6 @@ class GeometryManagerActions {
             })
         }
 
-
         const options = {
             material,
             position,
