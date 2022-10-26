@@ -4,16 +4,18 @@ export class StaticVirtualization {
     #instances = {};
     #position;
     #buffer;
+    #frustum;
 
     #addCallback;
     #removeCallback;
 
-    constructor(size, viewPortSize, addCallback, removeCallback) {
+    constructor(size, frustum, addCallback, removeCallback) {
         this.#size = size;
         this.#addCallback = addCallback;
         this.#removeCallback = removeCallback;
 
-        this.#buffer = Math.round(viewPortSize / this.#size) / 1.5;
+        this.#buffer =  this.#size * 5;
+        this.#frustum = frustum;
 
         const parts = this.#size.toString().split(".");
         this.#roundValue = Math.pow(10, parts[1]?.length || 0);
@@ -43,12 +45,13 @@ export class StaticVirtualization {
 
         if (this.#position > startPoint && this.#position < endPoint) return;
 
-        const startDrawPosition = startPoint - (this.#buffer * this.#size);
-        const endDrawPosition = endPoint + (this.#buffer * this.#size);
+        const startDrawPosition = startPoint - this.#buffer;
+        const endDrawPosition = startPoint + this.#frustum + this.#buffer;
 
         for (let position = startDrawPosition; position < endDrawPosition; position += this.#size) {
             if (this.#instances[position] == null) {
-                const result = await this.#addCallback(position);
+                const index = Math.floor(position / this.#size);
+                const result = await this.#addCallback(position, index);
                 this.#instances[position] = result;
             }
         }

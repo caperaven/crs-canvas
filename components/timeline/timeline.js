@@ -12,6 +12,7 @@ export class Timeline extends HTMLElement {
     #configuration;
     #scale;
     #data;
+    #baseDate;
 
     static get observedAttributes() {
         return ["data-scale"];
@@ -65,8 +66,9 @@ export class Timeline extends HTMLElement {
             scale: this.#scale
         });
 
-        await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
-        // await crs.call("gfx_timeline_virtual_header", "initialize", {element: this.#canvas});
+
+        // await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
+        await crs.call("gfx_timeline_virtual_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.#configuration});
 
@@ -80,7 +82,7 @@ export class Timeline extends HTMLElement {
 
         this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
 
-        await crs.call("gfx_timeline_header", "render", {
+        await crs.call("gfx_timeline_virtual_header", "render", {
             element: this.#canvas,
             base_date: this.#baseDate,
             scale: this.#scale
