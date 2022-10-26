@@ -37,7 +37,7 @@ export async function createMesh(name, type, options, scene, position) {
     type = type.charAt(0).toUpperCase() + type.slice(1);
     const mesh = BABYLON.MeshBuilder[`Create${type}`](name, options, scene);
     mesh.position.set(position.x, position.y, position.z);
-
+    mesh.freezeWorldMatrix();
     return mesh;
 }
 
