@@ -156,6 +156,7 @@ class RowManager {
 
         let colors = [];
 
+        let color = BABYLON.Color3.FromHexString(canvas._theme.offset_row_bg);
         // Render offset row instances
         const headerOffset = 1;
         for (let i = 0; i < offsetRowCount; i++) {
@@ -163,7 +164,7 @@ class RowManager {
 
             const matrix = BABYLON.Matrix.Translation(0, y * 2, 0);
             matrix.copyToArray(rowOffsetMatrices, i * 16);
-            colors.push(...[0.976, 0.976, 0.976, 1]); // TODO get color from theme
+            colors.push(...[color.r, color.g, color.b, 1]); // TODO get color from theme
         }
 
         rowOffsetColors.set(colors);

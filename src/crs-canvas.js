@@ -20,8 +20,7 @@ class GraphicsActions {
         const scene  = new BABYLON.Scene(engine);
 
         scene.clearColor = BABYLON.Color3.FromHexString(color || "#FFFFFF");
-        scene.getAnimationRatio();
-        scene.autoClear = false;
+
         scene.autoClearDepthAndStencil = false;
         scene.blockMaterialDirtyMechanism = true;
 
