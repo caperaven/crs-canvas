@@ -134,8 +134,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             position: {x: 0, y: 0, z: -0.001},
             material: {
                 condition: "status == 'ap' ? '#ff0090' : '#90ff00'",
-                id: "blue",
-                color: "#16A085"
+                id: "blue"
             },
             layer: 0,
             model: {status: "b"}
