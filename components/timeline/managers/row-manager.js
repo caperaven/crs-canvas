@@ -124,7 +124,7 @@ class RowManager {
             bar_height: this.#shapeConfig[shape.shapeType]?.barHeight
         });
 
-        const mesh = await crs.call("gfx_geometry", "from", {
+        const args = {
             element: canvas,
             data: {
                 positions: actual_geom.vertices,
@@ -136,7 +136,14 @@ class RowManager {
                 id: `${shape.shapeType}_mat`,
                 color: canvas._theme[this.#shapeConfig[shape.shapeType]?.theme]
             }
-        });
+        };
+
+        if (shape.condition != null) {
+            args.model = item;
+            args.material.condition = shape.condition;
+        }
+
+        const mesh = await crs.call("gfx_geometry", "from", args);
         return mesh;
     }
 

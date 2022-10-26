@@ -18,7 +18,11 @@ class ConditionalMaterialManager {
             this.#store[expression] = await crs.call("compile", "if_value", {exp: expression});
         }
 
-        const value = this.#store[expression](model);
+        let value = this.#store[expression](model);
+
+        if (value.indexOf("#") == -1) {
+           value = canvas._theme[value];
+        }
 
         return await crs.call("gfx_materials", "get", {
             element: canvas,
