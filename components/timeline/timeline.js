@@ -22,28 +22,30 @@ export class Timeline extends HTMLElement {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
         this.#configuration = await fetch(this.dataset.config).then(result => result.json());
 
-        this.#canvas = this.querySelector("canvas") || this.canvas;
         this.#scale = this.dataset.scale || 'month';
 
-        await crs.call("gfx_theme", "set", {
-            element: this.#canvas,
-            theme: this.#configuration.theme
-        });
+        requestAnimationFrame(async () => {
+            this.#canvas = this.querySelector("canvas") || this.canvas;
 
-        const ready = async () => {
-            this.#canvas.removeEventListener("ready", ready);
+            const ready = async () => {
+                await crs.call("gfx_theme", "set", {
+                    element: this.#canvas,
+                    theme: this.#configuration.theme
+                });
 
-            this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+                this.#canvas.removeEventListener("ready", ready);
+                this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
-            await this.#init();
-            await crs.call("component", "notify_ready", {element: this});
-        }
+                await this.#init();
+                await crs.call("component", "notify_ready", {element: this});
+            }
 
-        if (this.#canvas.dataset.ready == "true") {
-            await ready();
-        } else {
-            this.#canvas.addEventListener("ready", ready);
-        }
+            if (this.#canvas.dataset.ready == "true") {
+                await ready();
+            } else {
+                this.#canvas.addEventListener("ready", ready);
+            }
+        })
     }
 
     async disconnectedCallback() {
