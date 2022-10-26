@@ -39,6 +39,7 @@ class MaterialsManager {
                 material.emissiveColor = color;
             }
 
+            material.freeze();
             this.#store[id] = material;
         }
 
