@@ -1,5 +1,6 @@
 import "./managers/camera-manager.js"
 import "./managers/materials-manager.js"
+import "./managers/conditional-material-manager.js"
 import "./managers/instance-manager.js"
 import "./managers/sdf-glyphs-manager.js"
 import "./factory/timeline-shape-factory.js"
@@ -26,6 +27,7 @@ class GraphicsActions {
         canvas.__engine = engine;
 
         await crs.call("gfx_materials", "initialize", { element: canvas });
+        await crs.call("gfx_conditional_materials", "initialize", { element: canvas });
         await crs.call("gfx_camera", "initialize", { element: canvas, type: camera });
         await crs.call("gfx_sdf_icon", "initialize", { element: canvas });
 
