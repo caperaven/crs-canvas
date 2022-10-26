@@ -1,5 +1,4 @@
 import "./../canvas_2d/canvas_2d.js";
-import {ThemeManager} from "./managers/theme-manager.js";
 import "./managers/header-manager.js"
 import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";
@@ -26,10 +25,14 @@ export class Timeline extends HTMLElement {
         this.#canvas = this.querySelector("canvas") || this.canvas;
         this.#scale = this.dataset.scale || 'month';
 
+        await crs.call("gfx_theme", "set", {
+            element: this.#canvas,
+            theme: this.#configuration.theme
+        });
+
         const ready = async () => {
             this.#canvas.removeEventListener("ready", ready);
 
-            await ThemeManager.initialize(this.#canvas);
             this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
             await this.#init();

@@ -3,6 +3,7 @@ import "./managers/materials-manager.js"
 import "./managers/conditional-material-manager.js"
 import "./managers/instance-manager.js"
 import "./managers/sdf-glyphs-manager.js"
+import "./managers/theme-manager.js"
 import "./factory/timeline-shape-factory.js"
 
 class GraphicsActions {
@@ -18,9 +19,7 @@ class GraphicsActions {
         const engine = new BABYLON.Engine(canvas);
         const scene  = new BABYLON.Scene(engine);
 
-        if (color != null) {
-            scene.clearColor = BABYLON.Color3.FromHexString(color);
-        }
+        scene.clearColor = BABYLON.Color3.FromHexString(color || "#FFFFFF");
 
         canvas.__layers = [];
         canvas.__layers.push(scene);
@@ -30,6 +29,7 @@ class GraphicsActions {
         await crs.call("gfx_conditional_materials", "initialize", { element: canvas });
         await crs.call("gfx_camera", "initialize", { element: canvas, type: camera });
         await crs.call("gfx_sdf_icon", "initialize", { element: canvas });
+        await crs.call("gfx_theme", "initialize", { element: canvas });
 
         canvas.__renderLoop = renderLoop.bind(canvas);
         canvas.__engine.runRenderLoop(canvas.__renderLoop);
@@ -54,11 +54,12 @@ class GraphicsActions {
         await crs.call("gfx_camera", "dispose", { element: canvas });
         await crs.call("gfx_materials", "dispose", { element: canvas });
         await crs.call("gfx_sdf_icon", "dispose", { element: canvas });
+        await crs.call("gfx_conditional_materials", "dispose", { element: canvas });
+        await crs.call("gfx_theme", "dispose", { element: canvas });
 
         canvas.__engine.dispose();
         canvas.__engine = null;
         canvas.__layers = null;
-
     }
 }
 

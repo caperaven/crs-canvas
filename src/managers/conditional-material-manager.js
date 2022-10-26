@@ -6,7 +6,7 @@ class ConditionalMaterialManager {
     }
 
     dispose() {
-        for (const key of this.#store.keys()) {
+        for (const key of Object.keys(this.#store)) {
             this.#store[key] = null;
         }
 

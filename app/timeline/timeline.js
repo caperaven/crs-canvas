@@ -6,7 +6,6 @@ export default class Timeline extends crsbinding.classes.ViewBase {
     async connectedCallback() {
         await super.connectedCallback();
         const timeline = this._element.querySelector("crs-timeline");
-        console.log(timeline);
     }
 
     async disconnectedCallback() {
