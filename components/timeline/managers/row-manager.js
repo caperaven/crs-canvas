@@ -5,6 +5,9 @@ import {Virtualization} from "./virtualization.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 import {createRect} from "./timeline-helpers.js";
 
+/**
+ * This class is responsible for rendering the rows and includes generating the geometry and virtualization
+ */
 class RowManager {
     #configuration;
     #virtualization;
@@ -45,6 +48,11 @@ class RowManager {
         this.#shapeConfig = null;
     }
 
+    /**
+     * This cleans up meshes when swapping between timeline views such as day / week ...
+     * @param canvas
+     * @param scene
+     */
     clean(canvas, scene) {
         const meshesToDispose = scene.rootNodes.map(node => {
             if (node.id.includes("range_item")) return node.id;
@@ -60,7 +68,12 @@ class RowManager {
         this.#virtualization.clean();
     }
 
+    /**
+     * This draws the rows based on the data you have given.
+     * THis is called at startup and then virtualization will take over.
+     */
     async render(items, canvas, scene, baseDate, scale, forceRender) {
+
         const itemCount = items.length;
 
         const result = await crs.call("gfx_timeline_manager", "set_range", {
@@ -69,11 +82,14 @@ class RowManager {
             scale: scale
         });
         await this.#createOffsetRows(itemCount, canvas, result.totalWidth, scale);
-
         await this.#initVirtualization(canvas, scene, items, scale, forceRender);
     }
 
+    /**
+     * Start the virtualization process.
+     */
     async #initVirtualization(canvas, scene, items, scale) {
+
         const addCallback = async (position, index) => {
 
             if(index < 0) return;
@@ -103,7 +119,6 @@ class RowManager {
         }
 
 
-
         scene.onBeforeRenderObservable.addOnce(async () => {
             this.#virtualization = new StaticVirtualization(1, canvas.__camera.view_height, addCallback, removeCallback);
            await this.#virtualization.draw(0);
@@ -115,6 +130,9 @@ class RowManager {
         });
     }
 
+    /**
+     * This generates the geometry and returns the mesh to draw.
+     */
     async #drawShape(canvas, shape, item, position, index, scale) {
         const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
 
@@ -125,47 +143,46 @@ class RowManager {
             scale: scale
         });
 
+        item.actual_geom ||= {};
+        item.actual_geom[shape.shapeType] ||= await crs.call("gfx_timeline_shape_factory", shape.shapeType, {
+            aabb: {
+                minX: result.x1,
+                minY: (-position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset,
+                maxX: result.x2,
+                maxY: ((-position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset) - (this.#shapeConfig[shape.shapeType]?.barHeight / 2)
+            },
+            triangle_height: this.#shapeConfig[shape.shapeType]?.triangleHeight,
+            triangle_width: this.#shapeConfig[shape.shapeType]?.triangleWidth,
+            bar_height: this.#shapeConfig[shape.shapeType]?.barHeight
+        });
 
-        const mesh = await createRect(`range_item_${shape.shapeType}_${index.dataIndex}`,
-            canvas._theme[this.#shapeConfig[shape.shapeType]?.theme], result.x1, -position - rowOffset, result.width, 0.5, canvas);
+        const args = {
+            element: canvas,
+            data: {
+                positions: item.actual_geom[shape.shapeType].vertices,
+                indices: item.actual_geom[shape.shapeType].indices
+            },
+            name: `range_item_${shape.shapeType}_${index}`,
+            position: {x: 0, y: 0, z: [this.#shapeConfig[shape.shapeType]?.zOffset]},
+            material: {
+                id: `${shape.shapeType}_mat`,
+                color: canvas._theme[this.#shapeConfig[shape.shapeType]?.theme]
+            }
+        };
+
+        if (shape.condition != null) {
+            args.model = item;
+            args.material.condition = shape.condition;
+        }
+
+        const mesh = await crs.call("gfx_geometry", "from", args);
         mesh.freezeWorldMatrix();
         return mesh;
-        // let actual_geom = await crs.call("gfx_timeline_shape_factory", shape.shapeType, {
-        //     aabb: {
-        //         minX: result.x1,
-        //         minY: (-position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset,
-        //         maxX: result.x2,
-        //         maxY: ((-position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset) - (this.#shapeConfig[shape.shapeType]?.barHeight / 2)
-        //     },
-        //     triangle_height: this.#shapeConfig[shape.shapeType]?.triangleHeight,
-        //     triangle_width: this.#shapeConfig[shape.shapeType]?.triangleWidth,
-        //     bar_height: this.#shapeConfig[shape.shapeType]?.barHeight
-        // });
-        //
-        // const args = {
-        //     element: canvas,
-        //     data: {
-        //         positions: actual_geom.vertices,
-        //         indices: actual_geom.indices
-        //     },
-        //     name: `range_item_${shape.shapeType}_${index.dataIndex}`,
-        //     position: {x: 0, y: 0, z: [this.#shapeConfig[shape.shapeType]?.zOffset]},
-        //     material: {
-        //         id: `${shape.shapeType}_mat`,
-        //         color: canvas._theme[this.#shapeConfig[shape.shapeType]?.theme]
-        //     }
-        // };
-        //
-        // if (shape.condition != null) {
-        //     args.model = item;
-        //     args.material.condition = shape.condition;
-        // }
-        //
-        // const mesh = await crs.call("gfx_geometry", "from", args);
-        // mesh.freezeWorldMatrix();
-        // return mesh;
     }
 
+    /**
+     * This generates the rows background mesh that shows every other row.
+     */
     async #createOffsetRows(itemCount, canvas, width, scale) {
         const yOffset = scale !== TIMELINE_SCALE.YEAR ? 0.25 : 0;
         const offsetRowMesh = await this.#createOffsetRowMesh(width, 1, yOffset, canvas);
@@ -191,6 +208,9 @@ class RowManager {
         offsetRowMesh.thinInstanceSetBuffer("color", rowOffsetColors, 4);
     }
 
+    /**
+     * This creates the row mesh for the offset rows.
+     */
     async #createOffsetRowMesh(width, height, y = 0, canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
@@ -208,7 +228,6 @@ class RowManager {
             },
             positions: [{x: width / 2, y: y, z: 0}]
         })
-
         return meshes[0];
     }
 }

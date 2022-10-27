@@ -21,6 +21,8 @@ class GraphicsActions {
 
         scene.clearColor = BABYLON.Color3.FromHexString(color || "#FFFFFF");
 
+        scene.getAnimationRatio();
+
         scene.autoClearDepthAndStencil = false;
         scene.blockMaterialDirtyMechanism = true;
 
