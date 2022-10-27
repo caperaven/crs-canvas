@@ -1,5 +1,7 @@
 import init, {fill} from "../../bin/geometry.js";
 
+init();
+
 export class TimelineShapeFactory {
     static async perform(step, context, process, item) {
         return this[step.action]?.(step, context, process, item);
@@ -28,7 +30,6 @@ export class TimelineShapeFactory {
         path.every(i => i.join(","));
         const path_str = path.join(",");
 
-        await init();
         const geometry_data = await fill(path_str);
 
         if (step.args.target != null) {
@@ -69,7 +70,6 @@ export class TimelineShapeFactory {
         path.every(i => i.join(","));
         const path_str = path.join(",");
 
-        await init();
         const geometry_data = await fill(path_str);
 
         if (step.args.target != null) {
@@ -96,7 +96,6 @@ export class TimelineShapeFactory {
         path.every(i => i.join(","));
         const path_str = path.join(",");
 
-        await init();
         const geometry_data = await fill(path_str);
 
         if (step.args.target != null) {
