@@ -57,7 +57,3 @@ https://playground.babylonjs.com/#026IT4#2
 
 ## Commands
 msdf-atlas-gen -type sdf -font .\SourceSansPro-Regular.ttf -json sdf_font_bold.json -format png -imageout sdf_font_bold.png
-
-
-        sphere.registerInstancedBuffer("customColor", 3);
-        sphere.instancedBuffers.customColor = BABYLON.Color3.Red();
