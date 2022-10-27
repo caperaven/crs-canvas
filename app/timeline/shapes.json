@@ -28,5 +28,18 @@
     "row_range2": "#16A085",
     "row_range3": "#757575",
     "row_range4": "#FF0000"
-  }
+  },
+  "records": [
+    "Code: ${code}",
+    "[${assetCode}] ${assetDescription}"
+  ],
+  "records2": [
+    "Code: ${code}",
+    "[${assetCode}]",
+    "${assetDescription}"
+  ],
+  "records3": [
+    "Code: ${code}",
+    "[${assetCode}] ${assetDescription}"
+  ]
 }

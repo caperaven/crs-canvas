@@ -11,6 +11,19 @@ class TextManager {
         this.#bold = {};
     }
 
+    dispose() {
+        for (const key of Object.keys(this.#regular)) {
+            this.#regular[key] = null;
+        }
+
+        for (const key of Object.keys(this.#bold)) {
+            this.#bold[key] = null;
+        }
+
+        this.#regular = null;
+        this.#bold = null;
+    }
+
     has(text, bold = false) {
         if (bold == true) {
             return this.#bold[text] != null;
@@ -49,14 +62,28 @@ export class TextManagerActions {
         return this[step.action]?.(step, context, process, item);
     }
 
+    static async initialize(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        canvas.__text = new TextManager();
+    }
+
+    static async dispose(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        canvas.__text = canvas.__text?.dispose();
+    }
+
     static async add(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const text = await crs.process.getValue(step.args.text, context, process, item);
+        const bold = await crs.process.getValue(step.args.bold, context, process, item) || false;
+
+        if (canvas.__text.has(text, bold)) {
+            return canvas.__text.get(text, bold).clone();
+        }
+
         const position = (await crs.process.getValue(step.args.position, context, process, item)) || {x: 0, y: 0, z: 0};
         const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
-        const bold = await crs.process.getValue(step.args.bold, context, process, item);
-
         const scene = canvas.__layers[layer];
         const font = bold == true ? boldFont : regularFont;
 
@@ -104,6 +131,7 @@ export class TextManagerActions {
         });
 
         customMesh.material = material;
+        canvas.__text.set(text, customMesh, bold);
         return customMesh;
     }
 }

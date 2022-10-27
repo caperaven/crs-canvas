@@ -1,8 +1,8 @@
-function getWorkOrder() {
-
-
+function getWorkOrder(i) {
     return {
-        "code": "full bars",
+        "code": `Code #${i}`,
+        "assetCode": `Asset Code #${i}`,
+        "assetDescription": `Asset Desc #${i}`,
         "startOn": getDate(1,10),
         "completeBy": getDate(15,28),
         "receivedOn": getDate(1,10),
@@ -27,7 +27,7 @@ function randomIntFromInterval(min, max) { // min and max included
 function getWorkOrders() {
     let result = [];
     for (let i = 0; i < 100000; i++) {
-        result.push(getWorkOrder());
+        result.push(getWorkOrder(i));
     }
     return result;
 }

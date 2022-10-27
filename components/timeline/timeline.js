@@ -72,6 +72,8 @@ export class Timeline extends HTMLElement {
             scale: this.#scale
         });
 
+        await crs.call("gfx_text", "initialize", {element: this.#canvas});
+
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.#configuration});

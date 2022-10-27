@@ -3,7 +3,6 @@ import "./managers/materials-manager.js"
 import "./managers/conditional-material-manager.js"
 import "./managers/instance-manager.js"
 import "./managers/theme-manager.js"
-import "./factory/timeline-shape-factory.js"
 
 class GraphicsActions {
     static async perform(step, context, process, item) {
