@@ -50,7 +50,7 @@ export default class Text extends crsbinding.classes.ViewBase {
 
             await crs.call("gfx_icons", "add", {
                 element: this.canvas,
-                icon: "59650",
+                icon: 97,
                 position: {x: -2},
                 attributes: [
                     {
