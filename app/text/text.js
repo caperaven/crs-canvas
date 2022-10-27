@@ -15,9 +15,9 @@ export default class Text extends crsbinding.classes.ViewBase {
             //await crs.call("gfx_grid", "add", { element: this.canvas, attributes: [{ fn: "Float", name: "min", value: 0.1 }] });
             await crs.call("gfx_text", "add", { element: this.canvas, bold: true, text: "Hello World", position: {y: 0.5}, attributes: [
                 {
-                    fn: "Array4",
+                    fn: "Array3",
                     name: "color",
-                    value: [1, 0, 0, 1]
+                    value: [1, 0, 0]
                 },
                 {
                     fn: "Float",
@@ -32,9 +32,9 @@ export default class Text extends crsbinding.classes.ViewBase {
             ]});
             await crs.call("gfx_text", "add", { element: this.canvas, text: "hello world", position: {x: 0.25, y: 0.05},attributes: [
                 {
-                    fn: "Array4",
+                    fn: "Array3",
                     name: "color",
-                    value: [0, 0, 1, 1]
+                    value: [0, 0, 1]
                 },
                 {
                     fn: "Float",

@@ -7,7 +7,7 @@ varying vec2 v_uv;
 uniform sampler2D texture1;
 uniform float min;
 uniform float max;
-uniform vec4 color;
+uniform vec3 color;
 
 void main(void) {
     float dist = texture(texture1, v_uv).r;
