@@ -1,4 +1,5 @@
-import {font} from "./utils/font.js"
+import {font as regularFont} from "./utils/font.js"
+import {font as boldFont} from "./utils/font_bold.js";
 
 class TextManager {
     #regular;
@@ -53,8 +54,10 @@ export class TextManagerActions {
         const text = await crs.process.getValue(step.args.text, context, process, item);
         const position = (await crs.process.getValue(step.args.position, context, process, item)) || {x: 0, y: 0, z: 0};
         const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
+        const bold = await crs.process.getValue(step.args.bold, context, process, item);
 
         const scene = canvas.__layers[layer];
+        const font = bold == true ? boldFont : regularFont;
 
         const data = new BABYLON.VertexData();
         data.positions = [];
@@ -88,10 +91,14 @@ export class TextManagerActions {
         customMesh.scaling.x = 0.5;
         customMesh.scaling.y = 0.5;
 
+        const name = bold == true ? "text_bold" : "text_regular";
+        const texture = bold == true ? "textures/sdf_font_bold.png" : "textures/sdf_font.png";
+
         const material = await crs.call("gfx_materials", "get_shader", {
             element: canvas,
             id: "sdf",
-            texture: "textures/sdf_font.png",
+            name: name,
+            texture: texture,
             attributes: attributes
         });
 

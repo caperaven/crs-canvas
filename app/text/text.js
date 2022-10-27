@@ -13,7 +13,7 @@ export default class Text extends crsbinding.classes.ViewBase {
             this.canvas.__engine.setHardwareScalingLevel(0.5/ window.devicePixelRatio);
             this.canvas.__layers[0].clearColor = new BABYLON.Color3(1, 1, 1);
             //await crs.call("gfx_grid", "add", { element: this.canvas, attributes: [{ fn: "Float", name: "min", value: 0.1 }] });
-            await crs.call("gfx_text", "add", { element: this.canvas, text: "Hello World", position: {y: 0.5}, attributes: [
+            await crs.call("gfx_text", "add", { element: this.canvas, bold: true, text: "Hello World", position: {y: 0.5}, attributes: [
                 {
                     fn: "Float",
                     name: "min",
@@ -25,7 +25,18 @@ export default class Text extends crsbinding.classes.ViewBase {
                     value: 0.5
                 }
             ]});
-            await crs.call("gfx_text", "add", { element: this.canvas, text: "10", position: {x: 0.25, y: 0.05} });
+            await crs.call("gfx_text", "add", { element: this.canvas, text: "hello world", position: {x: 0.25, y: 0.05},attributes: [
+                {
+                    fn: "Float",
+                    name: "min",
+                    value: 0.2
+                },
+                {
+                    fn: "Float",
+                    name: "max",
+                    value: 0.5
+                }
+            ]});
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -43,10 +54,12 @@ export default class Text extends crsbinding.classes.ViewBase {
 
     async minChanged(newValue) {
         this.canvas?.__layers[0].meshes[0].material.setFloat("min", newValue);
+        this.canvas?.__layers[0].meshes[1].material.setFloat("min", newValue);
     }
 
     async maxChanged(newValue) {
         this.canvas?.__layers[0].meshes[0].material.setFloat("max", newValue);
+        this.canvas?.__layers[0].meshes[1].material.setFloat("max", newValue);
     }
 
     async disconnectedCallback() {

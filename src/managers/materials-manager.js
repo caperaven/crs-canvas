@@ -46,12 +46,12 @@ class MaterialsManager {
         return this.#store[id];
     }
 
-    async getTexture(id, texture) {
-        if (this.#textures[id] == null) {
-            this.#textures[id] = new BABYLON.Texture(`${crs.intent.gfx.assetsLocation}/${texture}`);
+    async getTexture(name, texture) {
+        if (this.#textures[name] == null) {
+            this.#textures[name] = new BABYLON.Texture(`${crs.intent.gfx.assetsLocation}/${texture}`);
         }
 
-        return this.#textures[id];
+        return this.#textures[name];
     }
 
     async getTextureMaterial(id, texture, scene) {
@@ -64,15 +64,15 @@ class MaterialsManager {
         return this.#store[id];
     }
 
-    async getShader(id, texture, attributes, scene) {
-        if (this.#shaders[id] == null) {
+    async getShader(id, name, texture, attributes, scene) {
+        if (this.#shaders[name] == null) {
             const fragCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.frag`).then(result => result.text());
             const vertCode = await fetch(`${crs.intent.gfx.assetsLocation}/shaders/${id}.vert`).then(result => result.text());
 
             BABYLON.Effect.ShadersStore[`${id}VertexShader`] = vertCode;
             BABYLON.Effect.ShadersStore[`${id}FragmentShader`] = fragCode;
 
-            const material = new BABYLON.ShaderMaterial(id, scene,
+            const material = new BABYLON.ShaderMaterial(name, scene,
                 {
                     vertex: id,
                     fragment: id
@@ -85,7 +85,7 @@ class MaterialsManager {
             );
 
             if (texture != null) {
-                const textureResult = await this.getTexture(id, texture);
+                const textureResult = await this.getTexture(name, texture);
                 material.setTexture("texture1", textureResult);
             }
 
@@ -96,10 +96,10 @@ class MaterialsManager {
                 }
             }
 
-            this.#shaders[id] = material;
+            this.#shaders[name] = material;
         }
 
-        return this.#shaders[id];
+        return this.#shaders[name];
     }
 
     /**
@@ -148,11 +148,12 @@ class MaterialsManagerActions {
     static async get_shader(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const id = await crs.process.getValue(step.args.id, context, process, item);
+        const name = await crs.process.getValue(step.args.name, context, process, item);
         const texture = await crs.process.getValue(step.args.texture, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
         const scene = canvas.__layers[layer];
-        return await canvas.__materials.getShader(id, texture, attributes, scene);
+        return await canvas.__materials.getShader(id, name || id, texture, attributes, scene);
     }
 }
 

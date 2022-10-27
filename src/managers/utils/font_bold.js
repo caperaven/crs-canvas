@@ -1,5 +1,6 @@
 export const font = {
     "info": {
+        "type": "bold",
         "size": 32.625,
         "distanceRange": 2
     },
