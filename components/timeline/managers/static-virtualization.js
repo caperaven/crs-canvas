@@ -3,6 +3,7 @@ export class StaticVirtualization {
     #roundValue;
     #instances = {};
     #position;
+    #busy;
     #buffer;
     #frustum;
 
@@ -14,7 +15,7 @@ export class StaticVirtualization {
         this.#addCallback = addCallback;
         this.#removeCallback = removeCallback;
 
-        this.#buffer =  this.#size * 5;
+        this.#buffer =  5 //this.#size * Math.abs(frustum);
         this.#frustum = frustum;
 
         const parts = this.#size.toString().split(".");
@@ -32,11 +33,16 @@ export class StaticVirtualization {
     }
 
     async draw(position) {
+
+        if(this.#busy === true) return;
         const roundedPosition = Math.round(position * this.#roundValue) / this.#roundValue;
         if (this.#position === roundedPosition) return;
+        this.#busy = true;
 
         this.#position = roundedPosition;
         await this.#drawForCurrent()
+
+        this.#busy = false;
     }
 
     async #drawForCurrent() {
