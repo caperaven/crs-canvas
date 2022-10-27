@@ -1,0 +1,1 @@
+msdf-atlas-gen -type sdf -font .\icons.ttf -json icons_font.json -format png -imageout icons_font.png -charset charset.txt -dimensions 256 256

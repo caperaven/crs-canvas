@@ -2,7 +2,7 @@
  * Convert the font json file for msdf to be more appropriate for rendering
  */
 
-import {font} from "./font-files/sdf_font_bold.js";
+import {font} from "./font-files/icons_font.js";
 
 function convertFont() {
     const result = {
@@ -75,5 +75,5 @@ function normalize(value, min, max) {
 const newFont = convertFont();
 console.log(newFont);
 const js = `export const font = ${JSON.stringify(newFont, null, 4)}`;
-await Deno.writeTextFile("./../src/managers/utils/font_bold.js", js);
+await Deno.writeTextFile("./../src/managers/utils/icons.js", js);
 
