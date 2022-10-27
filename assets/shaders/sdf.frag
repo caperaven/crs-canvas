@@ -11,6 +11,6 @@ uniform vec3 color;
 
 void main(void) {
     float dist = texture(texture1, v_uv).r;
-    float alpha = smoothstep(min, max, dist); // 0.01, 0.5, dist 0.3, 1.0
+    float alpha = smoothstep(min, max, dist);
     glFragColor = vec4(color.rgb, alpha);
 }

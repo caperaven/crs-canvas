@@ -1,6 +1,6 @@
 import "./../../src/managers/grid-manager.js";
 import "./../../src/managers/text-manager.js";
-
+import "./../../src/managers/icons-manager.js";
 
 export default class Text extends crsbinding.classes.ViewBase {
     async connectedCallback() {
@@ -30,7 +30,7 @@ export default class Text extends crsbinding.classes.ViewBase {
                     value: 0.5
                 }
             ]});
-            await crs.call("gfx_text", "add", { element: this.canvas, text: "hello world", position: {x: 0.25, y: 0.05},attributes: [
+            await crs.call("gfx_text", "add", { element: this.canvas, text: "hello world", position: {x: 0.25, y: 0.05}, attributes: [
                 {
                     fn: "Array3",
                     name: "color",
@@ -47,6 +47,29 @@ export default class Text extends crsbinding.classes.ViewBase {
                     value: 0.5
                 }
             ]});
+
+            await crs.call("gfx_icons", "add", {
+                element: this.canvas,
+                icon: "59650",
+                position: {x: -2},
+                attributes: [
+                    {
+                        fn: "Array3",
+                        name: "color",
+                        value: [0, 0, 1]
+                    },
+                    {
+                        fn: "Float",
+                        name: "min",
+                        value: 0.2
+                    },
+                    {
+                        fn: "Float",
+                        name: "max",
+                        value: 0.5
+                    }
+                ]
+            }).catch(e => console.error(e));
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -65,11 +88,13 @@ export default class Text extends crsbinding.classes.ViewBase {
     async minChanged(newValue) {
         this.canvas?.__layers[0].meshes[0].material.setFloat("min", newValue);
         this.canvas?.__layers[0].meshes[1].material.setFloat("min", newValue);
+        this.canvas?.__layers[0].meshes[2].material.setFloat("min", newValue);
     }
 
     async maxChanged(newValue) {
         this.canvas?.__layers[0].meshes[0].material.setFloat("max", newValue);
         this.canvas?.__layers[0].meshes[1].material.setFloat("max", newValue);
+        this.canvas?.__layers[0].meshes[2].material.setFloat("min", newValue);
     }
 
     async disconnectedCallback() {

@@ -1,5 +1,6 @@
-import {font as regularFont} from "./utils/font.js"
-import {font as boldFont} from "./utils/font_bold.js";
+import {font as regularFont} from "./font-atlas/font.js"
+import {font as boldFont} from "./font-atlas/font_bold.js";
+import {getCharData} from "./utils/char-data.js";
 
 class TextManager {
     #regular;
@@ -86,8 +87,8 @@ export class TextManagerActions {
 
         const customMesh = new BABYLON.Mesh(text, scene);
         data.applyToMesh(customMesh);
-        customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
 
+        customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
         customMesh.scaling.x = 0.5;
         customMesh.scaling.y = 0.5;
 
@@ -104,39 +105,6 @@ export class TextManagerActions {
 
         customMesh.material = material;
         return customMesh;
-    }
-}
-
-function getCharData(font, char, pO, ind) {
-    const charData = font.chars[char];
-    const width = charData.width;
-    const height = charData.height;
-    const u1 = charData.u1;
-    const u2 = charData.u2;
-    const v1 = charData.v1;
-    const v2 = charData.v2;
-    const xoffset = charData.xoffset;
-    const yoffset = charData.yoffset;
-
-    const positions = [
-        pO + xoffset, yoffset - height, 0,
-        pO + width + xoffset, yoffset - height, 0,
-        pO + xoffset, yoffset, 0,
-        pO + width + xoffset, yoffset, 0
-    ]
-
-    const indices = [ind + 0, ind + 1, ind + 2, ind + 1, ind + 3, ind + 2];
-    const uvs = [u1, v1, u2, v1, u1, v2, u2, v2];
-    const normals = [];
-
-    BABYLON.VertexData.ComputeNormals(positions, indices, normals);
-
-    return {
-        positions: positions,
-        indices: indices,
-        normals: normals,
-        uvs: uvs,
-        xadvance: charData.xadvance
     }
 }
 
