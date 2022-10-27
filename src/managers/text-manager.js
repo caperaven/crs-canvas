@@ -1,5 +1,47 @@
 import {font} from "./utils/font.js"
 
+class TextManager {
+    #regular;
+    #bold;
+
+    constructor() {
+        this.#regular = {};
+        this.#bold = {};
+    }
+
+    has(text, bold = false) {
+        if (bold == true) {
+            return this.#bold[text] != null;
+        }
+
+        return this.#regular[text] != null;
+    }
+
+    get(text, bold = false) {
+        if (bold == true) {
+            return this.#bold[text];
+        }
+
+        return this.#regular[text];
+    }
+
+    set(text, mesh, bold = false) {
+       if (bold == true) {
+           return this.#bold[text] = mesh;
+       }
+
+       this.#regular[text] = mesh;
+    }
+
+    delete(text, bold = false) {
+        if (bold == true) {
+            delete this.#bold[text];
+        }
+
+        delete this.#regular[text];
+    }
+}
+
 export class TextManagerActions {
     static async perform(step, context, process, item) {
         return this[step.action]?.(step, context, process, item);
