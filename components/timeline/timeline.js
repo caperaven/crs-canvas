@@ -5,6 +5,8 @@ import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
 import {configureCamera} from "./timeline-camera.js";
+import "./../../src/factory/timeline-shape-factory.js"
+import {VirtualizationHeaderManager} from "./managers/virtualization-header-manager.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
@@ -12,6 +14,7 @@ export class Timeline extends HTMLElement {
     #scale;
     #data;
     #baseDate;
+    #headerManager;
 
     static get observedAttributes() {
         return ["data-scale"];
@@ -63,16 +66,13 @@ export class Timeline extends HTMLElement {
 
     async #init() {
         this.#baseDate = new Date(new Date().toDateString());
+        this.#headerManager = new VirtualizationHeaderManager();
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
             base: this.#baseDate,
             scale: this.#scale
         });
-
-
-        // await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
-        await crs.call("gfx_timeline_virtual_header", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.#configuration});
 
@@ -86,11 +86,7 @@ export class Timeline extends HTMLElement {
 
         this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
 
-        await crs.call("gfx_timeline_virtual_header", "render", {
-            element: this.#canvas,
-            base_date: this.#baseDate,
-            scale: this.#scale
-        });
+        this.#headerManager.render(this.#baseDate, this.#scale, this.#canvas,  this.#canvas.__layers[0]);
 
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,

@@ -1,9 +1,7 @@
 import "../../../src/managers/mesh-factory-manager.js";
 import "../../../src/managers/geometry-factory-manager.js";
 import {TIMELINE_SCALE} from "../timeline-scale.js";
-import {Virtualization} from "./virtualization.js";
 import {StaticVirtualization} from "./static-virtualization.js";
-import {createRect} from "./timeline-helpers.js";
 
 /**
  * This class is responsible for rendering the rows and includes generating the geometry and virtualization
@@ -89,7 +87,6 @@ class RowManager {
      * Start the virtualization process.
      */
     async #initVirtualization(canvas, scene, items, scale) {
-
         const addCallback = async (position, index) => {
 
             if(index < 0) return;
@@ -117,7 +114,6 @@ class RowManager {
                 }
             }
         }
-
 
         scene.onBeforeRenderObservable.addOnce(async () => {
             this.#virtualization = new StaticVirtualization(1, canvas.__camera.view_height, addCallback, removeCallback);

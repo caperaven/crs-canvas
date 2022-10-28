@@ -27,18 +27,17 @@ class ParticleSystemsManager {
 export class ParticleSystem {
     #SPS;
     #mesh;
-    #shapes = {};
+    #shapes = {}
 
     get mesh() {
         return this.#mesh;
     }
 
-    constructor(systemId, scene) {
+    constructor(systemId, scene, updateCallback) {
         this.#SPS = new BABYLON.SolidParticleSystem(systemId, scene, {
             useModelMaterial: true
         });
-
-        this.#SPS.initParticles = this.#initParticles.bind(this);
+        this.#SPS.updateParticle = updateCallback;
     }
 
     dispose() {
@@ -47,38 +46,27 @@ export class ParticleSystem {
         this.#shapes = null;
     }
 
-    add(key, sourceMesh, positions, disposeSourceMesh = true) {
-        const id = this.#SPS.addShape(sourceMesh, positions.length);
-        this.#shapes[id] = {
-            key,
-            positions
-        };
+    getKeyById(id) {
+        return this.#shapes[id];
+    }
+
+    add(key, sourceMesh, count, disposeSourceMesh = true) {
+        const id = this.#SPS.addShape(sourceMesh, count);
+        this.#shapes[id] = key;
         disposeSourceMesh && sourceMesh.dispose();
     }
 
-    render(initParticleCallback) {
+    build() {
         this.#mesh = this.#SPS.buildMesh();
         this.#SPS.isAlwaysVisible = true; // TODO Customize this as parameter
-        this.#SPS.initParticles(initParticleCallback);
-        this.#SPS.setParticles();
     }
 
-    #initParticles(callback) {
-        for (let p = 0; p < this.#SPS.nbParticles; p++) {
-            const particle = this.#SPS.particles[p];
-            const shape = this.#shapes[particle.shapeId];
-            const pIndex = particle.idxInShape * 3;
+    init(callback) {
+        this.#SPS.initParticles(callback);
+    }
 
-            const x = shape.positions[pIndex];
-            const y = shape.positions[pIndex + 1];
-            const z = shape.positions[pIndex + 2];
-
-            particle.position.x = x;
-            particle.position.y = y;
-            particle.position.z = z;
-
-            callback(shape.key, particle, p); // Do whatever you want with particle before render
-        }
+    render() {
+        this.#SPS.setParticles();
     }
 }
 

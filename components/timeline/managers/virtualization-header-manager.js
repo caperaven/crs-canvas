@@ -3,32 +3,25 @@ import "../../../src/managers/particle-manager.js";
 import "../../../src/managers/text-manager.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 import {TIMELINE_SCALE} from "../timeline-scale.js";
-import {HeaderMeshManager} from "./header-mesh-manager.js";
+import {HeaderParticleManager} from "./header-particle-manager.js";
 import {createRect} from "./timeline-helpers.js";
 
-class VirtualizationHeaderManager {
+export class VirtualizationHeaderManager {
 
     #virtualization;
-    #meshStore;
     #bgBorderMesh;
 
     constructor() {
     }
 
     dispose() {
+        this.#bgBorderMesh = this.#bgBorderMesh.dispose();
         this.#virtualization = this.#virtualization.dispose();
-    }
-
-    async clean(canvas, scene) {
-
     }
 
     async render(baseDate, scale, canvas, scene) {
         scale = scale || TIMELINE_SCALE.MONTH;
         await this.addTempDot(canvas);
-
-
-        this.#meshStore = {};
 
         canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
 
@@ -38,14 +31,18 @@ class VirtualizationHeaderManager {
             scale: scale
         });
 
-        let headerManager = new HeaderMeshManager();
+        let headerManager = new HeaderParticleManager();
+        await headerManager.initialize(scale, rangeProperties.width, baseDate, canvas);
 
         const add = async (position, index) => {
-            return await headerManager.create(scale, position, index, baseDate, canvas);
+            headerManager.render(index, position);
+            return {};
+            // return await headerManager.create(scale, position, index, baseDate, canvas);
         }
 
         const remove = async (instance) => {
-            return await headerManager.remove(scale, instance);
+            return true;
+            // return await headerManager.remove(scale, instance);
         }
 
         scene.onBeforeRenderObservable.addOnce(async () => {
@@ -78,43 +75,3 @@ class VirtualizationHeaderManager {
         return meshes[0];
     }
 }
-
-export class VirtualizationHeaderManagerActions {
-    static async perform(step, context, process, item) {
-        return this[step.action]?.(step, context, process, item);
-    }
-
-    static async initialize(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-        canvas.__vheaders = new VirtualizationHeaderManager();
-    }
-
-    static async dispose(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-        canvas.__headers = canvas.__headers?.dispose();
-    }
-
-    static async render(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-
-        const baseDate = await crs.process.getValue(step.args.base_date, context, process, item);
-
-        const scale = await crs.process.getValue(step.args.scale, context, process, item);
-        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
-        const scene = canvas.__layers[layer];
-
-        canvas.__vheaders.render(baseDate, scale, canvas, scene);
-    }
-
-    static async clean(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-
-        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
-        const scene = canvas.__layers[layer];
-
-        await canvas.__vheaders.clean(canvas, scene);
-    }
-}
-
-
-crs.intent.gfx_timeline_virtual_header = VirtualizationHeaderManagerActions;
