@@ -1,14 +1,13 @@
-import "./../../src/managers/geometry-factory-manager.js";
-
 export default class Welcome extends crsbinding.classes.ViewBase {
     async connectedCallback() {
         await super.connectedCallback();
 
         const canvas = this.element.querySelector("canvas");
 
-        const ready = () => {
+        const ready = async () => {
             canvas.removeEventListener("ready", ready);
-            this.addMeshes(canvas);
+            await import("./../../src/managers/geometry-factory-manager.js");
+            await this.addMeshes(canvas);
         }
 
         if (canvas.dataset.ready == "true") {

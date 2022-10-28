@@ -9,8 +9,10 @@ uniform float min;
 uniform float max;
 uniform vec3 color;
 
+float edge = 0.2;
+
 void main(void) {
     float dist = texture(texture1, v_uv).r;
-    float alpha = smoothstep(min, max, dist);
+    float alpha = smoothstep(min - edge, max + edge, dist);
     glFragColor = vec4(color.rgb, alpha);
 }

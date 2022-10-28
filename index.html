@@ -66,17 +66,18 @@
         import "./packages/crs-framework/packages/crs-binding/crs-binding.js";
         import "./packages/crs-framework/packages/crs-modules/crs-modules.js";
         import "./packages/crs-framework/packages/crs-router/crs-router.js";
-        import {initialize} from "./packages/crs-framework/packages/crs-process-api/crs-process-api.js";
         import "./packages/babylonjs/babylon.js";
         import "./packages/babylonjs/babylonjs.materials.min.js";
         import "./packages/babylonjs/babylon.gui.min.js";
-
-        import "/src/crs-canvas.js";
-        import "/components/canvas_2d/canvas_2d.js";
+        import {initialize} from "./packages/crs-framework/packages/crs-process-api/crs-process-api.js";
 
         import IndexViewModel from "./index.js";
 
         window.addEventListener("load", async (event) => {
+            await crs.modules.enableBinding([
+                ["canvas", "/components/canvas_2d/canvas_2d.js"]
+            ])
+
             document.viewModel = new IndexViewModel(document.body);
             await document.viewModel.connectedCallback();
         });
