@@ -77,15 +77,18 @@ export class TextManagerActions {
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const text = await crs.process.getValue(step.args.text, context, process, item);
         const bold = await crs.process.getValue(step.args.bold, context, process, item) || false;
-
-        if (canvas.__text.has(text, bold)) {
-            return canvas.__text.get(text, bold).clone();
-        }
-
         const position = (await crs.process.getValue(step.args.position, context, process, item)) || {x: 0, y: 0, z: 0};
         const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
         const scene = canvas.__layers[layer];
         const font = bold == true ? boldFont : regularFont;
+
+        if (canvas.__text.has(text, bold)) {
+            const textMesh = canvas.__text.get(text, bold);
+            textMesh.position.x = position.x || 0;
+            textMesh.position.y = position.y || 0;
+            textMesh.position.z = position.z || 0;
+            return textMesh;
+        }
 
         const data = new BABYLON.VertexData();
         data.positions = [];

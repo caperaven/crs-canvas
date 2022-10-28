@@ -98,13 +98,14 @@ class RowManager {
             }
 
             const numberOfRows = this.#configuration.records.length;
-            const sizeOfRow = sizeItem.size;
-            const textSize = (sizeOfRow / numberOfRows) - 0.1;
+            // NOTE KR: we can create a variable text size dependent on the number of text rows we're looking to render within a row
+            // const sizeOfRow = sizeItem.size;
+            // const textSize = (sizeOfRow / numberOfRows) - 0.1;
             // let yOffset = -textSize * numberOfRows;
-            let yOffset = -textSize * numberOfRows;
+            let yOffset = (0.25 / 2) * numberOfRows;
             for (const line of this.#configuration.records) {
-                shapes.push(await this.#getText(canvas, line, null, textSize, item, sizeItem, yOffset, scale));
-                yOffset += textSize;
+                shapes.push(await this.#getText(canvas, line, null, item, sizeItem, yOffset, scale));
+                yOffset -= 0.25;
             }
 
             return shapes;
@@ -112,6 +113,7 @@ class RowManager {
 
         const removeCallback = (shapes) => {
             for (const shape of shapes) {
+                if (shape.material.name.includes("text_")) continue; //NOTE KR: to discuss with GM
                 shape.dispose();
             }
         }
@@ -179,15 +181,15 @@ class RowManager {
         return mesh;
     }
 
-    async #getText(canvas, text, bold = false, textSize, item, sizeItem, yOffset, scale) {
+    async #getText(canvas, text, bold = false, item, sizeItem, yOffset, scale) {
         const textScaling = new BABYLON.Vector3(0.25,0.25,1);
-        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
+        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.8 : 1.05;
 
         const stringResult = await crs.call("string", "inflate", {template: text, parameters: item});
         const mesh = await crs.call("gfx_text", "add", {
             element: canvas,
             text: stringResult,
-            position: {x: 0, y: (-sizeItem.position - rowOffset) - yOffset, z: -0.003},
+            position: {x: 0.25, y: (-rowOffset - sizeItem.position) - ((0.25 / 2) - yOffset), z: -0.003},
         });
         mesh.freezeWorldMatrix();
         mesh.scaling = textScaling;
