@@ -18,10 +18,10 @@ describe("composite factory tests", async () => {
         }
     })
 
-    it("create line", () => {
-        const result = crs.call("gfx_composite", "create_line", {
-            template: "${code}: ${description}",
-            parameters: model
-        });
-    })
+    // it("create line", () => {
+    //     const result = crs.call("gfx_composite", "create_line", {
+    //         template: "${code}: ${description}",
+    //         parameters: model
+    //     });
+    // })
 })
