@@ -1,3 +1,5 @@
+import "./../../src/crs-canvas.js"
+
 export class Canvas extends HTMLCanvasElement {
     async connectedCallback() {
         const camera = this.dataset.camera || "free,0,5,-10";

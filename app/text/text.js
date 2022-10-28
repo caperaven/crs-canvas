@@ -1,6 +1,7 @@
 import "./../../src/managers/grid-manager.js";
 import "./../../src/managers/text-manager.js";
 import "./../../src/managers/icons-manager.js";
+import "./../../src/factory/composite-factory.js";
 
 export default class Text extends crsbinding.classes.ViewBase {
     async connectedCallback() {
@@ -12,12 +13,13 @@ export default class Text extends crsbinding.classes.ViewBase {
             this.canvas.removeEventListener("ready", ready);
             this.canvas.__engine.setHardwareScalingLevel(0.5/ window.devicePixelRatio);
             this.canvas.__layers[0].clearColor = new BABYLON.Color3(1, 1, 1);
-            //await crs.call("gfx_grid", "add", { element: this.canvas, attributes: [{ fn: "Float", name: "min", value: 0.1 }] });
-            await crs.call("gfx_text", "add", { element: this.canvas, bold: true, text: "Hello World", position: {y: 0.5}, attributes: [
+
+            const model = { code: "A11", description: "Description of A11"};
+            const attributes = [
                 {
                     fn: "Array3",
                     name: "color",
-                    value: [1, 0, 0]
+                    value: [0, 0, 1]
                 },
                 {
                     fn: "Float",
@@ -29,7 +31,11 @@ export default class Text extends crsbinding.classes.ViewBase {
                     name: "max",
                     value: 0.5
                 }
-            ]});
+            ]
+            const position = {x: 0, y: 1};
+
+            await crs.call("gfx_composite", "create_line", { element: this.canvas, template: "${code}: ${description}", parameters: model, position, attributes });
+
             await crs.call("gfx_text", "add", { element: this.canvas, text: "hello world", position: {x: 0.25, y: 0.05}, attributes: [
                 {
                     fn: "Array3",
