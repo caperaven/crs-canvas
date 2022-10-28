@@ -8,3 +8,4 @@ yarn-error.log
 /wasm/geometry/Cargo.lock
 wasm/geometry/target/.rustc_info.json
 /wasm/geometry/target/
+/.idea/
