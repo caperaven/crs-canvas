@@ -20,13 +20,33 @@
         top: 100px;
     }
 
-    input {
+    input:not([type="checkbox"]) {
         width: 200px;
         display: block;
+    }
+
+    .toolbar {
+        display: flex;
+        flex-direction: row;
+        box-sizing: border-box;
+        position: fixed;
+        top: 100px;
+        left: 600px;
     }
 </style>
 
 <canvas is="canvas-2d" data-camera="pan,1,1" data-color="#333343"></canvas>
+
+<div class="toolbar">
+    <label>
+        <span>Middle</span>
+        <input type="checkbox" value.bind="checked">
+    </label>
+    <button click.call="stateChange('top')">top</button>
+    <button click.call="stateChange('right')">right</button>
+    <button click.call="stateChange('bottom')">bottom</button>
+    <button click.call="stateChange('left')">left</button>
+</div>
 
 <label id="edtMin">
     <div>Min</div>

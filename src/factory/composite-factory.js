@@ -46,7 +46,7 @@ async function createSimpleText(element, text, position) {
     ];
     position ||= {x: 0, y: 0};
 
-    await crs.call("gfx_text", "add", {element, text, position, attributes});
+    return await crs.call("gfx_text", "add", {element, text, position, attributes});
 }
 
 
