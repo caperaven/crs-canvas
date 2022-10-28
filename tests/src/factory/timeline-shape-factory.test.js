@@ -1,18 +1,14 @@
-import {initRequired} from "./../../mockups/init-required.js";
-import {
-    assertEquals
-} from "https://deno.land/std@0.153.0/testing/asserts.ts";
-import {
-    describe,
-    it,
-    beforeAll
-} from "https://deno.land/std@0.153.0/testing/bdd.ts";
+import {assertEquals} from "https://deno.land/std@0.153.0/testing/asserts.ts";
+import {describe, it, beforeAll} from "https://deno.land/std@0.153.0/testing/bdd.ts";
+import {init} from "./../../mockups/init.js";
+
+await init();
+
 
 describe("work order shape factory tests", async () => {
 
     it("should create a work order duration", async () => {
         // Arrange
-        await initRequired();
         await import ("../../../src/factory/timeline-shape-factory.js");
         const args = {
             aabb: {
@@ -26,7 +22,6 @@ describe("work order shape factory tests", async () => {
         const result = await crs.call("gfx_timeline_shape_factory", "range_indicator", args);
 
         // Assert
-        console.log(result);
         assertEquals(result, {
                 vertices: [
                     0, 0,

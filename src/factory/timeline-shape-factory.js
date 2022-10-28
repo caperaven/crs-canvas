@@ -1,6 +1,6 @@
 import init, {fill} from "../../bin/geometry.js";
 
-init();
+await init();
 
 export class TimelineShapeFactory {
     static async perform(step, context, process, item) {

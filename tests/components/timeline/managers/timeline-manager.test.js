@@ -1,5 +1,7 @@
 import { assertEquals, assertExists } from "https://deno.land/std@0.147.0/testing/asserts.ts";
-import {initRequired} from "./../../../mockups/init-required.js";
+import {init} from "./../../../mockups/init.js";
+
+await init();
 
 const data = [
     {
@@ -60,7 +62,6 @@ const data = [
 ]
 
 const setup = async () => {
-    await initRequired();
     await import("./../../../../components/timeline/managers/timeline-manager.js");
 
     globalThis.canvas = globalThis.document.createElement("canvas");
