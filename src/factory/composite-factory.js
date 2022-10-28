@@ -7,7 +7,7 @@
  * ]
  */
 
-export class CompositeFactory {
+export class CompositeFactoryActions {
     static async perform(step, context, process, item) {
         return this[step.action]?.(step, context, process, item);
     }
@@ -16,11 +16,14 @@ export class CompositeFactory {
      * Create a line from a template string as seen above.
      * The step args is the same as the string system's inflate function
      */
-    static async createLine(step, context, process, item) {
+    static async create_line(step, context, process, item) {
         const line = await crs.call("string", "inflate", step.args, context, process, item);
+        console.log(line);
     }
 
-    static async createRows(step, context, process, item) {
+    static async create_rows(step, context, process, item) {
 
     }
 }
+
+crs.intent.gfx_composite = CompositeFactoryActions;
