@@ -1,11 +1,10 @@
 import "./../canvas_2d/canvas_2d.js";
-import "./managers/virtualization-header-manager.js"
 import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
 import {configureCamera} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
-import {VirtualizationHeaderManager} from "./managers/virtualization-header-manager.js";
+import {VirtualizationHeaderManager} from "./managers/headers/virtualization-header-manager.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
