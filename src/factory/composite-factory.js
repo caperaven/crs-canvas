@@ -44,15 +44,15 @@ export class CompositeFactoryActions {
 
             switch (part.type) {
                 case "icon": {
-                    bounds = await createIcon(canvas, part.value, newPos)
+                    bounds = await createIcon(canvas, part.value, newPos, part.color)
                     break;
                 }
                 case "bold": {
-                    bounds = await createSimpleText(canvas, part.value, newPos,true);
+                    bounds = await createSimpleText(canvas, part.value, newPos,true, part.color);
                     break;
                 }
                 default: {
-                    bounds = await createSimpleText(canvas, part.value, newPos, false);
+                    bounds = await createSimpleText(canvas, part.value, newPos, false, part.color);
                     break;
                 }
             }
@@ -68,15 +68,38 @@ export class CompositeFactoryActions {
     }
 }
 
-async function createSimpleText(element, text, position, bold) {
+async function createSimpleText(element, text, position, bold, color) {
     position ||= {x: 0, y: 0};
-    const mesh = await crs.call("gfx_text", "add", {element, text, position, attributes, bold});
+
+    color = await crs.call("colors", "hex_to_normalised", { hex: color });
+
+    const attr = [
+        {
+            fn: "Array3",
+            name: "color",
+            value: [color.r, color.g, color.b]
+        },
+        ...attributes
+    ]
+
+    const mesh = await crs.call("gfx_text", "add", {element, text, position, attributes: attr, bold});
     return getBounds(mesh);
 }
 
-async function createIcon(element, icon, position) {
+async function createIcon(element, icon, position, color) {
     position ||= {x: 0, y: 0};
-    const mesh = await crs.call("gfx_icons", "add", {element, icon, position, attributes, scale: 0.7});
+    color = await crs.call("colors", "hex_to_normalised", { hex: color });
+
+    const attr = [
+        {
+            fn: "Array3",
+            name: "color",
+            value: [color.r, color.g, color.b]
+        },
+        ...attributes
+    ]
+
+    const mesh = await crs.call("gfx_icons", "add", {element, icon, position, attributes: attr, scale: 0.7});
     return getBounds(mesh);
 }
 
@@ -86,7 +109,8 @@ export function getParts(text) {
     if (text.indexOf("<") == -1) {
         result.push({
             type: "regular",
-            value: text
+            value: text,
+            color: "#000000ff"
         })
 
         return result;
@@ -107,9 +131,12 @@ function textToPartsArray(text) {
         endIndex = getSecondCloseBracket(text, startIndex);
         const result = text.substring(startIndex, endIndex + 1);
         const value = result.substring(result.indexOf(">", 0) + 1, result.indexOf("<", 5))
+
+        const style = getStyles(result);
+
         let type;
 
-        if (result.indexOf("<icon>") != -1) {
+        if (result.indexOf("<icon") != -1) {
             type = "icon";
         }
         else {
@@ -118,17 +145,21 @@ function textToPartsArray(text) {
 
         resultCollection.push({
             type: type,
-            value
+            value,
+            color: style.color
         })
 
         hasBracket = text.indexOf("<", endIndex + 1) != -1;
 
         if (hasBracket == false) {
             const value = text.substring(endIndex + 1, text.length).trim();
+            const style = getStyles(value);
+
             if (value.length > 0) {
                 resultCollection.push({
                     type: "regular",
-                    value: value
+                    value,
+                    color: style.color
                 })
             }
         }
@@ -161,6 +192,31 @@ function getBounds(mesh) {
         width: width,
         height: height
     }
+}
+
+function getStyles(text) {
+    const result = {
+        color: "#000000ff"
+    };
+
+    if (text.indexOf("style") == -1) {
+        return result;
+    }
+
+    const startIndex = text.indexOf('"', 0) + 1;
+    const endIndex = text.indexOf('"', startIndex + 1);
+    const parts = text.substring(startIndex, endIndex).split(";");
+
+    for (const part of parts) {
+        const sp = part.split(":");
+        result[sp[0].trim()] = sp[1].trim();
+    }
+
+    if (result.color.length == 7) {
+        result.color += "ff";
+    }
+
+    return result;
 }
 
 crs.intent.gfx_composite = CompositeFactoryActions;
