@@ -86,7 +86,7 @@ export class Timeline extends HTMLElement {
 
         this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
 
-        this.#headerManager.render(this.#baseDate, this.#scale, this.#canvas,  this.#canvas.__layers[0]);
+        this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas,  this.#canvas.__layers[0]);
 
         await crs.call("gfx_timeline_rows", "render", {
             element: this.#canvas,

@@ -3,6 +3,7 @@ import {ParticleSystem} from "../../../src/managers/particle-manager.js";
 import {DistanceSystem} from "../../../src/helpers/distance-system.js";
 
 export class HeaderParticleManager {
+
     #system;
     #currentIndex;
     #currentPosition;
@@ -26,14 +27,14 @@ export class HeaderParticleManager {
         this.#system = this.#system.dispose();
     }
 
-    async initialize(scale, width, baseDate, canvas) {
+    async initialize(scale, baseDate, canvas) {
         this.#baseDate = baseDate;
         this.#canvas = canvas;
         this.#system = new ParticleSystem("timeline_headers", canvas.__layers[0], this.updateParticleHandler);
 
 
         this.#renderer = new this.#renderers[scale]();
-        await this.#renderer.init(canvas, this.#system, width, this.#baseDate, canvas._text_scale);
+        await this.#renderer.init(canvas, this.#system, this.#baseDate, canvas._text_scale);
 
         this.#system.build();
     }
@@ -68,7 +69,7 @@ class DayRenderer {
     #textScale;
     #bgKey = "month_header_bg"
 
-    async init(canvas, particleSystem, width, baseDate, textScale) {
+    async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
@@ -128,7 +129,7 @@ class WeekRenderer {
     #textScale;
     #bgKey = "month_header_bg"
 
-    async init(canvas, particleSystem, width, baseDate, textScale) {
+    async init(canvas, particleSystem,  baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
@@ -156,7 +157,7 @@ class WeekRenderer {
             shapes.push({key:text, count: textMultiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width -0.02, 0, 0.02, 0.5, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 0.5, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -193,7 +194,6 @@ class WeekRenderer {
 class MonthRenderer {
     #distanceSystem;
     #currentDayNumber;
-    #currentDayText;
     #currentPosition;
 
     #baseDate;
@@ -202,7 +202,7 @@ class MonthRenderer {
     #textScale;
     #bgKey = "month_header_bg"
 
-    async init(canvas, particleSystem, width, baseDate, textScale) {
+    async init(canvas, particleSystem,  baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
@@ -219,7 +219,7 @@ class MonthRenderer {
             shapes.push({key:i.toString(), count: multiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width -0.02, 0, 0.02, 0.5, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 0.5, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -260,7 +260,7 @@ class YearRenderer {
     #textScale;
     #bgKey = "month_header_bg"
 
-    async init(canvas, particleSystem, widths, baseDate, textScale) {
+    async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
