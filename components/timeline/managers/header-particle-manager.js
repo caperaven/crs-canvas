@@ -26,10 +26,10 @@ export class HeaderParticleManager {
         this.#system = this.#system.dispose();
     }
 
-    async initialize(scale, width, baseDate, canvas) {
+    async initialize(scale, width, baseDate, canvas, systemId = "timeline_headers") {
         this.#baseDate = baseDate;
         this.#canvas = canvas;
-        this.#system = new ParticleSystem("timeline_headers", canvas.__layers[0], this.updateParticleHandler);
+        this.#system = new ParticleSystem(systemId, canvas.__layers[0], this.updateParticleHandler);
 
 
         this.#renderer = new this.#renderers[scale]();
@@ -126,9 +126,10 @@ class WeekRenderer {
 
     #particleSystem;
     #textScale;
-    #bgKey = "month_header_bg"
+    #bgKey = "week_header_bg"
 
     async init(canvas, particleSystem, width, baseDate, textScale) {
+        console.log("init week")
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
@@ -140,8 +141,8 @@ class WeekRenderer {
 
         const shapes = [];
 
-        for (let i = 1; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10);
+        for (let i = 0; i <= count; i++) {
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
             this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
             shapes.push({key:i.toString(), count: multiplier});
         }
@@ -150,13 +151,12 @@ class WeekRenderer {
             const date = new Date(this.#baseDate.getTime());
             date.setDate(date.getDate() + i);
             const text = date.toLocaleString('en-us', {weekday:'long'})
-            console.log("text", text);
-            const textMesh = await createHeaderText(text, canvas, 0, 10);
+            const textMesh = await createHeaderText(text, canvas, 0, 0);
             this.#particleSystem.add(text, textMesh, textMultiplier, true);
             shapes.push({key:text, count: textMultiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width -0.02, 0, 0.02, 0.5, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width - 0.2, 0, 0.02, 0.5, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -177,15 +177,15 @@ class WeekRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-           return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0.5, -0.75);
+           return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.75);
         }
 
         if(shape == this.#currentDayText) {
-          return   moveParticle(this.#distanceSystem, particle, shape, -0.5, this.#currentPosition, -0.85, this.#textScale)
+          return   moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0, -0.85, this.#textScale)
         }
 
         if(this.#currentDayNumber == shape) {
-         return    moveParticle(this.#distanceSystem, particle, shape, -1, this.#currentPosition, -0.85, this.#textScale)
+         return    moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0, -0.85, this.#textScale)
         }
     }
 }
@@ -219,7 +219,7 @@ class MonthRenderer {
             shapes.push({key:i.toString(), count: multiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width -0.02, 0, 0.02, 0.5, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width - 0.02, 0, 0.02, 0.5, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -239,7 +239,7 @@ class MonthRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,1-0.02, -0.75);
+            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.75);
         }
 
         if(this.#currentDayNumber == shape) {
@@ -258,9 +258,10 @@ class YearRenderer {
 
     #particleSystem;
     #textScale;
-    #bgKey = "month_header_bg"
+    #bgKey = "year_header_bg"
 
     async init(canvas, particleSystem, widths, baseDate, textScale) {
+        console.log("initiating year header background")
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
@@ -273,22 +274,23 @@ class YearRenderer {
         const shapes = [];
 
 
-        for (let i = 1; i <= count; i++) {
-            const month = new Date(2022,i,1).toLocaleString('default', { month: 'long' });
-            const textMesh = await createHeaderText(month, canvas, 0, 10);
-            this.#particleSystem.add(month, textMesh, multiplier, true);
-            shapes.push({key:month, count: multiplier});
-        }
+        // TODO KR: fix this
+        // for (let i = 0; i <= count; i++) {
+        //     const month = new Date(2022,i,1).toLocaleString('default', { month: 'long' });
+        //     const textMesh = await createHeaderText(month, canvas, 0, 0);
+        //     this.#particleSystem.add(month, textMesh, multiplier, true);
+        //     shapes.push({key:month, count: multiplier});
+        // }
+        //
+        // const baseYear = baseDate.getFullYear();
+        //
+        // for (let i = baseYear  - 20; i < baseYear + 20; i++) {
+        //     const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
+        //     this.#particleSystem.add(i.toString(), textMesh, textMultiplier, true);
+        //     shapes.push({key:i.toString(), count: textMultiplier});
+        // }
 
-        const baseYear = baseDate.getFullYear();
-
-        for (let i = baseYear  - 20; i < baseYear + 20; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10);
-            this.#particleSystem.add(i.toString(), textMesh, textMultiplier, true);
-            shapes.push({key:i.toString(), count: textMultiplier});
-        }
-
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0.02, 0, 0.02, 0.5, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 1, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -296,11 +298,12 @@ class YearRenderer {
     }
 
     async setCurrent(index, position) {
+        console.log("set current", index, position);
         // Each timescale is different. So depending on the time scale we need to set the current shape differently
 
         const date = new Date(this.#baseDate.getFullYear(), this.#baseDate.getMonth());
 
-        date.setMonth(date.getMonth()+ index);
+        date.setMonth(date.getMonth() + index);
 
         this.#currentMonthText = date.toLocaleString('default', { month: 'long' });
         this.#currentYearText = date.getFullYear();
@@ -308,17 +311,18 @@ class YearRenderer {
     }
 
     async move(particle) {
+        // console.log("move", particle);
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0.5, -0.0);
+            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, 0);
         }
 
         if(shape == this.#currentMonthText) {
-            return   moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.1, -0.25, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.1, -0.25, this.#textScale)
         }
 
         if(this.#currentYearText == shape) {
-            return    moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.55, -0.25, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.55, -0.25, this.#textScale)
         }
     }
 }

@@ -22,6 +22,7 @@ export class VirtualizationHeaderManager {
     }
 
     async render(baseDate, scale, canvas, scene) {
+        console.log("rendering headers")
         scale = scale || TIMELINE_SCALE.MONTH;
         await this.addTempDot(canvas);
 
@@ -37,7 +38,7 @@ export class VirtualizationHeaderManager {
         await headerManager.initialize(scale, rangeProperties.width, baseDate, canvas);
 
         const yearHeaderManager = new HeaderParticleManager();
-        await yearHeaderManager.initialize("year", rangeProperties.width, baseDate, canvas);
+        await yearHeaderManager.initialize("year", rangeProperties.width, baseDate, canvas, "timeline_headers_year");
 
 
         const add = async (position, index) => {
@@ -83,72 +84,95 @@ export class VirtualizationHeaderManager {
     }
 
     async #getMonths(baseDate, canvas, scale) {
-         const date = new Date(baseDate.getTime());
-        date.setDate(1);
+        //date, index, position, size for each data item
+        const startingMonthDate = new Date(baseDate.getTime());
+        startingMonthDate.setDate(1);
 
-        let items = []
-        const positiveDate = new Date(date.setMonth(date.getMonth()));
-        const negativeDate = new Date(date.setMonth(date.getMonth()));
+        let items = [];
 
-        const days = daysInMonth(negativeDate.getMonth() +1,negativeDate.getFullYear());
-        const factor = YearFactor[scale];
-        const baseMonthProperties = await crs.call("gfx_timeline_manager", "set_range", {
-            element: canvas,
-            base: new Date(negativeDate.getTime()),
-            scale: "year",
-            relativeItemWidth:  days * factor
-        });
+        for (let i = -240; i < 240; i++) {
+            const dateItem = new Date(startingMonthDate.getTime());
+            dateItem.setMonth(dateItem.getMonth() + i);
 
-        let offset = baseMonthProperties.width / days * baseDate.getDate()
+            //calculate size
+            const daysInMonth = this.#daysInMonth(dateItem.getMonth(), dateItem.getFullYear());
+            const sizeOfMonth = daysInMonth * YearFactor[scale];
 
-        let position = -offset;
+            //calculate position
+            const result = await crs.call("gfx_timeline_manager", "get", {element: canvas, start: baseDate, end: dateItem, scale: scale});
+            const position = result.x2;
 
-        function daysInMonth (month, year) {
-            return new Date(year, month, 0).getDate();
-        }
-
-        for (let i = 0; i > -240; i--) {
-            const days = daysInMonth(negativeDate.getMonth() +1,negativeDate.getFullYear());
-            const factor = YearFactor[scale];
-
-            const monthProperties = await crs.call("gfx_timeline_manager", "set_range", {
-                element: canvas,
-                base: new Date(negativeDate.getTime()),
-                scale: "year",
-                relativeItemWidth:  days * factor
-            });
-
-
-
-            negativeDate.setMonth(negativeDate.getMonth() - 1)
-            items.push({position: position, size: monthProperties.width, date: new Date(negativeDate), index: i});
-            position -= monthProperties.width;
-        }
-
-        position = -offset;
-        items.reverse();
-
-        for (let i = 0; i < 240; i++) {
-
-            const days = daysInMonth(positiveDate.getMonth() +1,positiveDate.getFullYear());
-            const factor = YearFactor[scale];
-
-            const monthProperties = await crs.call("gfx_timeline_manager", "set_range", {
-                element: canvas,
-                base: new Date(positiveDate.getTime()),
-                scale: "year",
-                relativeItemWidth:  days * factor
-            });
-
-
-
-            positiveDate.setMonth(positiveDate.getMonth() + 1)
-            items.push({position: position, size: monthProperties.width, date: new Date(positiveDate), index: i});
-            position += monthProperties.width;
+            items.push({
+                date: dateItem,
+                index: i,
+                position: position,
+                size: sizeOfMonth
+            })
         }
 
         return items;
 
+        // const date = new Date(baseDate.getTime());
+        // date.setDate(1);
+        //
+        // let items = []
+        // const positiveDate = new Date(date.setMonth(date.getMonth()));
+        // const negativeDate = new Date(date.setMonth(date.getMonth()));
+        //
+        // const days = this.#daysInMonth(negativeDate.getMonth() + 1, negativeDate.getFullYear());
+        // const factor = YearFactor[scale];
+        // const baseMonthProperties = await crs.call("gfx_timeline_manager", "set_range", {
+        //     element: canvas,
+        //     base: new Date(negativeDate.getTime()),
+        //     scale: "year",
+        //     relativeItemWidth:  days * factor
+        // });
+        //
+        // let offset = baseMonthProperties.width / days * baseDate.getDate()
+        //
+        // let position = -offset;
+        //
+        // for (let i = 0; i > -240; i--) {
+        //     const days = this.#daysInMonth(negativeDate.getMonth() +1,negativeDate.getFullYear());
+        //     const factor = YearFactor[scale];
+        //
+        //     const monthProperties = await crs.call("gfx_timeline_manager", "set_range", {
+        //         element: canvas,
+        //         base: new Date(negativeDate.getTime()),
+        //         scale: "year",
+        //         relativeItemWidth:  days * factor
+        //     });
+        //
+        //     negativeDate.setMonth(negativeDate.getMonth() - 1)
+        //     items.push({position: position, size: monthProperties.width, date: new Date(negativeDate), index: i});
+        //     position -= monthProperties.width;
+        // }
+        //
+        // position = -offset;
+        // items.reverse();
+        //
+        // for (let i = 0; i < 240; i++) {
+        //     const days = this.#daysInMonth(positiveDate.getMonth() +1,positiveDate.getFullYear());
+        //     const factor = YearFactor[scale];
+        //
+        //     const monthProperties = await crs.call("gfx_timeline_manager", "set_range", {
+        //         element: canvas,
+        //         base: new Date(positiveDate.getTime()),
+        //         scale: "year",
+        //         relativeItemWidth:  days * factor
+        //     });
+        //
+        //     positiveDate.setMonth(positiveDate.getMonth() + 1)
+        //     items.push({position: position, size: monthProperties.width, date: new Date(positiveDate), index: i});
+        //     position += monthProperties.width;
+        // }
+        //
+        // return items;
+    }
+
+
+    #daysInMonth(month, year) {
+        return new Date(year, month, 0).getDate();
     }
 
     async addTempDot(canvas) {
