@@ -44,7 +44,7 @@ export class CompositeFactoryActions {
 
             switch (part.type) {
                 case "icon": {
-                    bounds = await createIcon(canvas, part.value, {x: 0, y: 0})
+                    bounds = await createIcon(canvas, part.value, newPos)
                     break;
                 }
                 case "bold": {

@@ -19,7 +19,7 @@ export default class Text extends crsbinding.classes.ViewBase {
 
             await crs.call("gfx_composite", "create_line", {
                 element: this.canvas,
-                template: "<icon>97</icon> <bold>[${code}]</bold> ${description}",
+                template: "<icon>98</icon> <bold>[${code}]</bold> ${description}",
                 parameters: model
             })
         }
