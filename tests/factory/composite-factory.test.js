@@ -5,7 +5,7 @@ import {init} from "./../mockups/init.js";
 await init();
 
 beforeAll(async () => {
-    await import("./../../src/factory/composite-factory.js");
+    globalThis.module = await import("./../../src/factory/composite-factory.js");
 })
 
 describe("composite factory tests", async () => {
@@ -16,6 +16,26 @@ describe("composite factory tests", async () => {
             code: "A11",
             description: "A11 description"
         }
+    })
+
+    it("get parts", () => {
+        const parts = module.getParts("[${code}]: ${description}");
+        assertEquals(parts.length, 1);
+        assertEquals(parts[0].type, "regular");
+        assertEquals(parts[0].value, "[${code}]: ${description}");
+    });
+
+    it("get parts - complete", async () => {
+        const parts = module.getParts("<icon>gear</icon> <bold>[${code}]</bold> ${description}");
+        assertEquals(parts.length, 3);
+
+        assertEquals(parts[0].type, "icon");
+        assertEquals(parts[1].type, "bold");
+        assertEquals(parts[2].type, "regular");
+
+        assertEquals(parts[0].value, "gear");
+        assertEquals(parts[1].value, "[${code}]");
+        assertEquals(parts[2].value, "${description}");
     })
 
     // it("create line", () => {

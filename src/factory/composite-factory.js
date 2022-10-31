@@ -49,5 +49,67 @@ async function createSimpleText(element, text, position) {
     await crs.call("gfx_text", "add", {element, text, position, attributes});
 }
 
+export function getParts(text) {
+    const result = [];
+
+    if (text.indexOf("<") == -1) {
+        result.push({
+            type: "regular",
+            value: text
+        })
+
+        return result;
+    }
+
+    return textToPartsArray(text);
+}
+
+function textToPartsArray(text) {
+    const resultCollection = [];
+
+    let hasBracket = true;
+    let startIndex = 0;
+    let endIndex = 0;
+
+    while (hasBracket == true) {
+        startIndex = text.indexOf("<", endIndex);
+        endIndex = getSecondCloseBracket(text, startIndex);
+        const result = text.substring(startIndex, endIndex + 1);
+        const value = result.substring(result.indexOf(">", 0) + 1, result.indexOf("<", 5))
+        let type;
+
+        if (result.indexOf("<icon>") != -1) {
+            type = "icon";
+        }
+        else {
+            type = "bold"
+        }
+
+        resultCollection.push({
+            type: type,
+            value
+        })
+
+        hasBracket = text.indexOf("<", endIndex + 1) != -1;
+
+        if (hasBracket == false) {
+            const value = text.substring(endIndex + 1, text.length).trim();
+            if (value.length > 0) {
+                resultCollection.push({
+                    type: "regular",
+                    value: value
+                })
+            }
+        }
+    }
+
+    return resultCollection;
+}
+
+function getSecondCloseBracket(text, start) {
+    const firstClose = text.indexOf(">", start);
+    const secondClose = text.indexOf(">", firstClose + 1);
+    return secondClose;
+}
 
 crs.intent.gfx_composite = CompositeFactoryActions;
