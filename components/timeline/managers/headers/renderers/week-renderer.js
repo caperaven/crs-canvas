@@ -15,7 +15,6 @@ export default class WeekRenderer {
     #bgKey = "week_header_bg"
 
     async init(canvas, particleSystem, baseDate, textScale) {
-        console.log("init week")
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
@@ -50,8 +49,6 @@ export default class WeekRenderer {
     }
 
     async setCurrent(index, position) {
-        // Each timescale is different. So depending on the time scale we need to set the current shape differently
-
         const date = new Date(this.#baseDate.getTime());
         date.setDate(date.getDate() + index);
 
@@ -63,15 +60,15 @@ export default class WeekRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.75);
+            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,-3, -0.75);
         }
 
         if(shape == this.#currentDayText) {
-            return   moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0, -0.85, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, -2.4, -0.85, this.#textScale)
         }
 
         if(this.#currentDayNumber == shape) {
-            return    moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0, -0.85, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, -2.8, -0.85, this.#textScale)
         }
     }
 }

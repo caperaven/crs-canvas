@@ -1,4 +1,4 @@
-import {createRect} from "../../timeline-helpers.js";
+import {createHeaderText, createRect} from "../../timeline-helpers.js";
 import {DistanceSystem} from "../../../../../src/helpers/distance-system.js";
 import {moveParticle} from "./particle-helpers.js";
 
@@ -15,7 +15,6 @@ export default class YearRenderer {
     #bgKey = "year_header_bg"
 
     async init(canvas, particleSystem, baseDate, textScale) {
-        console.log("initiating year header background")
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
@@ -27,22 +26,20 @@ export default class YearRenderer {
 
         const shapes = [];
 
+        for (let i = 0; i <= count; i++) {
+            const month = new Date(2022,i,1).toLocaleString('default', { month: 'long' });
+            const textMesh = await createHeaderText(month, canvas, 0, 0);
+            this.#particleSystem.add(month, textMesh, multiplier, true);
+            shapes.push({key:month, count: multiplier});
+        }
 
-        // TODO KR: fix this
-        // for (let i = 0; i <= count; i++) {
-        //     const month = new Date(2022,i,1).toLocaleString('default', { month: 'long' });
-        //     const textMesh = await createHeaderText(month, canvas, 0, 0);
-        //     this.#particleSystem.add(month, textMesh, multiplier, true);
-        //     shapes.push({key:month, count: multiplier});
-        // }
-        //
-        // const baseYear = baseDate.getFullYear();
-        //
-        // for (let i = baseYear  - 20; i < baseYear + 20; i++) {
-        //     const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
-        //     this.#particleSystem.add(i.toString(), textMesh, textMultiplier, true);
-        //     shapes.push({key:i.toString(), count: textMultiplier});
-        // }
+        const baseYear = baseDate.getFullYear();
+
+        for (let i = baseYear  - 20; i < baseYear + 20; i++) {
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
+            this.#particleSystem.add(i.toString(), textMesh, textMultiplier, true);
+            shapes.push({key:i.toString(), count: textMultiplier});
+        }
 
         const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 1, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
@@ -52,9 +49,6 @@ export default class YearRenderer {
     }
 
     async setCurrent(index, position) {
-        console.log("set current", index, position);
-        // Each timescale is different. So depending on the time scale we need to set the current shape differently
-
         const date = new Date(this.#baseDate.getFullYear(), this.#baseDate.getMonth());
 
         date.setMonth(date.getMonth() + index);
@@ -65,18 +59,17 @@ export default class YearRenderer {
     }
 
     async move(particle) {
-        // console.log("move", particle);
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
             return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, 0);
         }
 
         if(shape == this.#currentMonthText) {
-            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.1, -0.25, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.2, -0.25, this.#textScale)
         }
 
         if(this.#currentYearText == shape) {
-            return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.55, -0.25, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.6, -0.25, this.#textScale)
         }
     }
 }

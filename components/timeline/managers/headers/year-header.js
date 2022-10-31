@@ -27,7 +27,7 @@ export class YearHeader {
         let items = await this.#getMonths(baseDate, canvas, relativeScale);
         this.#virtualization = new DynamicVirtualization(items, canvas.__camera.view_width, addYear, removeYear);
     }
-O
+
     async draw(position) {
         await this.#virtualization.draw(position);
     }
