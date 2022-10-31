@@ -5,6 +5,8 @@ import {DistanceSystem} from "../../../src/helpers/distance-system.js";
 export class HeaderParticleManager {
 
     #system;
+    #currentIndex;
+    #currentPosition;
     #baseDate;
     #renderer;
 
@@ -26,7 +28,6 @@ export class HeaderParticleManager {
 
     async initialize(scale, baseDate, canvas, systemId = "timeline_headers") {
         this.#baseDate = baseDate;
-        this.#canvas = canvas;
         this.#system = new ParticleSystem(systemId, canvas.__layers[0], this.updateParticleHandler);
 
 
