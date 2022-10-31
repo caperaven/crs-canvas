@@ -27,6 +27,7 @@ export function getCharData(font, char, pO = 0, ind = 0) {
         indices: indices,
         normals: normals,
         uvs: uvs,
-        xadvance: charData.xadvance
+        xadvance: charData.xadvance,
+        yoffset: yoffset
     }
 }
