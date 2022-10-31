@@ -93,29 +93,17 @@ class YearScale {
         }
     }
 
-    async setScale(min, max, zoomFactor = 0) {
-        const minDate = new Date(getDate(min));
-        const maxDate = new Date(getDate(max));
+    async setScale(base, relativeItemWidth) {
+        let currentDate = new Date(base);
 
-        //get amount of months between the two dates
-        const differenceInMonths = this.#getDifferenceInMonths(minDate, maxDate);
-        const widths = [];
-        let previousDate = new Date(minDate);
-        let totalWidth = 0;
-        for (let i = 0; i < differenceInMonths; i++) {
-            //Cycle through the months between, adding individual month widths & totalWidth
-            const newDate = new Date(previousDate);
-            newDate.setMonth(previousDate.getMonth() + 1);
+        const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        const nextMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-            const isLeap = this.#getLeap(newDate.getFullYear());
-            const width = this.#getWidth(previousDate, newDate, isLeap);
-            widths.push(width);
-            totalWidth += width;
+        const isLeap = this.#getLeap(currentMonthStart.getFullYear()) ? true: this.#getLeap(nextMonthStart.getFullYear());
+        const width = this.#getWidth(currentMonthStart, nextMonthStart, 0, isLeap, relativeItemWidth);
 
-            previousDate = newDate;
-        }
-
-        return {items: differenceInMonths, width: widths, totalWidth: totalWidth};
+        return {width: width};
     }
 
     #getDifferenceInMonths(minDate, maxDate) {
@@ -126,11 +114,15 @@ class YearScale {
         return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
     }
 
-    #getWidth(minDate, maxDate, zoomFactor, isLeap) {
+    #getWidth(minDate, maxDate, zoomFactor, isLeap, relativeItemWidth) {
         const differenceInHours = Math.abs(getDate(maxDate) - getDate(minDate)) / 3.6e+6;
-        return isLeap ? differenceInHours * ((ViewToScaleFactor.year / 732) + (zoomFactor / 732)) : differenceInHours * ((ViewToScaleFactor.year / 730) + (zoomFactor / 732));
+        const leapFactor = isLeap ? 8784 / 12 : 8760 / 12;
+
+        const factor = relativeItemWidth || ViewToScaleFactor.year;
+        return  differenceInHours * ((factor/ leapFactor) + (zoomFactor / leapFactor));
     }
 }
+
 
 class TimelineManager {
     #baseDate;
@@ -153,9 +145,9 @@ class TimelineManager {
         this._yearScale  = this._yearScale  || new YearScale();
     }
 
-    async setScale(canvas, base, scale) {
+    async setScale(canvas, base, scale, relativeItemWidth) {
         if (this[`_${scale}Scale`] == null) this.setScales();
-        if (scale != null) return await this[`_${scale}Scale`].setScale(getDate(base));
+        if (scale != null) return await this[`_${scale}Scale`].setScale(getDate(base), relativeItemWidth);
     }
 
     /**
@@ -198,7 +190,8 @@ class TimelineManagerActions {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const base = (await crs.process.getValue(step.args.base, context, process, item));
         const scale = (await crs.process.getValue(step.args.scale, context, process, item));
-        return await canvas.__timelineManager.setScale(canvas, base, scale);
+        const relativeItemWidth = (await crs.process.getValue(step.args.relativeItemWidth, context, process, item));
+        return await canvas.__timelineManager.setScale(canvas, base, scale, relativeItemWidth);
     }
 
     static async get(step, context, process, item) {

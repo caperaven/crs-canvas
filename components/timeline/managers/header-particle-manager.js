@@ -14,9 +14,8 @@ export class HeaderParticleManager {
         "month": MonthRenderer,
         "day": DayRenderer,
         "week": WeekRenderer,
-        "year": DayRenderer
+        "year": YearRenderer
     }
-
 
     constructor() {
         this.#system = {};
@@ -49,194 +48,84 @@ export class HeaderParticleManager {
     }
 
     async updateParticle(particle) {
-
-        this.#renderer.move(particle);
+        await this.#renderer.move(particle);
+        if(particle.isUsed !== true) {
+            particle.position.y = 99999;
+        }
     }
 }
 
-class MonthRenderer {
-    #textDistanceSystem;
-    #bgMeshDistanceSystem;
-    #currentShape;
-    #currentPosition;
-    #baseDate;
-    #particleSystem;
-    #textScale;
-    #textOffset = 0.4;
-    #bgOffset = 0.5;
-    #bgKey = "month_header_bg"
 
-    async init(canvas, particleSystem, baseDate, textScale) {
-        this.#textScale = textScale;
-        this.#baseDate = baseDate;
-        this.#particleSystem = particleSystem;
-        const count = 31;
-        const multiplier = 2;
-
-        const textShapes = [];
-
-        for (let i = 1; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
-            this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
-            textShapes.push(i.toString());
-        }
-
-        const bgCount =  2 * count;
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_bg, 0, 0, 0.98, 0.5, canvas);
-        // const bgMesh = await createRect(this.#bgKey, canvas._theme.header_bg, 0, 0, 0.95, 0.5, canvas);
-        this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
-        this.#textDistanceSystem = new DistanceSystem(textShapes, multiplier);
-        this.#bgMeshDistanceSystem = new DistanceSystem([this.#bgKey], bgCount);
-    }
-
-    async setCurrent(index, position) {
-        // Each timescale is different. So depending on the time scale we need to set the current shape differently
-
-        const date = new Date(this.#baseDate.getTime());
-        date.setDate(date.getDate() + index);
-        const key = date.getDate();
-        this.#currentShape = key;
-        this.#currentPosition = position;
-    }
-
-    async move(particle) {
-        const shape = this.#particleSystem.getKeyById(particle.shapeId);
-        if(this.#bgKey === shape) {
-            return this.#move_bg(particle);
-        }
-
-        if(this.#currentShape != shape) return;
-
-
-        const textPosition = this.#currentPosition + this.#textOffset
-        const index = this.#textDistanceSystem.getIndex(this.#currentShape, textPosition);
-        if (index != null && particle.idxInShape !== index) return;
-
-        particle.position.x = textPosition;
-        particle.position.y = -0.875;
-        particle.position.z = -0.01;
-        particle.scaling = this.#textScale;
-
-        this.#textDistanceSystem.set(this.#currentShape, particle.idxInShape, textPosition);
-    }
-
-    async #move_bg(particle) {
-        const bg_position = this.#currentPosition + this.#bgOffset
-
-        if(this.#bgMeshDistanceSystem.has(this.#bgKey, bg_position)) return
-
-        const index = this.#bgMeshDistanceSystem.getIndex(this.#bgKey, bg_position);
-
-        if (index != null && particle.idxInShape !== index) return;
-
-        particle.position.x = bg_position;
-        particle.position.y = -0.75;
-        particle.position.z = -0.01;
-
-        this.#bgMeshDistanceSystem.set(this.#bgKey, particle.idxInShape, bg_position);
-    }
-}
 
 class DayRenderer {
-
-    #textDistanceSystem;
-    #bgMeshDistanceSystem;
-    #currentShape;
+    #distanceSystem;
+    #currentDayText;
     #currentPosition;
+
     #baseDate;
+
     #particleSystem;
     #textScale;
-    #textOffset = 0.4;
-    #bgOffset = 0.5;
     #bgKey = "month_header_bg"
 
     async init(canvas, particleSystem, width, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
-        const count = 31;
+
+        const count = 24;
         const multiplier = 2;
+        const textMultiplier = 1;
+        const bgCount =  2 * count;
 
-        const textShapes = [];
+        const shapes = [];
 
-        console.log(width);
-
-        for (let i = 1; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
-            this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
-            textShapes.push(i.toString());
+        for (let i = 0; i < count; i++) {
+            const date = new Date(this.#baseDate.getTime());
+            date.setHours(i,0,0);
+            const text = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hour12: false });
+            const textMesh = await createHeaderText(text, canvas, 0, 10);
+            this.#particleSystem.add(text, textMesh, textMultiplier, true);
+            shapes.push({key:text, count: textMultiplier});
         }
 
-        const bgCount =  2 * count;
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_bg, 0, 0, width-0.002, 0.5, canvas);
-
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 0.125, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
-        this.#textDistanceSystem = new DistanceSystem(textShapes, multiplier);
-        this.#bgMeshDistanceSystem = new DistanceSystem([this.#bgKey], bgCount);
+        shapes.push({key: this.#bgKey, count: bgCount});
+
+        this.#distanceSystem = new DistanceSystem(shapes, multiplier);
     }
 
     async setCurrent(index, position) {
-        // Each timescale is different. So depending on the time scale we need to set the current shape differently
+        // Each timescale is different. So depending on the timescale we need to set the current shape differently
 
-        const date = new Date(this.#baseDate.getTime());
-        date.setDate(date.getDate() + index);
-        const key = date.getDate();
-        this.#currentShape = key;
-        console.log(position);
+        const date = new Date(this.#baseDate.getTime() + (index * 30) * 60000);
+        this.#currentDayText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hour12: false });
         this.#currentPosition = position;
     }
 
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return this.#move_bg(particle);
+            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.95);
         }
 
-        if(this.#currentShape != shape) return;
-
-
-        const textPosition = this.#currentPosition + this.#textOffset
-        const index = this.#textDistanceSystem.getIndex(this.#currentShape, textPosition);
-        if (index != null && particle.idxInShape !== index) return;
-
-        particle.position.x = textPosition;
-        particle.position.y = -0.875;
-        particle.position.z = -0.01;
-        particle.scaling = this.#textScale;
-
-        this.#textDistanceSystem.set(this.#currentShape, particle.idxInShape, textPosition);
-    }
-
-    async #move_bg(particle) {
-        const bg_position = this.#currentPosition + this.#bgOffset
-
-        if(this.#bgMeshDistanceSystem.has(this.#bgKey, bg_position)) return
-
-        const index = this.#bgMeshDistanceSystem.getIndex(this.#bgKey, bg_position);
-
-        if (index != null && particle.idxInShape !== index) return;
-
-        particle.position.x = bg_position;
-        particle.position.y = -0.75;
-        particle.position.z = -0.01;
-
-        this.#bgMeshDistanceSystem.set(this.#bgKey, particle.idxInShape, bg_position);
+        if(shape == this.#currentDayText) {
+            return   moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,-0.375, -0.85, this.#textScale)
+        }
     }
 }
 
 class WeekRenderer {
-
-    #textDistanceSystem;
-    #dayTextDistanceSystem;
-    #bgMeshDistanceSystem;
+    #distanceSystem;
     #currentDayNumber;
     #currentDayText;
     #currentPosition;
+
     #baseDate;
+
     #particleSystem;
     #textScale;
-    #textOffset = 0.4;
-    #bgOffset = 0.5;
     #bgKey = "month_header_bg"
 
     async init(canvas, particleSystem, width, baseDate, textScale) {
@@ -246,15 +135,15 @@ class WeekRenderer {
 
         const count = 31;
         const multiplier = 2;
+        const textMultiplier = 8;
+        const bgCount =  2 * count;
 
-        const textShapes = [];
-
-        console.log(width);
+        const shapes = [];
 
         for (let i = 1; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10);
             this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
-            textShapes.push(i.toString());
+            shapes.push({key:i.toString(), count: multiplier});
         }
 
         for (let i = 0; i < 7; i++) {
@@ -262,20 +151,16 @@ class WeekRenderer {
             date.setDate(date.getDate() + i);
             const text = date.toLocaleString('en-us', {weekday:'long'})
             console.log("text", text);
-            const textMesh = await createHeaderText(text, canvas, 0, 0);
-            this.#particleSystem.add(text, textMesh, multiplier, true);
-            textShapes.push(text);
+            const textMesh = await createHeaderText(text, canvas, 0, 10);
+            this.#particleSystem.add(text, textMesh, textMultiplier, true);
+            shapes.push({key:text, count: textMultiplier});
         }
 
-
-
-        const bgCount =  2 * count;
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_bg, 0, 0, width-0.02, 0.5, canvas);
-
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width -0.02, 0, 0.02, 0.5, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
-        this.#textDistanceSystem = new DistanceSystem(textShapes, multiplier);
-        this.#dayTextDistanceSystem = new DistanceSystem(textShapes, multiplier);
-        this.#bgMeshDistanceSystem = new DistanceSystem([this.#bgKey], bgCount);
+        shapes.push({key: this.#bgKey, count: bgCount});
+
+        this.#distanceSystem = new DistanceSystem(shapes, multiplier);
     }
 
     async setCurrent(index, position) {
@@ -292,35 +177,167 @@ class WeekRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-           return  this.#move(this.#bgMeshDistanceSystem, particle, this.#bgKey, 0.5, -0.75);
+           return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0.5, -0.75);
         }
 
         if(shape == this.#currentDayText) {
-          return   this.#move(this.#dayTextDistanceSystem, particle, shape, -0.5, -0.85, this.#textScale)
+          return   moveParticle(this.#distanceSystem, particle, shape, -0.5, this.#currentPosition, -0.85, this.#textScale)
         }
 
         if(this.#currentDayNumber == shape) {
-         return     this.#move(this.#textDistanceSystem, particle, shape, -1, -0.85, this.#textScale)
+         return    moveParticle(this.#distanceSystem, particle, shape, -1, this.#currentPosition, -0.85, this.#textScale)
         }
-    }
-
-    async #move(system, particle, key, xOffset, yOffset, scale) {
-        const next_position_x = this.#currentPosition + xOffset
-
-        const index = system.getIndex(key, next_position_x);
-
-        if (index != null && particle.idxInShape !== index) return;
-
-        particle.position.x = next_position_x;
-        particle.position.y = yOffset;
-        particle.position.z = -0.01;
-
-        if(scale != null) {
-            particle.scaling = scale;
-        }
-
-        system.set(key, particle.idxInShape, next_position_x);
     }
 }
 
+class MonthRenderer {
+    #distanceSystem;
+    #currentDayNumber;
+    #currentDayText;
+    #currentPosition;
 
+    #baseDate;
+
+    #particleSystem;
+    #textScale;
+    #bgKey = "month_header_bg"
+
+    async init(canvas, particleSystem, width, baseDate, textScale) {
+        this.#textScale = textScale;
+        this.#baseDate = baseDate;
+        this.#particleSystem = particleSystem;
+
+        const count = 31;
+        const multiplier = 2;
+        const bgCount =  2 * count;
+
+        const shapes = [];
+
+        for (let i = 1; i <= count; i++) {
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10);
+            this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
+            shapes.push({key:i.toString(), count: multiplier});
+        }
+
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, width -0.02, 0, 0.02, 0.5, canvas);
+        this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
+        shapes.push({key: this.#bgKey, count: bgCount});
+
+        this.#distanceSystem = new DistanceSystem(shapes, multiplier);
+    }
+
+    async setCurrent(index, position) {
+        // Each timescale is different. So depending on the time scale we need to set the current shape differently
+
+        const date = new Date(this.#baseDate.getTime());
+        date.setDate(date.getDate() + index);
+
+        this.#currentDayNumber = date.getDate();
+        this.#currentPosition = position;
+    }
+
+    async move(particle) {
+        const shape = this.#particleSystem.getKeyById(particle.shapeId);
+        if(this.#bgKey === shape) {
+            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,1-0.02, -0.75);
+        }
+
+        if(this.#currentDayNumber == shape) {
+            return    moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.375,  -0.85, this.#textScale)
+        }
+    }
+}
+
+class YearRenderer {
+    #distanceSystem;
+    #currentMonthText;
+    #currentYearText;
+    #currentPosition;
+
+    #baseDate;
+
+    #particleSystem;
+    #textScale;
+    #bgKey = "month_header_bg"
+
+    async init(canvas, particleSystem, widths, baseDate, textScale) {
+        this.#textScale = textScale;
+        this.#baseDate = baseDate;
+        this.#particleSystem = particleSystem;
+
+        const count = 12;
+        const multiplier = 2;
+        const textMultiplier = 8;
+        const bgCount =  2 * count;
+
+        const shapes = [];
+
+
+        for (let i = 1; i <= count; i++) {
+            const month = new Date(2022,i,1).toLocaleString('default', { month: 'long' });
+            const textMesh = await createHeaderText(month, canvas, 0, 10);
+            this.#particleSystem.add(month, textMesh, multiplier, true);
+            shapes.push({key:month, count: multiplier});
+        }
+
+        const baseYear = baseDate.getFullYear();
+
+        for (let i = baseYear  - 20; i < baseYear + 20; i++) {
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10);
+            this.#particleSystem.add(i.toString(), textMesh, textMultiplier, true);
+            shapes.push({key:i.toString(), count: textMultiplier});
+        }
+
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0.02, 0, 0.02, 0.5, canvas);
+        this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
+        shapes.push({key: this.#bgKey, count: bgCount});
+
+        this.#distanceSystem = new DistanceSystem(shapes, multiplier);
+    }
+
+    async setCurrent(index, position) {
+        // Each timescale is different. So depending on the time scale we need to set the current shape differently
+
+        const date = new Date(this.#baseDate.getFullYear(), this.#baseDate.getMonth());
+
+        date.setMonth(date.getMonth()+ index);
+
+        this.#currentMonthText = date.toLocaleString('default', { month: 'long' });
+        this.#currentYearText = date.getFullYear();
+        this.#currentPosition = position;
+    }
+
+    async move(particle) {
+        const shape = this.#particleSystem.getKeyById(particle.shapeId);
+        if(this.#bgKey === shape) {
+            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0.5, -0.0);
+        }
+
+        if(shape == this.#currentMonthText) {
+            return   moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.1, -0.25, this.#textScale)
+        }
+
+        if(this.#currentYearText == shape) {
+            return    moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.55, -0.25, this.#textScale)
+        }
+    }
+}
+
+function moveParticle(system, particle, key, position,  xOffset, yOffset, scale) {
+    const next_position_x = position + xOffset
+
+    const index = system.getIndex(key, next_position_x);
+
+    if (index != null && particle.idxInShape !== index) return;
+
+    particle.position.x = next_position_x;
+    particle.position.y = yOffset;
+    particle.position.z = -0.01;
+    particle.isUsed = true;
+
+    if(scale != null) {
+        particle.scaling = scale;
+    }
+
+    system.set(key, particle.idxInShape, next_position_x);
+}

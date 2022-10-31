@@ -1,10 +1,10 @@
 export class DistanceSystem {
     #shapes;
 
-    constructor(shapes, multiplier) {
+    constructor(shapes) {
         this.#shapes = {};
-        for (const key of shapes) {
-            this.#shapes[key] = new Array(multiplier)
+        for (const shape of shapes) {
+            this.#shapes[shape.key] = new Array(shape.count)
         }
     }
 
@@ -48,13 +48,5 @@ export class DistanceSystem {
         }
 
         return furthestIndex;
-    }
-
-    #getDistance(num1, num2) {
-        if (num1 > num2) {
-            return num1 - num2
-        } else {
-            return num2 - num1
-        }
     }
 }

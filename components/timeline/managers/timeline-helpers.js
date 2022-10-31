@@ -39,5 +39,6 @@ export async function createHeaderText(text, canvas, x, y, scale) {
         });
 
     textMesh.scaling = scale
+    textMesh.position.y = y;
     return textMesh;
 }
