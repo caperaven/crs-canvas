@@ -3,7 +3,7 @@ import "../../../src/managers/particle-manager.js";
 import "../../../src/managers/text-manager.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 import {TIMELINE_SCALE} from "../timeline-scale.js";
-import {HeaderParticleManager} from "./header-particle-manager.js";
+import {HeaderParticleManager} from "./headers/header-particle-manager.js";
 import {createRect} from "./timeline-helpers.js";
 import {YearHeader} from "./headers/year-header.js";
 

@@ -1,5 +1,4 @@
 import "./../canvas_2d/canvas_2d.js";
-import "./managers/header-manager.js"
 import "./managers/virtualization-header-manager.js"
 import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";

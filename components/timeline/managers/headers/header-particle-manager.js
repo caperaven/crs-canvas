@@ -1,6 +1,6 @@
-import {createHeaderText, createRect} from "./timeline-helpers.js";
-import {ParticleSystem} from "../../../src/managers/particle-manager.js";
-import {DistanceSystem} from "../../../src/helpers/distance-system.js";
+import {createHeaderText, createRect} from "../timeline-helpers.js";
+import {ParticleSystem} from "../../../../src/managers/particle-manager.js";
+import {DistanceSystem} from "../../../../src/helpers/distance-system.js";
 
 export class HeaderParticleManager {
 
@@ -30,8 +30,8 @@ export class HeaderParticleManager {
         this.#baseDate = baseDate;
         this.#system = new ParticleSystem(systemId, canvas.__layers[0], this.updateParticleHandler);
 
-
-        this.#renderer = new this.#renderers[scale]();
+        const module = await import(`./renderers/${scale}-renderer.js`);
+        this.#renderer = new module.default();
         await this.#renderer.init(canvas, this.#system, this.#baseDate, canvas._text_scale);
 
         this.#system.build();
@@ -325,21 +325,3 @@ class YearRenderer {
     }
 }
 
-function moveParticle(system, particle, key, position,  xOffset, yOffset, scale) {
-    const next_position_x = position + xOffset
-
-    const index = system.getIndex(key, next_position_x);
-
-    if (index != null && particle.idxInShape !== index) return;
-
-    particle.position.x = next_position_x;
-    particle.position.y = yOffset;
-    particle.position.z = -0.01;
-    particle.isUsed = true;
-
-    if(scale != null) {
-        particle.scaling = scale;
-    }
-
-    system.set(key, particle.idxInShape, next_position_x);
-}

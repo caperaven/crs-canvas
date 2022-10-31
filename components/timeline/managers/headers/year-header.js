@@ -1,4 +1,4 @@
-import {HeaderParticleManager} from "../header-particle-manager.js";
+import {HeaderParticleManager} from "./header-particle-manager.js";
 import {DynamicVirtualization} from "../dynamic-virtualization.js";
 
 export class YearHeader {
