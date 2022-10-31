@@ -65,7 +65,8 @@ export class Timeline extends HTMLElement {
     }
 
     async #init() {
-        this.#baseDate = new Date(new Date().toDateString());
+        // this.#baseDate = new Date(new Date().toDateString());
+        this.#baseDate = new Date(2022, 9, 15, 0, 0, 0, 0);
         this.#headerManager = new VirtualizationHeaderManager();
 
         await crs.call("gfx_timeline_manager", "initialize", {
