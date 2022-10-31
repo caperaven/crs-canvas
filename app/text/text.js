@@ -1,6 +1,8 @@
 import "./../../src/managers/grid-manager.js";
 import "./../../src/managers/text-manager.js";
-
+import "./../../src/managers/icons-manager.js";
+import "./../../src/factory/composite-factory.js";
+import "./../../src/managers/stats-manager.js";
 
 export default class Text extends crsbinding.classes.ViewBase {
     async connectedCallback() {
@@ -12,20 +14,14 @@ export default class Text extends crsbinding.classes.ViewBase {
             this.canvas.removeEventListener("ready", ready);
             this.canvas.__engine.setHardwareScalingLevel(0.5/ window.devicePixelRatio);
             this.canvas.__layers[0].clearColor = new BABYLON.Color3(1, 1, 1);
-            //await crs.call("gfx_grid", "add", { element: this.canvas, attributes: [{ fn: "Float", name: "min", value: 0.1 }] });
-            await crs.call("gfx_text", "add", { element: this.canvas, text: "Hello World", position: {y: 0.5}, attributes: [
-                {
-                    fn: "Float",
-                    name: "min",
-                    value: 0.2
-                },
-                {
-                    fn: "Float",
-                    name: "max",
-                    value: 0.5
-                }
-            ]});
-            await crs.call("gfx_text", "add", { element: this.canvas, text: "10", position: {x: 0.25, y: 0.05} });
+
+            const model = { code: "A11", description: "Description of A11"};
+
+            await crs.call("gfx_composite", "create_line", {
+                element: this.canvas,
+                template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                parameters: model
+            })
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -43,10 +39,20 @@ export default class Text extends crsbinding.classes.ViewBase {
 
     async minChanged(newValue) {
         this.canvas?.__layers[0].meshes[0].material.setFloat("min", newValue);
+        this.canvas?.__layers[0].meshes[1].material.setFloat("min", newValue);
+        this.canvas?.__layers[0].meshes[2].material.setFloat("min", newValue);
     }
 
     async maxChanged(newValue) {
         this.canvas?.__layers[0].meshes[0].material.setFloat("max", newValue);
+        this.canvas?.__layers[0].meshes[1].material.setFloat("max", newValue);
+        this.canvas?.__layers[0].meshes[2].material.setFloat("min", newValue);
+    }
+
+    async showInspector() {
+        await crs.call("gfx_stats", "addInspector", {
+            element: this.canvas
+        });
     }
 
     async disconnectedCallback() {

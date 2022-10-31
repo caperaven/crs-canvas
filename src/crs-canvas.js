@@ -2,7 +2,6 @@ import "./managers/camera-manager.js"
 import "./managers/materials-manager.js"
 import "./managers/conditional-material-manager.js"
 import "./managers/instance-manager.js"
-import "./managers/sdf-glyphs-manager.js"
 import "./managers/theme-manager.js"
 
 class GraphicsActions {
@@ -32,7 +31,6 @@ class GraphicsActions {
         await crs.call("gfx_materials", "initialize", { element: canvas });
         await crs.call("gfx_conditional_materials", "initialize", { element: canvas });
         await crs.call("gfx_camera", "initialize", { element: canvas, type: camera });
-        await crs.call("gfx_sdf_icon", "initialize", { element: canvas });
         await crs.call("gfx_theme", "initialize", { element: canvas });
 
         canvas.__renderLoop = renderLoop.bind(canvas);
@@ -57,7 +55,6 @@ class GraphicsActions {
 
         await crs.call("gfx_camera", "dispose", { element: canvas });
         await crs.call("gfx_materials", "dispose", { element: canvas });
-        await crs.call("gfx_sdf_icon", "dispose", { element: canvas });
         await crs.call("gfx_conditional_materials", "dispose", { element: canvas });
         await crs.call("gfx_theme", "dispose", { element: canvas });
 

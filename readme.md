@@ -56,8 +56,4 @@ https://blog.mapbox.com/drawing-text-with-signed-distance-fields-in-mapbox-gl-b0
 https://playground.babylonjs.com/#026IT4#2
 
 ## Commands
-msdf-atlas-gen -mtsdf_font .\SourceSansPro-Regular.ttf -json mtsdf_font.json -format png -imageout mtsdf_font.png
-
-
-        sphere.registerInstancedBuffer("customColor", 3);
-        sphere.instancedBuffers.customColor = BABYLON.Color3.Red();
+msdf-atlas-gen -type sdf -font .\SourceSansPro-Regular.ttf -json sdf_font_bold.json -format png -imageout sdf_font_bold.png
