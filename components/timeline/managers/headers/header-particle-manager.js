@@ -7,6 +7,8 @@ export class HeaderParticleManager {
     #currentPosition;
     #baseDate;
     #renderer;
+    #observer;
+    #canvas;
 
     constructor() {
         this.#system = {};
@@ -15,9 +17,12 @@ export class HeaderParticleManager {
 
     dispose() {
         this.#system = this.#system.dispose();
+        this.#canvas.__camera.onViewMatrixChangedObservable.remove(this.#observer);
+        this.#observer = null;
     }
 
     async initialize(scale, baseDate, canvas, systemId = "timeline_headers") {
+        this.#canvas = canvas;
         this.#baseDate = baseDate;
         this.#system = new ParticleSystem(systemId, canvas.__layers[0], this.updateParticleHandler);
 
@@ -26,20 +31,22 @@ export class HeaderParticleManager {
         await this.#renderer.init(canvas, this.#system, this.#baseDate, canvas._text_scale);
 
         this.#system.build();
+
+        this.#observer = canvas.__camera.onViewMatrixChangedObservable.add((camera)=> {
+            this.#system.mesh.position.y = camera.position.y - camera.offset_y ;
+        });
     }
 
     async render(index, position) {
         this.#currentIndex = index;
         this.#currentPosition = position;
-
-         await this.#renderer.setCurrent(index, position)
-
+        await this.#renderer.setCurrent(index, position)
         await this.#system.render();
     }
 
     async updateParticle(particle) {
         await this.#renderer.move(particle);
-        if(particle.isUsed !== true) {
+        if (particle.isUsed !== true) {
             particle.position.y = 99999;
         }
     }

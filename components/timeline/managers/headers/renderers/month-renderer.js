@@ -41,7 +41,6 @@ export default class MonthRenderer {
         this.#particleSystem.add(this.#weekdayBgKey, weekdayBg,weekdayBgCount, true);
         shapes.push({key: this.#weekdayBgKey, count: weekdayBgCount});
 
-
         this.#distanceSystem = new DistanceSystem(shapes, multiplier);
     }
 

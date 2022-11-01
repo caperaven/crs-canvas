@@ -7,6 +7,7 @@ class MeshFactoryManagerActions {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const mesh = await crs.process.getValue(step.args.mesh, context, process, item);
+        const freezeMatrix = await crs.process.getValue(step.args.freezeMatrix, context, process, item);
         const scene = canvas.__layers[layer];
         let positions = (await crs.process.getValue(step.args.positions, context, process, item)) || [{x: 0, y: 0, z: 0}];
 
@@ -20,7 +21,7 @@ class MeshFactoryManagerActions {
 
         const instances = [];
         for (const position of positions) {
-            const instance = await createMesh(mesh.name || "mesh", mesh.type || "plane", mesh.options, scene, position);
+            const instance = await createMesh(mesh.name || "mesh", mesh.type || "plane", mesh.options, scene, position, freezeMatrix);
             instance.material = material;
             instances.push(instance);
         }
@@ -33,11 +34,11 @@ class MeshFactoryManagerActions {
     }
 }
 
-export async function createMesh(name, type, options, scene, position) {
+export async function createMesh(name, type, options, scene, position, freezeMatrix = true) {
     type = type.charAt(0).toUpperCase() + type.slice(1);
     const mesh = BABYLON.MeshBuilder[`Create${type}`](name, options, scene);
     mesh.position.set(position.x, position.y, position.z);
-    mesh.freezeWorldMatrix();
+    freezeMatrix && mesh.freezeWorldMatrix();
     return mesh;
 }
 

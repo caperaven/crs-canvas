@@ -1,4 +1,4 @@
-export async function createRect(id, color, x, y, width, height, canvas) {
+export async function createRect(id, color, x, y, width, height, canvas, freezeMatrix) {
     const meshes = await crs.call("gfx_mesh_factory", "create", {
         element: canvas,
         mesh: {
@@ -6,6 +6,7 @@ export async function createRect(id, color, x, y, width, height, canvas) {
             type: "plane",
             options: {width: width, height: height},
         },
+        freezeMatrix: freezeMatrix,
         material: {
             color: color
         },
@@ -39,6 +40,5 @@ export async function createHeaderText(text, canvas, x, y, scale) {
         });
 
     textMesh.scaling = scale
-    // textMesh.position.y = y;
     return textMesh;
 }

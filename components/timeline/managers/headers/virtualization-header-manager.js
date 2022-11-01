@@ -53,13 +53,15 @@ export class VirtualizationHeaderManager {
 
             this.#virtualization = new StaticVirtualization(rangeProperties.width, canvas.__camera.view_width, add, remove);
 
-            this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -0.51, 9999999, 1.02, canvas);
+            this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -0.51, 9999999, 1.02, canvas, false);
+            this.#bgBorderMesh.position.z = -0.002;
             await this.#virtualization.draw(position);
-            await this.#yearHeader.draw(position)
+            await this.#yearHeader.draw(position);
         });
 
         canvas.__camera.onViewMatrixChangedObservable.add(async (camera) => {
             const position = camera.position.x - camera.offset_x;
+            this.#bgBorderMesh.position.y = camera.position.y - 0.51 - camera.offset_y;
             await this.#virtualization.draw(position);
             await this.#yearHeader.draw(position)
         });
