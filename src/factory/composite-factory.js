@@ -38,12 +38,12 @@ export class CompositeFactoryActions {
         let newX = 0;
 
         for (const part of parts) {
-            const newPos = { x: newX, y: position.y } // add 0.25 to right
+            const newPos = { x: newX, y: position.y }
 
             switch (part.type) {
                 case "icon": {
                     const bounds = await createIcon(canvas, part.value, part.color, newPos);
-                    newX += (bounds.width / 2) + 0.25;
+                    newX += bounds.width + 0.25;
                     break;
                 }
                 case "bold": {
@@ -94,6 +94,7 @@ async function createText(element, text, bold, color, position) {
 
 async function createIcon(element, icon, color, position) {
     return create(element, color, position, async (position, attributes) => {
+        position.x += 0.5;
         return await crs.call("gfx_icons", "add", {element, icon, position, attributes, kerning: true});
     })
 }
@@ -174,8 +175,8 @@ function getBounds(mesh) {
     const min = result.minimumWorld;
     const max = result.maximumWorld;
 
-    const width = Number.parseFloat((max.x - min.x).toFixed(2));
-    const height = Number.parseFloat((max.y - min.y).toFixed(2));
+    const width = max.x - min.x;
+    const height = max.y - min.y;
 
     return {
         x: min.x,
