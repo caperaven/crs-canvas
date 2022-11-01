@@ -41,15 +41,24 @@ export class IconsManagerActions {
         const charData = getCharData(font, icon);
 
         const data = new BABYLON.VertexData();
-        data.positions = charData.positions;
-        data.indices = charData.indices;
+        data.positions = [
+            -0.5, -0.5, 0,
+            0.5, -0.5, 0,
+            -0.5, 0.5, 0,
+            0.5, 0.5, 0
+        ] //charData.positions;
+
+        data.indices = [0, 1, 2, 1, 3, 2] //charData.indices;
+
         data.uvs = charData.uvs;
         data.normals = charData.normals;
 
         const customMesh = new BABYLON.Mesh(icon, scene);
         data.applyToMesh(customMesh);
 
-        customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
+        const ydiff = 1 - charData.yoffset;
+
+        customMesh.position.set(position.x || 0, position.y + ydiff || ydiff, position.z || 0);
         customMesh.scaling.x = scale;
         customMesh.scaling.y = scale;
 

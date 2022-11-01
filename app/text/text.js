@@ -4,6 +4,7 @@ import "./../../src/managers/icons-manager.js";
 import "./../../src/factory/composite-factory.js";
 import "./../../src/managers/materials-manager.js";
 import "./../../src/managers/mesh-factory-manager.js";
+import "./../../src/managers/stats-manager.js";
 
 export default class Text extends crsbinding.classes.ViewBase {
     #centerMesh;
@@ -53,7 +54,7 @@ export default class Text extends crsbinding.classes.ViewBase {
             })
 
             this.#centerMesh = meshes[0];
-            this.#textMesh = await crs.call("gfx_composite", "create_line", { element: this.canvas, template: "${code}: ${description}", parameters: model, position, attributes });
+            // this.#textMesh = await crs.call("gfx_composite", "create_line", { element: this.canvas, template: "${code}: ${description}", parameters: model, position, attributes });
 
             // await crs.call("gfx_composite", "create_line", { element: this.canvas, template: "${code}: ${description}", parameters: model, position, attributes });
 
@@ -97,6 +98,12 @@ export default class Text extends crsbinding.classes.ViewBase {
             //         }
             //     ]
             // }).catch(e => console.error(e));
+
+            await crs.call("gfx_composite", "create_line", {
+                element: this.canvas,
+                template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                parameters: model
+            })
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -131,6 +138,12 @@ export default class Text extends crsbinding.classes.ViewBase {
 
     async stateChange(newValue) {
 
+    }
+
+    async showInspector() {
+        await crs.call("gfx_stats", "addInspector", {
+            element: this.canvas
+        });
     }
 
     async disconnectedCallback() {
