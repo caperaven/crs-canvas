@@ -53,7 +53,7 @@ export class VirtualizationHeaderManager {
 
             this.#virtualization = new StaticVirtualization(rangeProperties.width, canvas.__camera.view_width, add, remove);
 
-            this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -0.5, 9999999, 1, canvas);
+            this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -0.51, 9999999, 1.02, canvas);
             await this.#virtualization.draw(position);
             await this.#yearHeader.draw(position)
         });
@@ -64,6 +64,8 @@ export class VirtualizationHeaderManager {
             await this.#yearHeader.draw(position)
         });
     }
+
+
 
     async addTempDot(canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {

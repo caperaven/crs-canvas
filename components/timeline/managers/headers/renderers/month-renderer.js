@@ -12,6 +12,8 @@ export default class MonthRenderer {
     #particleSystem;
     #textScale;
     #bgKey = "month_header_bg"
+    #weekdayBgKey = "weekend_bg"
+    #isWeekday;
 
     async init(canvas, particleSystem,  baseDate, textScale) {
         this.#textScale = textScale;
@@ -21,6 +23,7 @@ export default class MonthRenderer {
         const count = 31;
         const multiplier = 2;
         const bgCount =  2 * count;
+        const weekdayBgCount =  2 * count;
 
         const shapes = [];
 
@@ -34,6 +37,11 @@ export default class MonthRenderer {
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
+        const weekdayBg = await createRect(this.#weekdayBgKey, canvas._theme.header_bg, 0, 0, 0.985, 0.5, canvas);
+        this.#particleSystem.add(this.#weekdayBgKey, weekdayBg,weekdayBgCount, true);
+        shapes.push({key: this.#weekdayBgKey, count: weekdayBgCount});
+
+
         this.#distanceSystem = new DistanceSystem(shapes, multiplier);
     }
 
@@ -45,6 +53,8 @@ export default class MonthRenderer {
 
         this.#currentDayNumber = date.getDate();
         this.#currentPosition = position;
+        const day = date.getDay();
+        this.#isWeekday = day !== 0 && day !== 6;
     }
 
     async move(particle) {
@@ -55,6 +65,10 @@ export default class MonthRenderer {
 
         if(this.#currentDayNumber == shape) {
             return    moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.375,  -0.85, this.#textScale)
+        }
+
+        if(this.#weekdayBgKey === shape && this.#isWeekday === true) {
+            return  moveParticle(this.#distanceSystem, particle, this.#weekdayBgKey, this.#currentPosition,0.5, -0.75);
         }
     }
 }
