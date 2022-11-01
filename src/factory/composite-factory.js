@@ -35,38 +35,25 @@ export class CompositeFactoryActions {
         const position = await crs.process.getValue(step.args.position || {x: 0, y: 0}, context, process, item);
         const parts = getParts(line);
 
-        for (const pos of [-0.5, 0, 0.5]) {
-            let sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 0.05, segments: 32}, canvas._scene);
-            sphere.position.x = pos;
-            sphere.position.y = 0.5;
-
-            sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 0.05, segments: 32}, canvas._scene);
-            sphere.position.x = pos;
-            sphere.position.y = 0;
-
-            sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 0.05, segments: 32}, canvas._scene);
-            sphere.position.x = pos;
-            sphere.position.y = -0.5;
-        }
-
-        let bounds = {
-            right: 0
-        }
+        let newX = 0;
 
         for (const part of parts) {
-            const newPos = { x: position.x + bounds.right, y: position.y } // add 0.25 to right
+            const newPos = { x: newX, y: position.y } // add 0.25 to right
 
             switch (part.type) {
                 case "icon": {
-                    bounds = await createIcon(canvas, part.value, part.color)
+                    const bounds = await createIcon(canvas, part.value, part.color, newPos);
+                    newX += (bounds.width / 2) + 0.25;
                     break;
                 }
                 case "bold": {
-                    bounds = await createText(canvas, part.value, true, part.color);
+                    const bounds = await createText(canvas, part.value, true, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
                 default: {
-                    bounds = await createText(canvas, part.value, false, part.color);
+                    const bounds = await createText(canvas, part.value, false, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
             }
@@ -82,8 +69,8 @@ export class CompositeFactoryActions {
     }
 }
 
-async function create(element, color, callback) {
-    const position = {x: 0, y: 0};
+async function create(element, color, position, callback) {
+    position ||= {x: 0, y: 0};
     color = await crs.call("colors", "hex_to_normalised", { hex: color });
 
     const attr = [
@@ -99,14 +86,14 @@ async function create(element, color, callback) {
     return getBounds(mesh);
 }
 
-async function createText(element, text, bold, color) {
-    return create(element, color, async (position, attributes) => {
+async function createText(element, text, bold, color, position) {
+    return create(element, color, position, async (position, attributes) => {
         return await crs.call("gfx_text", "add", {element, text, position, attributes, bold});
     });
 }
 
-async function createIcon(element, icon, color) {
-    return create(element, color, async (position, attributes) => {
+async function createIcon(element, icon, color, position) {
+    return create(element, color, position, async (position, attributes) => {
         return await crs.call("gfx_icons", "add", {element, icon, position, attributes, kerning: true});
     })
 }
@@ -187,8 +174,8 @@ function getBounds(mesh) {
     const min = result.minimumWorld;
     const max = result.maximumWorld;
 
-    const width = max.x - min.x;
-    const height = max.y - min.y;
+    const width = Number.parseFloat((max.x - min.x).toFixed(2));
+    const height = Number.parseFloat((max.y - min.y).toFixed(2));
 
     return {
         x: min.x,
