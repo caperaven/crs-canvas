@@ -19,7 +19,7 @@ export default class YearRenderer {
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
 
-        const count = 12;
+        const count = 11;
         const multiplier = 2;
         const textMultiplier = 8;
         const bgCount =  2 * count;
