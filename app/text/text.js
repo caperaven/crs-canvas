@@ -22,7 +22,7 @@ export default class Text extends crsbinding.classes.ViewBase {
 
             await crs.call("gfx_composite", "create_line", {
                 element: this.canvas,
-                template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> <icon style="color: #ff0000">97</icon> ${description}',
+                template: '<icon style="color: #ff0080">98</icon> <bold style="color: #ff90ff">[${code}]</bold> <icon style="color: #ff0000">97</icon> <regular style="color: #00ff90">${description}</regular>',
                 parameters: model,
                 position: {x: 0, y: 0}
             })
@@ -31,7 +31,7 @@ export default class Text extends crsbinding.classes.ViewBase {
             model.description = "Description of A12";
             await crs.call("gfx_composite", "create_line", {
                 element: this.canvas,
-                template: '<icon style="color: #ff0000">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                template: '<icon style="color: #ff0000">98</icon> <bold style="color: #0098EE">[${code}]</bold> ${description}',
                 parameters: model,
                 position: {x: 0, y: 1}
             })
@@ -40,7 +40,7 @@ export default class Text extends crsbinding.classes.ViewBase {
             model.description = "Description of A13";
             await crs.call("gfx_composite", "create_line", {
                 element: this.canvas,
-                template: '<icon style="color: #00ff00">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                template: '<icon style="color: #00ff00">98</icon> <bold style="color: #ff0090">[${code}]</bold> ${description}',
                 parameters: model,
                 position: {x: 0, y: 2}
             })
@@ -49,7 +49,7 @@ export default class Text extends crsbinding.classes.ViewBase {
             model.description = "Description of A14";
             await crs.call("gfx_composite", "create_line", {
                 element: this.canvas,
-                template: '<icon style="color: #0000ff">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                template: '<icon style="color: #0000ff">98</icon> <bold style="color: #0098E0">[${code}]</bold> <regular style="color: #ffa07b">${description}</regular>',
                 parameters: model,
                 position: {x: 0, y: 3}
             })

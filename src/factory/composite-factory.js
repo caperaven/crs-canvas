@@ -73,29 +73,20 @@ async function create(element, color, position, callback) {
     position ||= {x: 0, y: 0};
     color = await crs.call("colors", "hex_to_normalised", { hex: color });
 
-    const attr = [
-        {
-            fn: "Array3",
-            name: "color",
-            value: [color.r, color.g, color.b]
-        },
-        ...attributes
-    ]
-
-    const mesh = await callback(position, attr);
+    const mesh = await callback(position, attributes, color);
     return getBounds(mesh);
 }
 
 async function createText(element, text, bold, color, position) {
-    return create(element, color, position, async (position, attributes) => {
-        return await crs.call("gfx_text", "add", {element, text, position, attributes, bold});
+    return create(element, color, position, async (position, attributes, color) => {
+        return await crs.call("gfx_text", "add", {element, text, position, attributes, bold, color});
     });
 }
 
 async function createIcon(element, icon, color, position) {
-    return create(element, color, position, async (position, attributes) => {
+    return create(element, color, position, async (position, attributes, color) => {
         position.x += 0.5;
-        return await crs.call("gfx_icons", "add", {element, icon, position, attributes, kerning: true});
+        return await crs.call("gfx_icons", "add", {element, icon, position, attributes, kerning: true, color});
     })
 }
 
@@ -135,8 +126,11 @@ function textToPartsArray(text) {
         if (result.indexOf("<icon") != -1) {
             type = "icon";
         }
-        else {
+        else if (result.indexOf("<bold") != -1) {
             type = "bold"
+        }
+        else {
+            type = "regular"
         }
 
         resultCollection.push({
