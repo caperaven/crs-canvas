@@ -33,6 +33,14 @@
         top: 100px;
         left: 600px;
     }
+
+    .toolbar span {
+        padding-right: 0.2rem;
+    }
+
+    #secondary {
+        top: 125px;
+    }
     
     .inspector {
         position: fixed;
@@ -44,14 +52,19 @@
 <canvas is="canvas-2d" data-camera="pan,1,1" data-color="#333343"></canvas>
 
 <div class="toolbar">
-    <label>
-        <span>Middle</span>
-        <input type="checkbox" value.bind="checked">
-    </label>
-    <button click.call="stateChange('top')">top</button>
-    <button click.call="stateChange('right')">right</button>
-    <button click.call="stateChange('bottom')">bottom</button>
-    <button click.call="stateChange('left')">left</button>
+    <span>Position</span>
+    <button click.call="setPosition('top')">top</button>
+    <button click.call="setPosition('bottom')">bottom</button>
+    <button click.call="setPosition('left')">left</button>
+    <button click.call="setPosition('right')">right</button>
+</div>
+
+<div id="secondary" class="toolbar">
+    <span>anchor</span>
+    <button click.call="setAnchor('top')" hidden.if="position == 'top' || position == 'bottom'">top</button>
+    <button click.call="setAnchor('bottom')" hidden.if="position == 'top' || position == 'bottom'">bottom</button>
+    <button click.call="setAnchor('left')" hidden.if="position == 'left' || position == 'right'">left</button>
+    <button click.call="setAnchor('right')" hidden.if="position == 'left' || position == 'right'">right</button>
 </div>
 
 <label id="edtMin">

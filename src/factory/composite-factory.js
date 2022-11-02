@@ -25,6 +25,7 @@ export class CompositeFactoryActions {
         return this[step.action]?.(step, context, process, item);
     }
 
+    //NOTE KR: should we create a grouped mesh?
     /**
      * Create a line from a template string as seen above.
      * The step args is the same as the string system's inflate function
@@ -38,29 +39,41 @@ export class CompositeFactoryActions {
         let bounds = {
             right: 0
         }
+        const root = new BABYLON.TransformNode();   //TODO KR: chat with GM/JR as to what is the best way to group a mesh
 
+        let currentX = position.x + 0.25;
         for (const part of parts) {
-            const newPos = { x: position.x + bounds.right + 0.25, y: position.y }
+            const newPos = { x: currentX, y: position.y }
 
             switch (part.type) {
                 case "icon": {
-                    bounds = await createIcon(canvas, part.value, newPos, part.color)
+                    const mesh = await createIcon(canvas, part.value, newPos, part.color);
+                    bounds = getBounds(mesh);
+                    mesh.parent = root;
                     break;
                 }
                 case "bold": {
-                    bounds = await createSimpleText(canvas, part.value, newPos,true, part.color);
+                    const mesh = await createSimpleText(canvas, part.value, newPos,true, part.color);
+                    bounds = getBounds(mesh);
+                    mesh.parent = root;
                     break;
                 }
                 default: {
-                    bounds = await createSimpleText(canvas, part.value, newPos, false, part.color);
+                    const mesh = await createSimpleText(canvas, part.value, newPos, false, part.color);
+                    bounds = getBounds(mesh);
+                    mesh.parent = root;
                     break;
                 }
             }
+
+            currentX = bounds.right + 0.25;
         }
 
         if (line.indexOf("<") == -1) {
             return await createSimpleText(canvas, line, position, false);
         }
+
+        return root;
     }
 
     static async create_rows(step, context, process, item) {
@@ -83,7 +96,7 @@ async function createSimpleText(element, text, position, bold, color) {
     ]
 
     const mesh = await crs.call("gfx_text", "add", {element, text, position, attributes: attr, bold});
-    return getBounds(mesh);
+    return mesh;
 }
 
 async function createIcon(element, icon, position, color) {
@@ -100,7 +113,7 @@ async function createIcon(element, icon, position, color) {
     ]
 
     const mesh = await crs.call("gfx_icons", "add", {element, icon, position, attributes: attr, scale: 0.7});
-    return getBounds(mesh);
+    return mesh;
 }
 
 export function getParts(text) {
@@ -174,10 +187,36 @@ function getSecondCloseBracket(text, start) {
     return secondClose;
 }
 
-function getBounds(mesh) {
+//TODO KR: Should move to a more general helper/utility file & move some logic out to process api i.e. createClientBoundingRect
+export function getBounds(mesh) {
     const result = mesh.getBoundingInfo().boundingBox;
     const min = result.minimumWorld;
     const max = result.maximumWorld;
+
+    const width = max.x - min.x;
+    const height = max.y - min.y;
+
+    return {
+        x: min.x,
+        left: min.x,
+        y: min.y,
+        top: min.y,
+        right: max.x,
+        bottom: max.y,
+        width: width,
+        height: height
+    }
+}
+
+export function getInverseYBounds(mesh) {
+    const result = mesh.getBoundingInfo().boundingBox;
+    const min = result.minimumWorld;
+    const max = result.maximumWorld;
+
+    const minY = -max.y;
+    const maxY = -min.y
+    min.y = minY;
+    max.y = maxY;
 
     const width = max.x - min.x;
     const height = max.y - min.y;

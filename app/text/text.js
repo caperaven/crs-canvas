@@ -5,14 +5,47 @@ import "./../../src/factory/composite-factory.js";
 import "./../../src/managers/materials-manager.js";
 import "./../../src/managers/mesh-factory-manager.js";
 import "./../../src/managers/stats-manager.js";
+import "./../../src/managers/mesh-position-manager.js";
+import {getBounds} from "../../src/factory/composite-factory.js";
 
 export default class Text extends crsbinding.classes.ViewBase {
     #centerMesh;
-    #textMesh;
-    #checked;
+    #relativeMesh;
+    #positions = Object.freeze({
+        top: this.#top.bind(this),
+        right: this.#right.bind(this),
+        bottom: this.#bottom.bind(this),
+        left: this.#left.bind(this),
+    })
+
+    get position() {
+        return this.getProperty("position");
+    }
+
+    set position(newValue) {
+        this.setProperty("position", newValue);
+
+        if ((newValue == 'top' || newValue == 'bottom') && (this.anchor == 'top' || this.anchor == 'bottom')) {
+            this.anchor = "left";
+        }
+
+        if ((newValue == 'left' || newValue == 'right') && (this.anchor == 'left' || this.anchor == 'right')) {
+            this.anchor = "top";
+        }
+    }
+
+    get anchor() {
+        return this.getProperty("anchor");
+    }
+
+    set anchor(newValue) {
+        this.setProperty("anchor", newValue);
+    }
 
     async connectedCallback() {
         await super.connectedCallback();
+        this.position = "bottom";
+        this.anchor = "left";
 
         this.canvas = this.element.querySelector("canvas");
 
@@ -22,8 +55,6 @@ export default class Text extends crsbinding.classes.ViewBase {
             this.canvas.__layers[0].clearColor = new BABYLON.Color3(1, 1, 1);
 
             await crs.call("gfx_text", "initialize", {element: this.canvas});
-
-            const model = { code: "A11", description: "Description of A11"};
             const attributes = [
                 {
                     fn: "Array3",
@@ -41,7 +72,6 @@ export default class Text extends crsbinding.classes.ViewBase {
                     value: 0.5
                 }
             ]
-            const position = {x: 0, y: 0};
 
             const meshes = await crs.call("gfx_mesh_factory", "create", {
                 element: this.canvas, mesh: {
@@ -52,58 +82,32 @@ export default class Text extends crsbinding.classes.ViewBase {
                     id: "mat1", color: "#939393",
                 }, positions: [{x: 0, y: 0, z: 0}]
             })
-
             this.#centerMesh = meshes[0];
-            // this.#textMesh = await crs.call("gfx_composite", "create_line", { element: this.canvas, template: "${code}: ${description}", parameters: model, position, attributes });
 
-            // await crs.call("gfx_composite", "create_line", { element: this.canvas, template: "${code}: ${description}", parameters: model, position, attributes });
-
-            // await crs.call("gfx_text", "add", { element: this.canvas, text: "hello world", position: {x: 0.25, y: 0.05}, attributes: [
-            //     {
-            //         fn: "Array3",
-            //         name: "color",
-            //         value: [0, 0, 1]
-            //     },
-            //     {
-            //         fn: "Float",
-            //         name: "min",
-            //         value: 0.2
-            //     },
-            //     {
-            //         fn: "Float",
-            //         name: "max",
-            //         value: 0.5
-            //     }
-            // ]});
-
-            // await crs.call("gfx_icons", "add", {
-            //     element: this.canvas,
-            //     icon: 97,
-            //     position: {x: -2},
-            //     attributes: [
-            //         {
-            //             fn: "Array3",
-            //             name: "color",
-            //             value: [0, 0, 1]
-            //         },
-            //         {
-            //             fn: "Float",
-            //             name: "min",
-            //             value: 0.2
-            //         },
-            //         {
-            //             fn: "Float",
-            //             name: "max",
-            //             value: 0.5
-            //         }
-            //     ]
-            // }).catch(e => console.error(e));
-
-            await crs.call("gfx_composite", "create_line", {
+            this.#relativeMesh = await crs.call("gfx_text", "add", {
                 element: this.canvas,
-                template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
-                parameters: model
+                text: "Hello World",
+                position: {x: 0, y: 0},
+                attributes: attributes
             })
+
+
+            await crs.call("gfx_mesh_position", "set_relative_position", {
+                mesh: this.#relativeMesh,
+                target: this.#centerMesh,
+                at: this.position,
+                margin: 0
+            })
+
+            //NOTE KR: Need to figure out how to make relative placement work for composite
+            // const mesh = await crs.call("gfx_composite", "create_line", {
+            //     element: this.canvas,
+            //     template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+            //     parameters: model,
+            //     position: {x: 0, y: 3}
+            // })
+            //
+            // console.log(mesh, getBounds(mesh));
         }
 
         if (this.canvas.dataset.ready == "true") {
@@ -131,13 +135,54 @@ export default class Text extends crsbinding.classes.ViewBase {
         // this.canvas?.__layers[0].meshes[2].material.setFloat("max", newValue);
     }
 
-    async checkedChanged(newValue) {
-        this.#checked = newValue;
-        //update text
+    async setPosition(newValue) {
+        this.position = newValue;
+        await this.#positions[newValue]();
     }
 
-    async stateChange(newValue) {
+    async setAnchor(newValue) {
+        this.anchor = newValue;
+        await this.#positions[this.position]();
+    }
 
+    async #top() {
+        await crs.call("gfx_mesh_position", "set_relative_position", {
+            mesh: this.#relativeMesh,
+            target: this.#centerMesh,
+            at: this.position,
+            anchor: this.anchor || "left",
+            margin: 0
+        })
+    }
+
+    async #right() {
+        await crs.call("gfx_mesh_position", "set_relative_position", {
+            mesh: this.#relativeMesh,
+            target: this.#centerMesh,
+            at: this.position,
+            anchor: this.anchor || "top",
+            margin: 0
+        })
+    }
+
+    async #bottom() {
+        await crs.call("gfx_mesh_position", "set_relative_position", {
+            mesh: this.#relativeMesh,
+            target: this.#centerMesh,
+            at: this.position,
+            anchor: this.anchor || "left",
+            margin: 0
+        })
+    }
+
+    async #left() {
+        await crs.call("gfx_mesh_position", "set_relative_position", {
+            mesh: this.#relativeMesh,
+            target: this.#centerMesh,
+            at: this.position,
+            anchor: this.anchor || "top",
+            margin: 0
+        })
     }
 
     async showInspector() {
