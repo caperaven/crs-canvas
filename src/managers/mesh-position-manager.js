@@ -63,8 +63,6 @@ class MeshPositionManagerActions {
         const margin = await crs.process.getValue(step.args.margin || 0, context, process, item);
         await MeshPositionManager.setRelativePosition(positioningMesh, targetMesh, at, anchor, margin);
     }
-
-
 }
 
 crs.intent.gfx_mesh_position = MeshPositionManagerActions;

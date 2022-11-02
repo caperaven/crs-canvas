@@ -38,7 +38,6 @@ export class CompositeFactoryActions {
 
         let newX = 0;
 
-        let currentX = position.x + 0.25;
         for (const part of parts) {
             const newPos = { x: newX, y: position.y }
 
@@ -59,15 +58,11 @@ export class CompositeFactoryActions {
                     break;
                 }
             }
-
-            currentX = bounds.right + 0.25;
         }
 
         if (line.indexOf("<") == -1) {
             return await createText(canvas, line, position, false);
         }
-
-        return root;
     }
 
     static async create_rows(step, context, process, item) {

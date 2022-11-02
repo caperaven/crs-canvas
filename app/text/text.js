@@ -114,7 +114,7 @@ export default class Text extends crsbinding.classes.ViewBase {
             const meshes = await crs.call("gfx_mesh_factory", "create", {
                 element: this.canvas, mesh: {
                     name: "plane1", type: "plane", options: {
-                        width: 1, height: 1
+                        width: 2, height: 2
                     }
                 }, material: {
                     id: "mat1", color: "#939393",
