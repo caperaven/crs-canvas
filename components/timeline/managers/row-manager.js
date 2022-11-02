@@ -88,6 +88,9 @@ class RowManager {
      * Start the virtualization process.
      */
     async #initVirtualization(canvas, items, scale) {
+        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
+        const textScale = {x: 0.2, y: 0.2, z: 1};
+
         const addCallback = async (sizeItem) => {
             const item = items[sizeItem.dataIndex];
 
@@ -97,20 +100,21 @@ class RowManager {
                 shapes.push(await this.#drawShape(canvas, shape, item, sizeItem, scale));
             }
 
-            const numberOfRows = this.#configuration.records.length;
-            // NOTE KR: we can create a variable text size dependent on the number of text rows we're looking to render within a row
-            // const sizeOfRow = sizeItem.size;
-            // const textSize = (sizeOfRow / numberOfRows) - 0.1;
-            // let yOffset = -textSize * numberOfRows;
-            let yOffset = (0.25 / 2) * numberOfRows;
-            for (const line of this.#configuration.records) {
-                shapes.push(await this.#getText(canvas, line, null, item, sizeItem, yOffset, scale));
-                yOffset -= 0.25;
-            }
+            const parentText = await crs.call("gfx_composite", "create", {
+                element: canvas,
+                templates: this.#configuration.records,
+                parameters: item,
+                position: {x: 0.25, y: -rowOffset - sizeItem.position, z: -0.005},
+                rowSize: 1,
+                scale: textScale,
+                id: `composite_${sizeItem.position}`
+            })
+            shapes.push(parentText);
 
             return shapes;
         }
 
+        //TODO KR: fix clean up of text
         const removeCallback = (shapes) => {
             for (const shape of shapes) {
                 if (shape.material.name.includes("text_")) continue; //NOTE KR: to discuss with GM

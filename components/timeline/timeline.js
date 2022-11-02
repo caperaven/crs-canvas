@@ -3,6 +3,10 @@ import "./managers/header-manager.js"
 import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
+import "./../../src/managers/text-manager.js";
+import "./../../src/managers/icons-manager.js";
+import "./../../src/factory/composite-factory.js";
+
 import {configureCamera} from "./timeline-camera.js";
 
 export class Timeline extends HTMLElement {
@@ -73,6 +77,7 @@ export class Timeline extends HTMLElement {
         });
 
         await crs.call("gfx_text", "initialize", {element: this.#canvas});
+        await crs.call("gfx_icons", "initialize", {element: this.#canvas});
 
         await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 

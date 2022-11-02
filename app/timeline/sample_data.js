@@ -3,6 +3,8 @@ function getWorkOrder(i) {
         "code": `Code #${i}`,
         "assetCode": `Asset Code #${i}`,
         "assetDescription": `Asset Desc #${i}`,
+        "siteCode": `Site Code #${i}`,
+        "siteDescription": `Site Desc #${i}`,
         "startOn": getDate(1,10),
         "completeBy": getDate(15,28),
         "receivedOn": getDate(1,10),
