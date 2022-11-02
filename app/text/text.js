@@ -123,6 +123,7 @@ export default class Text extends crsbinding.classes.ViewBase {
                 element: this.canvas,
                 text: "Hello World",
                 position: {x: 0, y: 0},
+                color: {r: 0, g: 0, b:0, a: 1},
                 attributes: attributes
             })
 
