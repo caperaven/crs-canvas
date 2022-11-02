@@ -76,39 +76,40 @@ export default class Text extends crsbinding.classes.ViewBase {
             ]
             const model = { code: "A11", description: "Description of A11"};
 
-            await crs.call("gfx_composite", "create_line", {
-                element: this.canvas,
-                template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> <icon style="color: #ff0000">97</icon> ${description}',
-                parameters: model,
-                position: {x: 0, y: 0}
-            })
-
-            model.code = "A12";
-            model.description = "Description of A12";
-            await crs.call("gfx_composite", "create_line", {
-                element: this.canvas,
-                template: '<icon style="color: #ff0000">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
-                parameters: model,
-                position: {x: 0, y: 1}
-            })
-
-            model.code = "A13";
-            model.description = "Description of A13";
-            await crs.call("gfx_composite", "create_line", {
-                element: this.canvas,
-                template: '<icon style="color: #00ff00">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
-                parameters: model,
-                position: {x: 0, y: 2}
-            })
-
-            model.code = "A14";
-            model.description = "Description of A14";
-            await crs.call("gfx_composite", "create_line", {
-                element: this.canvas,
-                template: '<icon style="color: #0000ff">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
-                parameters: model,
-                position: {x: 0, y: 3}
-            })
+            //NOTE KR: Rabie's work
+            // await crs.call("gfx_composite", "create_line", {
+            //     element: this.canvas,
+            //     template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> <icon style="color: #ff0000">97</icon> ${description}',
+            //     parameters: model,
+            //     position: {x: 0, y: 0}
+            // })
+            //
+            // model.code = "A12";
+            // model.description = "Description of A12";
+            // await crs.call("gfx_composite", "create_line", {
+            //     element: this.canvas,
+            //     template: '<icon style="color: #ff0000">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+            //     parameters: model,
+            //     position: {x: 0, y: 1}
+            // })
+            //
+            // model.code = "A13";
+            // model.description = "Description of A13";
+            // await crs.call("gfx_composite", "create_line", {
+            //     element: this.canvas,
+            //     template: '<icon style="color: #00ff00">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+            //     parameters: model,
+            //     position: {x: 0, y: 2}
+            // })
+            //
+            // model.code = "A14";
+            // model.description = "Description of A14";
+            // await crs.call("gfx_composite", "create_line", {
+            //     element: this.canvas,
+            //     template: '<icon style="color: #0000ff">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+            //     parameters: model,
+            //     position: {x: 0, y: 3}
+            // })
 
             const meshes = await crs.call("gfx_mesh_factory", "create", {
                 element: this.canvas, mesh: {
