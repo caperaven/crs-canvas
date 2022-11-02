@@ -36,32 +36,26 @@ export class CompositeFactoryActions {
         const position = await crs.process.getValue(step.args.position || {x: 0, y: 0}, context, process, item);
         const parts = getParts(line);
 
-        let bounds = {
-            right: 0
-        }
-        const root = new BABYLON.TransformNode();   //TODO KR: chat with GM/JR as to what is the best way to group a mesh
+        let newX = 0;
 
         let currentX = position.x + 0.25;
         for (const part of parts) {
-            const newPos = { x: currentX, y: position.y }
+            const newPos = { x: newX, y: position.y }
 
             switch (part.type) {
                 case "icon": {
-                    const mesh = await createIcon(canvas, part.value, newPos, part.color);
-                    bounds = getBounds(mesh);
-                    mesh.parent = root;
+                    const bounds = await createIcon(canvas, part.value, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
                 case "bold": {
-                    const mesh = await createSimpleText(canvas, part.value, newPos,true, part.color);
-                    bounds = getBounds(mesh);
-                    mesh.parent = root;
+                    const bounds = await createText(canvas, part.value, true, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
                 default: {
-                    const mesh = await createSimpleText(canvas, part.value, newPos, false, part.color);
-                    bounds = getBounds(mesh);
-                    mesh.parent = root;
+                    const bounds = await createText(canvas, part.value, false, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
             }
@@ -70,7 +64,7 @@ export class CompositeFactoryActions {
         }
 
         if (line.indexOf("<") == -1) {
-            return await createSimpleText(canvas, line, position, false);
+            return await createText(canvas, line, position, false);
         }
 
         return root;
@@ -81,9 +75,8 @@ export class CompositeFactoryActions {
     }
 }
 
-async function createSimpleText(element, text, position, bold, color) {
+async function create(element, color, position, callback) {
     position ||= {x: 0, y: 0};
-
     color = await crs.call("colors", "hex_to_normalised", { hex: color });
 
     const attr = [
@@ -95,25 +88,21 @@ async function createSimpleText(element, text, position, bold, color) {
         ...attributes
     ]
 
-    const mesh = await crs.call("gfx_text", "add", {element, text, position, attributes: attr, bold});
-    return mesh;
+    const mesh = await callback(position, attr);
+    return getBounds(mesh);
 }
 
-async function createIcon(element, icon, position, color) {
-    position ||= {x: 0, y: 0};
-    color = await crs.call("colors", "hex_to_normalised", { hex: color });
+async function createText(element, text, bold, color, position) {
+    return create(element, color, position, async (position, attributes) => {
+        return await crs.call("gfx_text", "add", {element, text, position, attributes, bold});
+    });
+}
 
-    const attr = [
-        {
-            fn: "Array3",
-            name: "color",
-            value: [color.r, color.g, color.b]
-        },
-        ...attributes
-    ]
-
-    const mesh = await crs.call("gfx_icons", "add", {element, icon, position, attributes: attr, scale: 0.7});
-    return mesh;
+async function createIcon(element, icon, color, position) {
+    return create(element, color, position, async (position, attributes) => {
+        position.x += 0.5;
+        return await crs.call("gfx_icons", "add", {element, icon, position, attributes, kerning: true});
+    })
 }
 
 export function getParts(text) {

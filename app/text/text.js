@@ -7,6 +7,7 @@ import "./../../src/managers/mesh-factory-manager.js";
 import "./../../src/managers/stats-manager.js";
 import "./../../src/managers/mesh-position-manager.js";
 import {getBounds} from "../../src/factory/composite-factory.js";
+import "./../../src/managers/icons-manager.js";
 
 export default class Text extends crsbinding.classes.ViewBase {
     #centerMesh;
@@ -54,6 +55,7 @@ export default class Text extends crsbinding.classes.ViewBase {
             this.canvas.__engine.setHardwareScalingLevel(0.5/ window.devicePixelRatio);
             this.canvas.__layers[0].clearColor = new BABYLON.Color3(1, 1, 1);
 
+            await crs.call("gfx_icons", "initialize", {element: this.canvas});
             await crs.call("gfx_text", "initialize", {element: this.canvas});
             const attributes = [
                 {
@@ -72,6 +74,41 @@ export default class Text extends crsbinding.classes.ViewBase {
                     value: 0.5
                 }
             ]
+            const model = { code: "A11", description: "Description of A11"};
+
+            await crs.call("gfx_composite", "create_line", {
+                element: this.canvas,
+                template: '<icon style="color: #ff0080">98</icon> <bold style="color: #0098E0">[${code}]</bold> <icon style="color: #ff0000">97</icon> ${description}',
+                parameters: model,
+                position: {x: 0, y: 0}
+            })
+
+            model.code = "A12";
+            model.description = "Description of A12";
+            await crs.call("gfx_composite", "create_line", {
+                element: this.canvas,
+                template: '<icon style="color: #ff0000">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                parameters: model,
+                position: {x: 0, y: 1}
+            })
+
+            model.code = "A13";
+            model.description = "Description of A13";
+            await crs.call("gfx_composite", "create_line", {
+                element: this.canvas,
+                template: '<icon style="color: #00ff00">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                parameters: model,
+                position: {x: 0, y: 2}
+            })
+
+            model.code = "A14";
+            model.description = "Description of A14";
+            await crs.call("gfx_composite", "create_line", {
+                element: this.canvas,
+                template: '<icon style="color: #0000ff">98</icon> <bold style="color: #0098E0">[${code}]</bold> ${description}',
+                parameters: model,
+                position: {x: 0, y: 3}
+            })
 
             const meshes = await crs.call("gfx_mesh_factory", "create", {
                 element: this.canvas, mesh: {
