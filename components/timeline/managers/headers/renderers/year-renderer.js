@@ -20,7 +20,7 @@ export default class YearRenderer {
         this.#particleSystem = particleSystem;
 
         const count = 11;
-        const multiplier = 2;
+        const multiplier = 5;
         const textMultiplier = 8;
         const bgCount =  2 * count;
 
@@ -65,11 +65,11 @@ export default class YearRenderer {
         }
 
         if(shape == this.#currentMonthText) {
-            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.2, -0.25, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.2, -0.35, this.#textScale)
         }
 
         if(this.#currentYearText == shape) {
-            return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.6, -0.25, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.6, -0.35, this.#textScale)
         }
     }
 }
