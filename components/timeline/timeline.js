@@ -5,6 +5,7 @@ import "./managers/timeline-manager.js";
 import {configureCamera} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
 import {VirtualizationHeaderManager} from "./managers/headers/virtualization-header-manager.js";
+import {RowManager} from "./managers/row-manager.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
@@ -13,6 +14,7 @@ export class Timeline extends HTMLElement {
     #data;
     #baseDate;
     #headerManager;
+    #rowManager;
 
     static get observedAttributes() {
         return ["data-scale"];
@@ -49,6 +51,8 @@ export class Timeline extends HTMLElement {
     }
 
     async disconnectedCallback() {
+        this.#headerManager = this.#headerManager.dispose()
+        this.#rowManager = this.#rowManager.dispose()
         this.#canvas = null;
         this.#baseDate = null;
         this.#configuration = null;
@@ -64,7 +68,7 @@ export class Timeline extends HTMLElement {
 
     async #init() {
         this.#baseDate = new Date(new Date().toDateString());
-        this.#headerManager = new VirtualizationHeaderManager();
+        this.#headerManager = new VirtualizationHeaderManager(this.#canvas);
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
@@ -72,7 +76,9 @@ export class Timeline extends HTMLElement {
             scale: this.#scale
         });
 
-        await crs.call("gfx_timeline_rows", "initialize", {element: this.#canvas, config: this.#configuration});
+        this.#canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
+
+        this.#rowManager = new RowManager(this.#configuration);
 
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
@@ -84,28 +90,32 @@ export class Timeline extends HTMLElement {
 
         this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
 
-        this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas,  this.#canvas.__layers[0]);
+        this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
 
-        await crs.call("gfx_timeline_rows", "render", {
-            element: this.#canvas,
-            items: items,
-            base_date: this.#baseDate,
-            scale: this.#scale,
-            forceRender: true
-        });
+        this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
     }
 
     async setScale(scale) {
-        if (this.#scale == scale) return;
-        if (this.#canvas == null || this.#canvas.__headers == null || this.#canvas.__rows == null) return;
+        if (this.#scale === scale) return;
         this.#scale = scale;
-        await this.clean();
-        await this.render(this.#data);
+        if(this.#data != null) {
+            await this.clean();
+            await this.draw();
+        }
+    }
+
+    async draw() {
+        await this.#rowManager.redraw(this.#data.length, this.#scale, this.#canvas);
+        await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
     }
 
     async clean() {
-        await crs.call("gfx_timeline_header", "clean", {element: this.#canvas});
-        await crs.call("gfx_timeline_rows", "clean", {element: this.#canvas});
+        const scene = this.#canvas.__layers[0];
+        for (const item of this.#data) {
+            delete item.actual_geom;
+        }
+        await this.#rowManager.clean(this.#canvas, scene);
+        await this.#headerManager.removeHeaders();
     }
 }
 

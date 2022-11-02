@@ -29,6 +29,7 @@ export class DynamicVirtualization {
         this.#buffer = null;
         this.#addCallback = null;
         this.#removeCallback = null;
+        this.#sizeManager =  this.#sizeManager.dispose();
     }
 
     async draw(position) {

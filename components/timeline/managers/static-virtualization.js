@@ -32,8 +32,18 @@ export class StaticVirtualization {
         this.#removeCallback = null;
     }
 
-    async draw(position) {
+    clearInstances() {
+        for (const key of Object.keys(this.#instances)) {
+            if(this.#instances[key]?.dispose)
+            {
+                this.#instances[key].dispose();
+            }
+            delete this.#instances[key];
+        }
+        this.#position = null;
+    }
 
+    async draw(position) {
         if (this.#busy === true) return;
         const roundedPosition = Math.round(position * this.#roundValue) / this.#roundValue;
         if (this.#position === roundedPosition) return;

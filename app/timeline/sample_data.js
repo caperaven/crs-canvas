@@ -6,9 +6,9 @@ function getWorkOrder() {
         "startOn": getDate(1,10),
         "completeBy": getDate(15,28),
         "receivedOn": getDate(1,10),
-        "requiredBy": getDate(15,28),
+        "requiredBy": getDate(1,28),
         "workStartedOn":getDate(1,10),
-        "completedOn": getDate(15,28)
+        "completedOn": getDate(1,28)
     }
 }
 
@@ -17,6 +17,14 @@ function getDate(min, max) {
     if(value < 10) {
         value = `0${value}`;
     }
+
+    if(value < 10) {
+        return `2021/11/01 12:00:00.000`
+    }
+    else {
+        return `2021/11/05 12:00:00.000`
+    }
+
     return `2022/10/${value} 12:00:00.000`;
 }
 

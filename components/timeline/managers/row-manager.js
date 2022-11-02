@@ -6,9 +6,10 @@ import {StaticVirtualization} from "./static-virtualization.js";
 /**
  * This class is responsible for rendering the rows and includes generating the geometry and virtualization
  */
-class RowManager {
+export class RowManager {
     #configuration;
     #virtualization;
+    #scale;
     #shapeConfig = Object.freeze({
         "pillar": {
             barHeight: 0.4,
@@ -52,35 +53,27 @@ class RowManager {
      * @param scene
      */
     clean(canvas, scene) {
-        const meshesToDispose = scene.rootNodes.map(node => {
-            if (node.id.includes("range_item")) return node.id;
-        });
-
-        for (const id of meshesToDispose) {
-            const mesh = scene.getMeshByID(id);
+        const meshesToDispose = scene.meshes.filter(mesh => mesh.id.includes("range_item"));
+        for (const mesh of meshesToDispose) {
             mesh.dispose();
         }
 
         const offsetRowsMesh = scene.getMeshByID("timeline_offset_row_bg");
         offsetRowsMesh.dispose();
-        this.#virtualization.clean();
+
+        this.#virtualization.clearInstances();
     }
 
     /**
      * This draws the rows based on the data you have given.
      * THis is called at startup and then virtualization will take over.
      */
-    async render(items, canvas, scene, baseDate, scale, forceRender) {
-
+    async init(items, canvas, scene, baseDate, scale) {
         const itemCount = items.length;
+        this.#scale = scale;
 
-        const result = await crs.call("gfx_timeline_manager", "set_range", {
-            element: canvas,
-            base: baseDate,
-            scale: scale
-        });
-        await this.#createOffsetRows(itemCount, canvas, result.totalWidth, scale);
-        await this.#initVirtualization(canvas, scene, items, scale, forceRender);
+        await this.#createOffsetRows(itemCount, canvas, scale);
+        await this.#initVirtualization(canvas, scene, items, scale);
     }
 
     /**
@@ -88,55 +81,56 @@ class RowManager {
      */
     async #initVirtualization(canvas, scene, items, scale) {
         const addCallback = async (position, index) => {
-
-            if(index < 0) return;
+            if (index < 0) return;
 
             let shapes = [];
             for (const shape of this.#configuration.shapes) {
                 const item = items[index];
                 if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) continue;
-                shapes.push(await this.#drawShape(canvas, shape, item, position, index, scale));
+                shapes.push(await this.#drawShape(canvas, shape, item, position, index));
             }
             return shapes;
         }
 
         const removeCallback = async (shapes) => {
-            if(shapes == null) return;
+            if (shapes == null) return;
             for (const shape of shapes) {
                 await shape.dispose();
             }
         }
 
-        const cleanCallback = (items) => {
-            for (const shapes of items) {
-                for (const shape of shapes) {
-                    shape.dispose();
-                }
-            }
-        }
-
         scene.onBeforeRenderObservable.addOnce(async () => {
-            this.#virtualization = new StaticVirtualization(1, canvas.__camera.view_height, addCallback, removeCallback);
-           await this.#virtualization.draw(0);
+            this.#virtualization = new StaticVirtualization(1, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
+            await this.#virtualization.draw(0);
 
         });
 
-        canvas.__camera.onViewMatrixChangedObservable.add(async (camera) => {
-            await this.#virtualization.draw((canvas.__camera.position.y - canvas.__camera.offset_y)/-1);
+        canvas.__camera.onViewMatrixChangedObservable.add(async () => {
+            await this.#draw(canvas);
         });
+    }
+
+    async redraw(count, scale, canvas){
+        this.#scale = scale;
+        await this.#createOffsetRows(count, canvas)
+        await this.#draw(canvas);
+    }
+
+    async #draw(canvas) {
+        await this.#virtualization.draw(( canvas.__camera.position.y -  canvas.__camera.offset_y) / -1);
     }
 
     /**
      * This generates the geometry and returns the mesh to draw.
      */
-    async #drawShape(canvas, shape, item, position, index, scale) {
-        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
+    async #drawShape(canvas, shape, item, position, index) {
+        const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
 
         const result = await crs.call("gfx_timeline_manager", "get", {
             element: canvas,
             start: item[shape.fromField],
             end: item[shape.toField],
-            scale: scale
+            scale:  this.#scale
         });
 
         item.actual_geom ||= {};
@@ -158,8 +152,8 @@ class RowManager {
                 positions: item.actual_geom[shape.shapeType].vertices,
                 indices: item.actual_geom[shape.shapeType].indices
             },
-            name: `range_item_${shape.shapeType}_${index}`,
-            position: {x: 0, y: 0, z: [this.#shapeConfig[shape.shapeType]?.zOffset]},
+            name: `range_item_${shape.shapeType}_${this.#scale}_${index}`,
+            position: {x: 0, y: 0, z: this.#shapeConfig[shape.shapeType]?.zOffset},
             material: {
                 id: `${shape.shapeType}_mat`,
                 color: canvas._theme[this.#shapeConfig[shape.shapeType]?.theme]
@@ -172,16 +166,16 @@ class RowManager {
         }
 
         const mesh = await crs.call("gfx_geometry", "from", args);
-        mesh.freezeWorldMatrix();
+        // mesh.freezeWorldMatrix();
         return mesh;
     }
 
     /**
      * This generates the rows background mesh that shows every other row.
      */
-    async #createOffsetRows(itemCount, canvas, width, scale) {
-        const yOffset = scale !== TIMELINE_SCALE.YEAR ? 0.25 : 0;
-        const offsetRowMesh = await this.#createOffsetRowMesh(width, 1, yOffset, canvas);
+    async #createOffsetRows(itemCount, canvas) {
+        const yOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 0.25 : 0;
+        const offsetRowMesh = await this.#createOffsetRowMesh(1, yOffset, canvas);
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
         const rowOffsetColors = new Float32Array(4 * offsetRowCount);
@@ -196,7 +190,7 @@ class RowManager {
 
             const matrix = BABYLON.Matrix.Translation(0, y * 2, 0);
             matrix.copyToArray(rowOffsetMatrices, i * 16);
-            colors.push(...[color.r, color.g, color.b, 1]); // TODO get color from theme
+            colors.push(...[color.r, color.g, color.b, 1]);
         }
 
         rowOffsetColors.set(colors);
@@ -207,14 +201,14 @@ class RowManager {
     /**
      * This creates the row mesh for the offset rows.
      */
-    async #createOffsetRowMesh(width, height, y = 0, canvas) {
+    async #createOffsetRowMesh(height, y = 0, canvas) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
             mesh: {
                 name: "timeline_offset_row_bg",
                 type: "plane",
                 options: {
-                    width: width,
+                    width: 999999,
                     height: height
                 }
             },
@@ -222,50 +216,8 @@ class RowManager {
                 id: "timeline_row",
                 color: canvas._theme.offset_row_bg,
             },
-            positions: [{x: width / 2, y: y, z: 0}]
+            positions: [{x: 0, y: y, z: 0}]
         })
         return meshes[0];
     }
 }
-
-export class RowManagerActions {
-    static async perform(step, context, process, item) {
-        return this[step.action]?.(step, context, process, item);
-    }
-
-    static async initialize(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-        const config = await crs.process.getValue(step.args.config, context, process, item);
-        canvas.__rows = new RowManager(config);
-    }
-
-    static async dispose(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-        canvas.__rows = canvas.__rows?.dispose();
-    }
-
-    static async clean(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-
-        const scale = await crs.process.getValue(step.args.scale, context, process, item);
-        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
-        const scene = canvas.__layers[layer];
-
-        await canvas.__rows.clean(canvas, scene, scale);
-    }
-
-    static async render(step, context, process, item) {
-        const canvas = await crs.dom.get_element(step, context, process, item);
-        const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
-        const items = await crs.process.getValue(step.args.items, context, process, item);
-        const baseDate = await crs.process.getValue(step.args.base_date, context, process, item);
-        const scale = await crs.process.getValue(step.args.scale, context, process, item);
-        const forceRender = await crs.process.getValue(step.args.forceRender, context, process, item);
-
-        const scene = canvas.__layers[layer];
-
-        canvas.__rows.render(items, canvas, scene, baseDate, scale, forceRender);
-    }
-}
-
-crs.intent.gfx_timeline_rows = RowManagerActions;

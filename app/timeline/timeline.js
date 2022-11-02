@@ -3,14 +3,24 @@ import "./../../src/managers/stats-manager.js";
 import {workOrderSamples} from "./sample_data.js";
 
 export default class Timeline extends crsbinding.classes.ViewBase {
+
+    async connectedCallback() {
+        this.timeline = document.querySelector("crs-timeline")
+        await super.connectedCallback();
+
+    }
+
     async showInspector() {
         await crs.call("gfx_stats", "addInspector", {
-            element: document.querySelector("crs-timeline").querySelector("canvas")
+            element: this.timeline.querySelector("canvas")
         });
     }
 
     async setTimelineData() {
-        const timeline = this._element.querySelector("crs-timeline");
-        timeline.render(workOrderSamples);
+        this.timeline.render(workOrderSamples);
+    }
+
+    async setScale(scale) {
+        this.timeline.dataset.scale = scale;
     }
 }
