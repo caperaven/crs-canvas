@@ -64,6 +64,7 @@ export class IconsManagerActions {
         const scale = (await crs.process.getValue(step.args.scale, context, process, item)) || 1;
         const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
         const kerning = await crs.process.getValue(step.args.kerning || false, context, process, item);
+        const color = await crs.process.getValue(step.args.color || {r: 1, g: 1, b:1, a: 1}, context, process, item);
 
         const charData = getCharData(font, icon);
 
@@ -72,6 +73,11 @@ export class IconsManagerActions {
         data.indices = [0, 1, 2, 1, 3, 2];
         data.uvs = charData.uvs;
         data.normals = charData.normals;
+
+        data.colors = [];
+        for (let i = 0; i < data.positions.length; i += 3) {
+            data.colors.push(color.r, color.g, color.b, color.a);
+        }
 
         const customMesh = new BABYLON.Mesh(icon, scene);
         data.applyToMesh(customMesh);

@@ -77,6 +77,7 @@ export class TextManagerActions {
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
         const text = await crs.process.getValue(step.args.text, context, process, item);
         const bold = await crs.process.getValue(step.args.bold, context, process, item) || false;
+        const color = await crs.process.getValue(step.args.color || {r: 1, g: 1, b:1, a: 1}, context, process, item);
         const position = (await crs.process.getValue(step.args.position, context, process, item)) || {x: 0, y: 0, z: 0};
         const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
         const scene = canvas.__layers[layer];
@@ -95,6 +96,7 @@ export class TextManagerActions {
         data.indices = [];
         data.uvs = [];
         data.normals = [];
+        data.colors = [];
 
         let xadvance = 0;
         let c = 0;
@@ -111,6 +113,11 @@ export class TextManagerActions {
             data.indices.push(...charData.indices);
             data.uvs.push(...charData.uvs);
             data.normals.push(...charData.normals);
+
+            for (let i = 0; i < charData.positions.length; i += 3) {
+                data.colors.push(color.r, color.g, color.b, color.a);
+            }
+
             xadvance += charData.xadvance;
             c += 1;
         }
