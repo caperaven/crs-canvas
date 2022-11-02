@@ -78,15 +78,28 @@ class YearScale {
             //Cycle through in-between months, building up totalWidth
             let previousDate = new Date(minDate);
             let totalWidth = 0;
-            for (let i = 0; i < differenceInMonths; i++) {
-                const newDate = new Date(previousDate);
-                newDate.setMonth(previousDate.getMonth() + 1);
+            if (differenceInMonths > 0) {
+                for (let i = 0; i < differenceInMonths; i++) {
+                    const newDate = new Date(previousDate);
+                    newDate.setMonth(previousDate.getMonth() + 1);
 
-                const isLeap = this.#getLeap(newDate.getFullYear());
-                const width = this.#getWidth(previousDate, newDate, isLeap);
-                totalWidth += width;
+                    const isLeap = this.#getLeap(newDate.getFullYear());
+                    const width = this.#getWidth(previousDate, newDate, isLeap);
+                    totalWidth += width;
 
-                previousDate = newDate;
+                    previousDate = newDate;
+                }
+            } else {
+                for (let i = 0; i > differenceInMonths; i--) {
+                    const newDate = new Date(previousDate);
+                    newDate.setMonth(previousDate.getMonth() - 1);
+
+                    const isLeap = this.#getLeap(newDate.getFullYear());
+                    const width = this.#getWidth(previousDate, newDate, isLeap);
+                    totalWidth += width;
+
+                    previousDate = newDate;
+                }
             }
 
             return totalWidth;
@@ -115,7 +128,7 @@ class YearScale {
     }
 
     #getWidth(minDate, maxDate, zoomFactor, isLeap, relativeItemWidth) {
-        const differenceInHours = Math.abs(getDate(maxDate) - getDate(minDate)) / 3.6e+6;
+        const differenceInHours = (getDate(maxDate) - getDate(minDate)) / 3.6e+6;
         const leapFactor = isLeap ? 8784 / 12 : 8760 / 12;
 
         const factor = relativeItemWidth || ViewToScaleFactor.year;

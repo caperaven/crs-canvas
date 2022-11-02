@@ -107,6 +107,8 @@ export class Timeline extends HTMLElement {
     async draw() {
         await this.#rowManager.redraw(this.#data.length, this.#scale, this.#canvas);
         await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
+
+        this.#canvas.__camera.position.x = 0;
     }
 
     async clean() {
