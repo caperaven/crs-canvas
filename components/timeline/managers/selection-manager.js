@@ -23,7 +23,7 @@ export class SelectionManager {
     }
 
     async init() {
-       this.#mesh = await createRect("selection-plane",  this.#canvas._theme.row_selection, 5, -999, 0, 999999, 1,  this.#canvas, false);
+       this.#mesh = await createRect("selection-plane",  this.#canvas._theme.row_selection, 5, -999, this.#canvas.__zIndices.selectionMesh, 999999, 1,  this.#canvas, false);
 
         this.#mesh.enableEdgesRendering();
         this.#mesh.edgesWidth = 1.0;

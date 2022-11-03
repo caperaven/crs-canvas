@@ -25,7 +25,10 @@ export class Timeline extends HTMLElement {
         bgBorderMesh: -0.002,
         headerBorder: -0.003,
         headerBg: -0.003,
-        headerText: -0.004
+        headerText: -0.004,
+        rowShape: -0.0007,
+        offsetRow: 0,
+        selectionMesh: 0,
     })
 
     static get observedAttributes() {

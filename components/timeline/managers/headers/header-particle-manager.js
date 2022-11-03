@@ -31,6 +31,7 @@ export class HeaderParticleManager {
         await this.#renderer.init(canvas, this.#system, this.#baseDate, canvas._text_scale);
 
         this.#system.build();
+        this.#system.mesh.position.z = canvas.__zIndices.headerText;
 
         this.#observer = canvas.__camera.onViewMatrixChangedObservable.add((camera)=> {
             this.#system.mesh.position.y = camera.position.y - camera.offset_y ;
