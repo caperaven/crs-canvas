@@ -60,9 +60,6 @@ export class RowManager {
             mesh.dispose();
         }
 
-        const offsetRowsMesh = scene.getMeshByID("timeline_offset_row_bg");
-        offsetRowsMesh.dispose();
-
         this.#virtualization.clearInstances();
     }
 
@@ -144,7 +141,6 @@ export class RowManager {
 
     async redraw(count, scale, canvas){
         this.#scale = scale;
-        await this.#createOffsetRows(count, canvas)
         await this.#draw(canvas);
     }
 

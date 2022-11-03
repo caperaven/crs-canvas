@@ -51,7 +51,7 @@ export class VirtualizationHeaderManager {
         });
     }
 
-    #removeCameraObserver() {
+    #removeCameraObserver(canvas) {
         canvas.__camera.onViewMatrixChangedObservable.remove(this.#cameraObserver);
         this.#cameraObserver = null;
     }

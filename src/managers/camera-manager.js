@@ -128,6 +128,8 @@ class CameraFactory {
 
         camera._input =  new CustomPanInput(scene, camera);
         camera.__forceDisableControls = true;
+        camera.minZ = 1;
+        camera.maxZ = 15;
 
         globalThis.camera = camera; // remove this when done testing camera
         return camera;

@@ -1,5 +1,6 @@
 function getWorkOrder(i) {
     return {
+        "index": i,
         "code": `Code #${i}`,
         "assetCode": `Asset Code #${i}`,
         "assetDescription": `Asset Desc #${i}`,
@@ -20,14 +21,8 @@ function getDate(min, max) {
         value = `0${value}`;
     }
 
-    if(value < 10) {
-        return `2022/11/07 12:00:00.000`
-    }
-    else {
-        return `2022/11/09 12:00:00.000`
-    }
 
-    return `2022/10/${value} 12:00:00.000`;
+    return `2022/11/${value} 12:00:00.000`;
 }
 
 function randomIntFromInterval(min, max) { // min and max included
