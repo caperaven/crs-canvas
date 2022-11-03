@@ -102,6 +102,7 @@ export class Timeline extends HTMLElement {
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
         await configureCamera(camera, scene);
+        this.#selectionManager.init(this.#canvas);
     }
 
     async render(items) {
@@ -112,7 +113,7 @@ export class Timeline extends HTMLElement {
         this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
 
         this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
-        this.#selectionManager.init(this.#canvas);
+
     }
 
     async setScale(scale) {
