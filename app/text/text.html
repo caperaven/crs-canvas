@@ -20,11 +20,28 @@
         top: 100px;
     }
 
-    input {
+    input:not([type="checkbox"]) {
         width: 200px;
         display: block;
     }
 
+    .toolbar {
+        display: flex;
+        flex-direction: row;
+        box-sizing: border-box;
+        position: fixed;
+        top: 100px;
+        left: 600px;
+    }
+
+    .toolbar span {
+        padding-right: 0.2rem;
+    }
+
+    #secondary {
+        top: 125px;
+    }
+    
     .inspector {
         position: fixed;
         left: 100px;
@@ -33,6 +50,22 @@
 </style>
 
 <canvas is="canvas-2d" data-camera="pan,1,1" data-color="#333343"></canvas>
+
+<div class="toolbar">
+    <span>Position</span>
+    <button click.call="setPosition('top')">top</button>
+    <button click.call="setPosition('bottom')">bottom</button>
+    <button click.call="setPosition('left')">left</button>
+    <button click.call="setPosition('right')">right</button>
+</div>
+
+<div id="secondary" class="toolbar">
+    <span>anchor</span>
+    <button click.call="setAnchor('top')" hidden.if="position == 'top' || position == 'bottom'">top</button>
+    <button click.call="setAnchor('bottom')" hidden.if="position == 'top' || position == 'bottom'">bottom</button>
+    <button click.call="setAnchor('left')" hidden.if="position == 'left' || position == 'right'">left</button>
+    <button click.call="setAnchor('right')" hidden.if="position == 'left' || position == 'right'">right</button>
+</div>
 
 <label id="edtMin">
     <div>Min</div>

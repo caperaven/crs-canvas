@@ -28,5 +28,10 @@
     "row_range2": "#16A085",
     "row_range3": "#757575",
     "row_range4": "#FF0000"
-  }
+  },
+  "records": [
+    "<regular style=\"color: #757575\">Code: ${code}</regular>",
+    "<icon style=\"color: #757575\">98</icon> <bold style=\"color: #757575\">[${assetCode}]</bold> <regular style=\"color: #757575\">${assetDescription}</regular>",
+    "<icon style=\"color: #757575\">97</icon> <bold style=\"color: #757575\">[${siteCode}]</bold> <regular style=\"color: #757575\">${siteDescription}</regular>"
+  ]
 }

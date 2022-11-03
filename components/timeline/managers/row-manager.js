@@ -1,5 +1,6 @@
 import "../../../src/managers/mesh-factory-manager.js";
 import "../../../src/managers/geometry-factory-manager.js";
+import "../../../src/factory/timeline-shape-factory.js"
 import {TIMELINE_SCALE} from "../timeline-scale.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 
@@ -79,7 +80,10 @@ export class RowManager {
     /**
      * Start the virtualization process.
      */
-    async #initVirtualization(canvas, scene, items, scale) {
+    async #initVirtualization(canvas, items, scale) {
+        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
+        const textScale = {x: 0.2, y: 0.2, z: 1};
+
         const addCallback = async (position, index) => {
             if (index < 0) return;
 
@@ -89,13 +93,27 @@ export class RowManager {
                 if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) continue;
                 shapes.push(await this.#drawShape(canvas, shape, item, position, index));
             }
+
+            const parentText = await crs.call("gfx_composite", "create", {
+                element: canvas,
+                templates: this.#configuration.records,
+                parameters: item,
+                position: {x: 0.25, y: -rowOffset - position, z: -0.005},
+                rowSize: 1,
+                scale: textScale,
+                id: `composite_${position}`
+            })
+            shapes.push(parentText);
+
             return shapes;
         }
 
-        const removeCallback = async (shapes) => {
+        //TODO KR: fix clean up of text
+        const removeCallback = (shapes) => {
             if (shapes == null) return;
             for (const shape of shapes) {
-                await shape.dispose();
+                if (shape.material.name.includes("text_")) continue; //NOTE KR: to discuss with GM
+                shape.dispose();
             }
         }
 
@@ -167,6 +185,21 @@ export class RowManager {
 
         const mesh = await crs.call("gfx_geometry", "from", args);
         // mesh.freezeWorldMatrix();
+        return mesh;
+    }
+
+    async #getText(canvas, text, bold = false, item, sizeItem, yOffset, scale) {
+        const textScaling = new BABYLON.Vector3(0.25,0.25,1);
+        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.8 : 1.05;
+
+        const stringResult = await crs.call("string", "inflate", {template: text, parameters: item});
+        const mesh = await crs.call("gfx_text", "add", {
+            element: canvas,
+            text: stringResult,
+            position: {x: 0.25, y: (-rowOffset - sizeItem.position) - ((0.25 / 2) - yOffset), z: -0.003},
+        });
+        mesh.freezeWorldMatrix();
+        mesh.scaling = textScaling;
         return mesh;
     }
 

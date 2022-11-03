@@ -20,87 +20,103 @@ const attributes = [
     }
 ];
 
-export class CompositeFactoryActions {
-    static async perform(step, context, process, item) {
-        return this[step.action]?.(step, context, process, item);
-    }
-
+class CompositeFactory {
     /**
      * Create a line from a template string as seen above.
-     * The step args is the same as the string system's inflate function
      */
-    static async create_line(step, context, process, item) {
-        const line = await crs.call("string", "inflate", step.args, context, process, item);
-        const canvas = await crs.dom.get_element(step.args.element, context, process, item);
-        const position = await crs.process.getValue(step.args.position || {x: 0, y: 0}, context, process, item);
+    static async createLine(canvas, parentNode, template, parameters, position) {
+        const line = await crs.call("string", "inflate", {template: template, parameters: parameters});
         const parts = getParts(line);
 
-        let bounds = {
-            right: 0
-        }
-
+        let newX = position.x;
         for (const part of parts) {
-            const newPos = { x: position.x + bounds.right + 0.25, y: position.y }
+            const newPos = {x: newX, y: position.y, z: position.z}
 
             switch (part.type) {
                 case "icon": {
-                    bounds = await createIcon(canvas, part.value, newPos, part.color)
+                    const bounds = await createIcon(canvas, parentNode, part.value, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
                 case "bold": {
-                    bounds = await createSimpleText(canvas, part.value, newPos,true, part.color);
+                    const bounds = await createText(canvas, parentNode, part.value, true, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
                 default: {
-                    bounds = await createSimpleText(canvas, part.value, newPos, false, part.color);
+                    const bounds = await createText(canvas, parentNode, part.value, false, part.color, newPos);
+                    newX += bounds.width + 0.25;
                     break;
                 }
             }
         }
 
         if (line.indexOf("<") == -1) {
-            return await createSimpleText(canvas, line, position, false);
+            return await createText(canvas, line, position, false);
         }
     }
 
-    static async create_rows(step, context, process, item) {
+    /**
+     * Create multiple lines from template strings as shown above
+     */
+    static async createRows(canvas, parentNode, templates, parameters, startingPosition, rowSize, scale) {
+        const numberOfLines = templates.length;
 
+        const lineSegmentPosition = (rowSize / (numberOfLines + 1)) / scale.y;
+        let currentPositionY = (startingPosition.y / scale.y) + lineSegmentPosition;
+        for (const template of templates) {
+            await this.createLine(canvas, parentNode, template, parameters,{x: startingPosition.x, y: currentPositionY, z: startingPosition.z});
+            currentPositionY -= lineSegmentPosition;
+        }
     }
 }
 
-async function createSimpleText(element, text, position, bold, color) {
-    position ||= {x: 0, y: 0};
+export class CompositeFactoryActions {
+    static async perform(step, context, process, item) {
+        return this[step.action]?.(step, context, process, item);
+    }
 
+    static async create(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        const templates = await crs.process.getValue(step.args.templates, context, process, item);
+        const parameters = await crs.process.getValue(step.args.parameters, context, process, item);
+        const position = await crs.process.getValue(step.args.position || {x: 0, y: 0, z: 0}, context, process, item);
+        const rowSize = await crs.process.getValue(step.args.rowSize || 1, context, process, item);
+        const scale = await crs.process.getValue(step.args.scale || new BABYLON.Vector3(1, 1, 1), context, process, item);
+        const parentId = await crs.process.getValue(step.args.id || "root", context, process, item);
+
+        const parentNode = new BABYLON.TransformNode(parentId);
+        parentNode.scaling.x = scale.x;
+        parentNode.scaling.y = scale.y;
+        parentNode.scaling.z = scale.z;
+        await CompositeFactory.createRows(canvas, parentNode, templates, parameters, position, rowSize, scale);
+        return parentNode;
+    }
+}
+
+async function create(parentNode, element, color, position, callback) {
+    position ||= {x: 0, y: 0};
     color = await crs.call("colors", "hex_to_normalised", { hex: color });
 
-    const attr = [
-        {
-            fn: "Array3",
-            name: "color",
-            value: [color.r, color.g, color.b]
-        },
-        ...attributes
-    ]
-
-    const mesh = await crs.call("gfx_text", "add", {element, text, position, attributes: attr, bold});
+    const mesh = await callback(parentNode, position, attributes, color);
     return getBounds(mesh);
 }
 
-async function createIcon(element, icon, position, color) {
-    position ||= {x: 0, y: 0};
-    color = await crs.call("colors", "hex_to_normalised", { hex: color });
+async function createText(element, parentNode, text, bold, color, position) {
+    return create(parentNode, element, color, position, async (parentNode, position, attributes, color) => {
+        const mesh = await crs.call("gfx_text", "add", {element, text, position, attributes, bold, color});
+        mesh.parent = parentNode;
+        return mesh;
+    });
+}
 
-    const attr = [
-        {
-            fn: "Array3",
-            name: "color",
-            value: [color.r, color.g, color.b]
-        },
-        ...attributes
-    ]
-
-    const mesh = await crs.call("gfx_icons", "add", {element, icon, position, attributes: attr, scale: 0.7});
-    return getBounds(mesh);
+async function createIcon(element, parentNode, icon, color, position) {
+    return create(parentNode, element, color, position, async (parentNode, position, attributes, color) => {
+        position.x += 0.5;
+        const mesh = await crs.call("gfx_icons", "add", {element, icon, position, attributes, kerning: true, color});
+        mesh.parent = parentNode;
+        return mesh;
+    })
 }
 
 export function getParts(text) {
@@ -139,8 +155,11 @@ function textToPartsArray(text) {
         if (result.indexOf("<icon") != -1) {
             type = "icon";
         }
-        else {
+        else if (result.indexOf("<bold") != -1) {
             type = "bold"
+        }
+        else {
+            type = "regular"
         }
 
         resultCollection.push({
@@ -174,10 +193,36 @@ function getSecondCloseBracket(text, start) {
     return secondClose;
 }
 
-function getBounds(mesh) {
+//TODO KR: Should move to a more general helper/utility file & move some logic out to process api i.e. createClientBoundingRect
+export function getBounds(mesh) {
     const result = mesh.getBoundingInfo().boundingBox;
     const min = result.minimumWorld;
     const max = result.maximumWorld;
+
+    const width = max.x - min.x;
+    const height = max.y - min.y;
+
+    return {
+        x: min.x,
+        left: min.x,
+        y: min.y,
+        top: min.y,
+        right: max.x,
+        bottom: max.y,
+        width: width,
+        height: height
+    }
+}
+
+export function getInverseYBounds(mesh) {
+    const result = mesh.getBoundingInfo().boundingBox;
+    const min = result.minimumWorld;
+    const max = result.maximumWorld;
+
+    const minY = -max.y;
+    const maxY = -min.y
+    min.y = minY;
+    max.y = maxY;
 
     const width = max.x - min.x;
     const height = max.y - min.y;

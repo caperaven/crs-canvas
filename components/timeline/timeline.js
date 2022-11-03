@@ -2,6 +2,10 @@ import "./../canvas_2d/canvas_2d.js";
 import "./managers/row-manager.js"
 import "./../../src/managers/mesh-factory-manager.js";
 import "./managers/timeline-manager.js";
+import "./../../src/managers/text-manager.js";
+import "./../../src/managers/icons-manager.js";
+import "./../../src/factory/composite-factory.js";
+
 import {configureCamera} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
 import {VirtualizationHeaderManager} from "./managers/headers/virtualization-header-manager.js";
@@ -77,6 +81,11 @@ export class Timeline extends HTMLElement {
         });
 
         this.#canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
+        
+        await crs.call("gfx_text", "initialize", {element: this.#canvas});
+        await crs.call("gfx_icons", "initialize", {element: this.#canvas});
+
+        await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
         this.#rowManager = new RowManager(this.#configuration);
 
