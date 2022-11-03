@@ -11,6 +11,7 @@ import "./../../src/factory/timeline-shape-factory.js"
 import {VirtualizationHeaderManager} from "./managers/headers/virtualization-header-manager.js";
 import {RowManager} from "./managers/row-manager.js";
 import {SelectionManager} from "./managers/selection-manager.js";
+import {TIMELINE_SCALE} from "./timeline-scale.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
@@ -85,6 +86,7 @@ export class Timeline extends HTMLElement {
     async #init() {
         this.#baseDate = new Date(new Date().toDateString());
         this.#headerManager = new VirtualizationHeaderManager(this.#canvas);
+        this.#setYOffset();
         this.#selectionManager = new SelectionManager(this.#canvas, (index)=> {
             this.dispatchEvent(new CustomEvent("selection-changed", {detail: {item: this.#data[index], index}}));
         });
@@ -122,9 +124,15 @@ export class Timeline extends HTMLElement {
         if (this.#scale === scale) return;
         this.#scale = scale;
         if(this.#data != null) {
+            this.#setYOffset();
             await this.clean();
             await this.draw();
         }
+    }
+
+    #setYOffset() {
+        if (this.#canvas == null) return;
+        this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? -1 : -0.5;
     }
 
     async draw() {

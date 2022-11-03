@@ -31,7 +31,7 @@ export class SelectionManager {
     }
 
     async #click() {
-        let offset = 0.5; // TODO Change this to use canvas y offset
+        let offset =  this.#canvas.y_offset; // TODO Change this to use canvas y offset
 
         const engine = this.#canvas.__engine;
         const scene = this.#canvas.__layers[0];

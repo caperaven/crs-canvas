@@ -21,18 +21,23 @@ export class VirtualizationHeaderManager {
             header.dispose();
         }
         this.#headers = null;
+
+        this.#bgBorderMesh.dispose();
+        this.#bgBorderMesh = null;
     }
 
     async createHeaders(baseDate, scale, canvas) {
         this.#headers = await HeaderFactory[scale](baseDate, scale, canvas);
+
+        const height = scale !== TIMELINE_SCALE.YEAR ? 1.02 : 0.52
+        this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -height / 2, canvas.__zIndices.bgBorderMesh, 9999999, height, canvas, false);
+        this.#bgBorderMesh.height = height;
     }
 
     async init(baseDate, scale, canvas, scene) {
         scale = scale || TIMELINE_SCALE.MONTH;
 
         scene.onBeforeRenderObservable.addOnce(async () => {
-            this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -0.51, canvas.__zIndices.bgBorderMesh, 9999999, 1.02, canvas, false);
-
             await this.createHeaders(baseDate, scale, canvas);
             if (this.#cameraObserver == null) {
                 this.#addCameraObserver(canvas);
@@ -43,7 +48,7 @@ export class VirtualizationHeaderManager {
     #addCameraObserver(canvas) {
         this.#cameraObserver = canvas.__camera.onViewMatrixChangedObservable.add(async (camera) => {
             const position = camera.position.x - camera.offset_x;
-            this.#bgBorderMesh.position.y = camera.position.y - 0.51 - camera.offset_y;
+            this.#bgBorderMesh.position.y = camera.position.y - (this.#bgBorderMesh.height / 2) - camera.offset_y;
 
             for (const header of this.#headers) {
                 await header.draw(position);
