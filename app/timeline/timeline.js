@@ -8,6 +8,10 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         this.timeline = document.querySelector("crs-timeline")
         await super.connectedCallback();
 
+        this.timeline.addEventListener("selection-changed", (e)=> {
+            console.log("new selection", e.detail);
+        })
+
     }
 
     async showInspector() {

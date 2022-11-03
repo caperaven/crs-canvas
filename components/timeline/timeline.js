@@ -6,6 +6,7 @@ import {configureCamera} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
 import {VirtualizationHeaderManager} from "./managers/headers/virtualization-header-manager.js";
 import {RowManager} from "./managers/row-manager.js";
+import {SelectionManager} from "./managers/selection-manager.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
@@ -15,6 +16,7 @@ export class Timeline extends HTMLElement {
     #baseDate;
     #headerManager;
     #rowManager;
+    #selectionManager;
 
     static get observedAttributes() {
         return ["data-scale"];
@@ -51,7 +53,7 @@ export class Timeline extends HTMLElement {
     }
 
     async disconnectedCallback() {
-        this.#headerManager = this.#headerManager.dispose()
+        this.#headerManager = this.#headerManager.dispose(this.#canvas)
         this.#rowManager = this.#rowManager.dispose()
         this.#canvas = null;
         this.#baseDate = null;
@@ -69,6 +71,9 @@ export class Timeline extends HTMLElement {
     async #init() {
         this.#baseDate = new Date(new Date().toDateString());
         this.#headerManager = new VirtualizationHeaderManager(this.#canvas);
+        this.#selectionManager = new SelectionManager(this.#canvas, (index)=> {
+            this.dispatchEvent(new CustomEvent("selection-changed", {detail: {item: this.#data[index], index}}));
+        });
 
         await crs.call("gfx_timeline_manager", "initialize", {
             element: this.#canvas,
@@ -93,6 +98,7 @@ export class Timeline extends HTMLElement {
         this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
 
         this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
+        this.#selectionManager.init(this.#canvas);
     }
 
     async setScale(scale) {
@@ -108,7 +114,7 @@ export class Timeline extends HTMLElement {
         await this.#rowManager.redraw(this.#data.length, this.#scale, this.#canvas);
         await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
 
-        this.#canvas.__camera.position.x = 0;
+        this.#canvas.__camera.position.x = this.#canvas.__camera.offset_x;
     }
 
     async clean() {

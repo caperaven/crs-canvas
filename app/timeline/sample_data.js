@@ -1,8 +1,9 @@
-function getWorkOrder() {
+function getWorkOrder(i) {
 
 
     return {
         "code": "full bars",
+        "index": i,
         "startOn": getDate(1,10),
         "completeBy": getDate(15,28),
         "receivedOn": getDate(1,10),
@@ -18,14 +19,8 @@ function getDate(min, max) {
         value = `0${value}`;
     }
 
-    if(value < 10) {
-        return `2021/11/01 12:00:00.000`
-    }
-    else {
-        return `2021/12/31 12:00:00.000`
-    }
 
-    return `2022/10/${value} 12:00:00.000`;
+    return `2022/11/${value} 12:00:00.000`;
 }
 
 function randomIntFromInterval(min, max) { // min and max included
@@ -35,7 +30,7 @@ function randomIntFromInterval(min, max) { // min and max included
 function getWorkOrders() {
     let result = [];
     for (let i = 0; i < 100000; i++) {
-        result.push(getWorkOrder());
+        result.push(getWorkOrder(i));
     }
     return result;
 }
