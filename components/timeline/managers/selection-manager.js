@@ -23,15 +23,18 @@ export class SelectionManager {
     }
 
     async init() {
-       this.#mesh = await createRect("selection-plane",  this.#canvas._theme.row_selection, 5, -999, this.#canvas.__zIndices.selectionMesh, 999999, 1,  this.#canvas, false);
-
+       this.#mesh = await createRect("selection-plane",  this.#canvas._theme.row_selection, 5, 999, this.#canvas.__zIndices.selectionMesh, 999999, 1,  this.#canvas, false);
         this.#mesh.enableEdgesRendering();
         this.#mesh.edgesWidth = 1.0;
         this.#mesh.edgesColor = BABYLON.Color4.FromHexString( this.#canvas._theme.row_selection_border)
     }
 
+    async hide() {
+        this.#mesh.position.y = 999 // We need to remove this when selection is recalc on scale change
+    }
+
     async #click() {
-        let offset =  this.#canvas.y_offset; // TODO Change this to use canvas y offset
+        let offset =  1.5  - this.#canvas.y_offset; // TODO Change this to use canvas y offset
 
         const engine = this.#canvas.__engine;
         const scene = this.#canvas.__layers[0];
@@ -45,7 +48,9 @@ export class SelectionManager {
             scene.getProjectionMatrix()
         );
 
-        this.#mesh.position.y =  Math.ceil(vector.y - offset);
+        console.log(Math.ceil(vector.y + offset));
+
+        this.#mesh.position.y =  Math.ceil(vector.y) - offset;
         this.#selectionCallback((Math.ceil(vector.y)/-1)-1);
     }
 }

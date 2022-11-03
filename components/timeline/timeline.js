@@ -29,7 +29,7 @@ export class Timeline extends HTMLElement {
         headerText: -0.004,
         rowShape: -0.0007,
         offsetRow: 0,
-        selectionMesh: 0,
+        selectionMesh: -0.0001,
     })
 
     static get observedAttributes() {
@@ -118,7 +118,6 @@ export class Timeline extends HTMLElement {
         this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
 
         this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
-
     }
 
     async setScale(scale) {
@@ -133,12 +132,13 @@ export class Timeline extends HTMLElement {
 
     #setYOffset() {
         if (this.#canvas == null) return;
-        this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? -1 : -0.5;
+        this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? 1 : 0.5;
     }
 
     async draw() {
         await this.#rowManager.redraw(this.#data.length, this.#scale, this.#canvas);
         await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
+        await this.#selectionManager.hide();
 
         this.#canvas.__camera.position.x = this.#canvas.__camera.offset_x;
     }
