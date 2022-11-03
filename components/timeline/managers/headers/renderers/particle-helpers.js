@@ -7,7 +7,6 @@ export function moveParticle(system, particle, key, position,  xOffset, yOffset,
 
     particle.position.x = next_position_x;
     particle.position.y = yOffset;
-    particle.position.z = -0.01;
     particle.isUsed = true;
 
     if(scale != null) {

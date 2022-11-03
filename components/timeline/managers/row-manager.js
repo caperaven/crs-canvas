@@ -19,7 +19,7 @@ export class RowManager {
             triangleWidth: 0.1,
             theme: "row_range1",
             yOffset: 0.15,
-            zOffset: -0.001
+            zOffset: 0.00001
         },
         "range_indicator": {
             barHeight: 0.05,
@@ -27,7 +27,7 @@ export class RowManager {
             triangleWidth: 0.2,
             theme: "row_range3",
             yOffset: 0.35,
-            zOffset: 0
+            zOffset: 0.00002
         },
         "rect": {
             barHeight: 0.3,
@@ -35,7 +35,7 @@ export class RowManager {
             triangleWidth: null,
             theme: "row_range2",
             yOffset: 0.0075,
-            zOffset: -0.002
+            zOffset: 0.00003
         }
     })
 
@@ -55,7 +55,7 @@ export class RowManager {
      * @param scene
      */
     clean(canvas, scene) {
-        const meshesToDispose = scene.meshes.filter(mesh => mesh.id.includes("range_item"));
+        const meshesToDispose = scene.meshes.filter(mesh => mesh.id.includes("range_item") || mesh.id.includes("offset_row"));
         for (const mesh of meshesToDispose) {
             mesh.dispose();
         }
@@ -79,10 +79,10 @@ export class RowManager {
      * Start the virtualization process.
      */
     async #initVirtualization(canvas, scene, items, scale) {
-        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
-        const textScale = {x: 0.225, y: 0.225, z: 1};
-
         const addCallback = async (position, index) => {
+            const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 1;
+            const textScale = {x: 0.225, y: 0.225, z: 1};
+
             if (index < 0) return;
             const item = items[index];
 
@@ -141,6 +141,7 @@ export class RowManager {
 
     async redraw(count, scale, canvas){
         this.#scale = scale;
+        await this.#createOffsetRows(count, canvas, scale)
         await this.#draw(canvas);
     }
 
@@ -152,7 +153,7 @@ export class RowManager {
      * This generates the geometry and returns the mesh to draw.
      */
     async #drawShape(canvas, shape, item, position, index) {
-        const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
+        const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 1;
 
         const result = await crs.call("gfx_timeline_manager", "get", {
             element: canvas,
@@ -181,7 +182,7 @@ export class RowManager {
                 indices: item.actual_geom[shape.shapeType].indices
             },
             name: `range_item_${shape.shapeType}_${this.#scale}_${index}`,
-            position: {x: 0, y: 0, z: this.#shapeConfig[shape.shapeType]?.zOffset},
+            position: {x: 0, y: 0, z: canvas.__zIndices.rowShape - this.#shapeConfig[shape.shapeType]?.zOffset},
             material: {
                 id: `${shape.shapeType}_mat`,
                 color: canvas._theme[this.#shapeConfig[shape.shapeType]?.theme]
@@ -202,7 +203,7 @@ export class RowManager {
      * This generates the rows background mesh that shows every other row.
      */
     async #createOffsetRows(itemCount, canvas) {
-        const yOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 0.25 : 0;
+        const yOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 2;
         const offsetRowMesh = await this.#createOffsetRowMesh(1, yOffset, canvas);
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
@@ -244,7 +245,7 @@ export class RowManager {
                 id: "timeline_row",
                 color: canvas._theme.offset_row_bg,
             },
-            positions: [{x: 0, y: y, z: 0}]
+            positions: [{x: 0, y: y, z: canvas.__zIndices.offsetRow}]
         })
         return meshes[0];
     }
