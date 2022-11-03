@@ -19,6 +19,12 @@ export class Timeline extends HTMLElement {
     #baseDate;
     #headerManager;
     #rowManager;
+    #zIndices = Object.freeze({
+        bgBorderMesh: -0.002,
+        headerBorder: -0.003,
+        headerBg: -0.003,
+        headerText: -0.004
+    })
 
     static get observedAttributes() {
         return ["data-scale"];
@@ -32,6 +38,7 @@ export class Timeline extends HTMLElement {
 
         requestAnimationFrame(async () => {
             this.#canvas = this.querySelector("canvas") || this.canvas;
+            this.#canvas.__zIndices = this.#zIndices;
 
             const ready = async () => {
                 await crs.call("gfx_theme", "set", {
@@ -84,8 +91,6 @@ export class Timeline extends HTMLElement {
         
         await crs.call("gfx_text", "initialize", {element: this.#canvas});
         await crs.call("gfx_icons", "initialize", {element: this.#canvas});
-
-        await crs.call("gfx_timeline_header", "initialize", {element: this.#canvas});
 
         this.#rowManager = new RowManager(this.#configuration);
 

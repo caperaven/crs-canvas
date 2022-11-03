@@ -10,6 +10,10 @@ export class StaticVirtualization {
     #addCallback;
     #removeCallback;
 
+    get instances() {
+        return this.#instances;
+    }
+
     constructor(size, frustum, addCallback, removeCallback) {
         this.#size = size;
         this.#addCallback = addCallback;
@@ -34,6 +38,15 @@ export class StaticVirtualization {
 
     clearInstances() {
         for (const key of Object.keys(this.#instances)) {
+            if (this.#instances[key] != null) {
+                for (const item of (this.#instances[key])) {
+                    if(item?.dispose)
+                    {
+                        item.dispose();
+                    }
+                }
+            }
+
             if(this.#instances[key]?.dispose)
             {
                 this.#instances[key].dispose();

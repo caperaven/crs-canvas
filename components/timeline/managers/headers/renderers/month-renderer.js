@@ -14,11 +14,13 @@ export default class MonthRenderer {
     #bgKey = "month_header_bg"
     #weekdayBgKey = "weekend_bg"
     #isWeekday;
+    #textTheme;
 
     async init(canvas, particleSystem,  baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
+        this.#textTheme = canvas._theme.row_range3;
 
         const count = 31;
         const multiplier = 2;
@@ -28,18 +30,18 @@ export default class MonthRenderer {
         const shapes = [];
 
         for (let i = 1; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10);
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10, canvas.__zIndices.headerText);
             this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
             shapes.push({key:i.toString(), count: multiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 0.5, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, canvas.__zIndices.headerBorder,0.02, 0.5, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
-        const weekdayBg = await createRect(this.#weekdayBgKey, canvas._theme.header_bg, 0, 0, 0.985, 0.5, canvas);
+        const weekdayBg = await createRect(this.#weekdayBgKey, canvas._theme.header_bg, 0, 0, canvas.__zIndices.headerBg,0.985, 0.5, canvas);
         this.#particleSystem.add(this.#weekdayBgKey, weekdayBg,weekdayBgCount, true);
-        shapes.push({key: this.#weekdayBgKey, count: weekdayBgCount});
+            shapes.push({key: this.#weekdayBgKey, count: weekdayBgCount});
 
         this.#distanceSystem = new DistanceSystem(shapes, multiplier);
     }
@@ -59,15 +61,16 @@ export default class MonthRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.75);
+            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.75);
         }
 
         if(this.#currentDayNumber == shape) {
-            return    moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.375,  -0.85, this.#textScale)
+            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
+            return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.375,  -0.85, this.#textScale);
         }
 
         if(this.#weekdayBgKey === shape && this.#isWeekday === true) {
-            return  moveParticle(this.#distanceSystem, particle, this.#weekdayBgKey, this.#currentPosition,0.5, -0.75);
+            return moveParticle(this.#distanceSystem, particle, this.#weekdayBgKey, this.#currentPosition,0.5, -0.75);
         }
     }
 }

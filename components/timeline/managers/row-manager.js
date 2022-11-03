@@ -11,6 +11,7 @@ export class RowManager {
     #configuration;
     #virtualization;
     #scale;
+    #currentX;
     #shapeConfig = Object.freeze({
         "pillar": {
             barHeight: 0.4,
@@ -80,16 +81,16 @@ export class RowManager {
     /**
      * Start the virtualization process.
      */
-    async #initVirtualization(canvas, items, scale) {
+    async #initVirtualization(canvas, scene, items, scale) {
         const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.75 : 1;
-        const textScale = {x: 0.2, y: 0.2, z: 1};
+        const textScale = {x: 0.225, y: 0.225, z: 1};
 
         const addCallback = async (position, index) => {
             if (index < 0) return;
+            const item = items[index];
 
             let shapes = [];
             for (const shape of this.#configuration.shapes) {
-                const item = items[index];
                 if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) continue;
                 shapes.push(await this.#drawShape(canvas, shape, item, position, index));
             }
@@ -98,21 +99,20 @@ export class RowManager {
                 element: canvas,
                 templates: this.#configuration.records,
                 parameters: item,
-                position: {x: 0.25, y: -rowOffset - position, z: -0.005},
+                position: {x: 0.25, y: -rowOffset - position, z: -0.001},
                 rowSize: 1,
                 scale: textScale,
                 id: `composite_${position}`
             })
+            parentText.isText = true;
             shapes.push(parentText);
 
             return shapes;
         }
 
-        //TODO KR: fix clean up of text
         const removeCallback = (shapes) => {
             if (shapes == null) return;
             for (const shape of shapes) {
-                if (shape.material.name.includes("text_")) continue; //NOTE KR: to discuss with GM
                 shape.dispose();
             }
         }
@@ -123,8 +123,22 @@ export class RowManager {
 
         });
 
-        canvas.__camera.onViewMatrixChangedObservable.add(async () => {
-            await this.#draw(canvas);
+        canvas.__camera.onViewMatrixChangedObservable.add(() => {
+            this.#draw(canvas);
+
+            this.#currentX = canvas.__camera.position.x - canvas.__camera.offset_x;
+            const instances = this.#virtualization?.instances;
+            if (instances == null) return;
+
+            const keys = Object.keys(instances);
+            for (const key of keys) {
+                if (instances[key] == null) continue;
+                for (const shape of instances[key]) {
+                    if (shape.isText) {
+                        shape.position.x = this.#currentX;
+                    }
+                }
+            }
         });
     }
 
@@ -135,7 +149,7 @@ export class RowManager {
     }
 
     async #draw(canvas) {
-        await this.#virtualization.draw(( canvas.__camera.position.y -  canvas.__camera.offset_y) / -1);
+        await this.#virtualization.draw(( canvas.__camera.position.y - canvas.__camera.offset_y) / -1);
     }
 
     /**
@@ -185,21 +199,6 @@ export class RowManager {
 
         const mesh = await crs.call("gfx_geometry", "from", args);
         // mesh.freezeWorldMatrix();
-        return mesh;
-    }
-
-    async #getText(canvas, text, bold = false, item, sizeItem, yOffset, scale) {
-        const textScaling = new BABYLON.Vector3(0.25,0.25,1);
-        const rowOffset = scale !== TIMELINE_SCALE.YEAR ? 1.8 : 1.05;
-
-        const stringResult = await crs.call("string", "inflate", {template: text, parameters: item});
-        const mesh = await crs.call("gfx_text", "add", {
-            element: canvas,
-            text: stringResult,
-            position: {x: 0.25, y: (-rowOffset - sizeItem.position) - ((0.25 / 2) - yOffset), z: -0.003},
-        });
-        mesh.freezeWorldMatrix();
-        mesh.scaling = textScaling;
         return mesh;
     }
 

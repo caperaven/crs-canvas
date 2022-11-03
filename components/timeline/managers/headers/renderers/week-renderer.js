@@ -12,12 +12,14 @@ export default class WeekRenderer {
 
     #particleSystem;
     #textScale;
-    #bgKey = "week_header_bg"
+    #bgKey = "week_header_bg";
+    #textTheme;
 
     async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
+        this.#textTheme = canvas._theme.row_range3;
 
         const count = 31;
         const multiplier = 2;
@@ -27,7 +29,7 @@ export default class WeekRenderer {
         const shapes = [];
 
         for (let i = 0; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0, canvas.__zIndices.headerText);
             this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
             shapes.push({key:i.toString(), count: multiplier});
         }
@@ -36,12 +38,12 @@ export default class WeekRenderer {
             const date = new Date(this.#baseDate.getTime());
             date.setDate(date.getDate() + i);
             const text = date.toLocaleString('en-us', {weekday:'long'})
-            const textMesh = await createHeaderText(text, canvas, 0, 0);
+            const textMesh = await createHeaderText(text, canvas, 0, 0, canvas.__zIndices.headerText);
             this.#particleSystem.add(text, textMesh, textMultiplier, true);
             shapes.push({key:text, count: textMultiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 0.5, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, canvas.__zIndices.headerBorder,0.02, 0.5, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -64,10 +66,12 @@ export default class WeekRenderer {
         }
 
         if(shape == this.#currentDayText) {
+            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, -2.4, -0.85, this.#textScale)
         }
 
         if(this.#currentDayNumber == shape) {
+            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, -2.8, -0.85, this.#textScale)
         }
     }

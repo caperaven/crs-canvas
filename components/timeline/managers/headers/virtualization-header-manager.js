@@ -31,9 +31,7 @@ export class VirtualizationHeaderManager {
         scale = scale || TIMELINE_SCALE.MONTH;
 
         scene.onBeforeRenderObservable.addOnce(async () => {
-            this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -0.51, 9999999, 1.02, canvas, false);
-            this.#bgBorderMesh.position.z = -0.002;
-
+            this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -0.51, canvas.__zIndices.bgBorderMesh, 9999999, 1.02, canvas, false);
 
             await this.createHeaders(baseDate, scale, canvas);
             if (this.#cameraObserver == null) {

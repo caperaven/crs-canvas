@@ -76,36 +76,36 @@ export default class Text extends crsbinding.classes.ViewBase {
             const model = { code: "A11", description: "Description of A11"};
 
             //NOTE KR: Rabie's work
-            await crs.call("gfx_composite", "create", {
-                element: this.canvas,
-                templates: ['<icon style="color: #ff0080">98</icon> <bold style="color: #ff90ff">[${code}]</bold> <icon style="color: #ff0000">97</icon> <regular style="color: #00ff90">${description}</regular>'],
-                parameters: model,
-                position: {x: 0, y: 0}
-            })
-            model.code = "A12";
-            model.description = "Description of A12";
-            await crs.call("gfx_composite", "create", {
-                element: this.canvas,
-                templates: ['<icon style="color: #ff0000">98</icon> <bold style="color: #0098EE">[${code}]</bold> ${description}'],
-                parameters: model,
-                position: {x: 0, y: 1}
-            })
-            model.code = "A13";
-            model.description = "Description of A13";
-            await crs.call("gfx_composite", "create", {
-                element: this.canvas,
-                templates: ['<icon style="color: #00ff00">98</icon> <bold style="color: #ff0090">[${code}]</bold> ${description}'],
-                parameters: model,
-                position: {x: 0, y: 2}
-            })
-            model.code = "A14";
-            model.description = "Description of A14";
-            await crs.call("gfx_composite", "create", {
-                element: this.canvas,
-                templates: ['<icon style="color: #0000ff">98</icon> <bold style="color: #0098E0">[${code}]</bold> <regular style="color: #ffa07b">${description}</regular>'],
-                parameters: model,
-                position: {x: 0, y: 3}
-            })
+            // await crs.call("gfx_composite", "create", {
+            //     element: this.canvas,
+            //     templates: ['<icon style="color: #ff0080">98</icon> <bold style="color: #ff90ff">[${code}]</bold> <icon style="color: #ff0000">97</icon> <regular style="color: #00ff90">${description}</regular>'],
+            //     parameters: model,
+            //     position: {x: 0, y: 0}
+            // })
+            // model.code = "A12";
+            // model.description = "Description of A12";
+            // await crs.call("gfx_composite", "create", {
+            //     element: this.canvas,
+            //     templates: ['<icon style="color: #ff0000">98</icon> <bold style="color: #0098EE">[${code}]</bold> ${description}'],
+            //     parameters: model,
+            //     position: {x: 0, y: 1}
+            // })
+            // model.code = "A13";
+            // model.description = "Description of A13";
+            // await crs.call("gfx_composite", "create", {
+            //     element: this.canvas,
+            //     templates: ['<icon style="color: #00ff00">98</icon> <bold style="color: #ff0090">[${code}]</bold> ${description}'],
+            //     parameters: model,
+            //     position: {x: 0, y: 2}
+            // })
+            // model.code = "A14";
+            // model.description = "Description of A14";
+            // await crs.call("gfx_composite", "create", {
+            //     element: this.canvas,
+            //     templates: ['<icon style="color: #0000ff">98</icon> <bold style="color: #0098E0">[${code}]</bold> <regular style="color: #ffa07b">${description}</regular>'],
+            //     parameters: model,
+            //     position: {x: 0, y: 3}
+            // })
 
             const meshes = await crs.call("gfx_mesh_factory", "create", {
                 element: this.canvas, mesh: {
@@ -122,16 +122,16 @@ export default class Text extends crsbinding.classes.ViewBase {
                 element: this.canvas,
                 text: "Hello World",
                 position: {x: 0, y: 0},
-                color: {r: 0, g: 0, b:0, a: 1},
+                color: {r: 1, g: 0, b:0, a: 1},
                 attributes: attributes
             })
 
-            await crs.call("gfx_mesh_position", "set_relative_position", {
-                mesh: this.#relativeMesh,
-                target: this.#centerMesh,
-                at: this.position,
-                margin: 0
-            })
+            // await crs.call("gfx_mesh_position", "set_relative_position", {
+            //     mesh: this.#relativeMesh,
+            //     target: this.#centerMesh,
+            //     at: this.position,
+            //     margin: 0
+            // })
 
             //NOTE KR: Need to figure out how to make relative placement work for composite
             // const mesh = await crs.call("gfx_composite", "create", {

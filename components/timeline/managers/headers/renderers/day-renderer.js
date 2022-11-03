@@ -11,12 +11,14 @@ export default class DayRenderer {
 
     #particleSystem;
     #textScale;
-    #bgKey = "month_header_bg"
+    #bgKey = "month_header_bg";
+    #textTheme;
 
     async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
+        this.#textTheme = canvas._theme.row_range3;
 
         const count = 24;
         const multiplier = 2;
@@ -29,12 +31,12 @@ export default class DayRenderer {
             const date = new Date(this.#baseDate.getTime());
             date.setHours(i,0,0);
             const text = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hour12: false });
-            const textMesh = await createHeaderText(text, canvas, 0, 10);
+            const textMesh = await createHeaderText(text, canvas, 0, 10, canvas.__zIndices.headerText);
             this.#particleSystem.add(text, textMesh, textMultiplier, true);
             shapes.push({key:text, count: textMultiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 0.125, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, canvas.__zIndices.headerBorder,0.02, 0.125, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -52,11 +54,12 @@ export default class DayRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return  moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.95);
+            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.95);
         }
 
         if(shape == this.#currentDayText) {
-            return   moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,-0.375, -0.85, this.#textScale)
+            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
+            return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,-0.375, -0.85, this.#textScale)
         }
     }
 }

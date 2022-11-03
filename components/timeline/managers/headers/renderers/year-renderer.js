@@ -12,12 +12,14 @@ export default class YearRenderer {
 
     #particleSystem;
     #textScale;
-    #bgKey = "year_header_bg"
+    #bgKey = "year_header_bg";
+    #textTheme;
 
     async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
+        this.#textTheme = canvas._theme.row_range3;
 
         const count = 11;
         const multiplier = 5;
@@ -28,7 +30,7 @@ export default class YearRenderer {
 
         for (let i = 0; i <= count; i++) {
             const month = new Date(2022,i,1).toLocaleString('default', { month: 'long' });
-            const textMesh = await createHeaderText(month, canvas, 0, 0);
+            const textMesh = await createHeaderText(month, canvas, 0, 0, canvas.__zIndices.headerText);
             this.#particleSystem.add(month, textMesh, multiplier, true);
             shapes.push({key:month, count: multiplier});
         }
@@ -36,12 +38,12 @@ export default class YearRenderer {
         const baseYear = baseDate.getFullYear();
 
         for (let i = baseYear  - 20; i < baseYear + 20; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0);
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0, canvas.__zIndices.headerText);
             this.#particleSystem.add(i.toString(), textMesh, textMultiplier, true);
             shapes.push({key:i.toString(), count: textMultiplier});
         }
 
-        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, 0.02, 1, canvas);
+        const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, canvas.__zIndices.headerBorder, 0.02, 1, canvas);
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
@@ -65,10 +67,12 @@ export default class YearRenderer {
         }
 
         if(shape == this.#currentMonthText) {
+            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.2, -0.35, this.#textScale)
         }
 
         if(this.#currentYearText == shape) {
+            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.6, -0.35, this.#textScale)
         }
     }

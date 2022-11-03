@@ -213,7 +213,7 @@ export function getBounds(mesh) {
         height: height
     }
 }
-
+//TODO KR: Should move to a more general helper/utility file & move some logic out to process api i.e. createClientBoundingRect
 export function getInverseYBounds(mesh) {
     const result = mesh.getBoundingInfo().boundingBox;
     const min = result.minimumWorld;
