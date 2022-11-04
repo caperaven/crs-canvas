@@ -21,8 +21,9 @@
     "clearColor": "#ffffff",
     "header_bg": "#FFFFFF",
     "secondary_header_bg": "#F4F4F4",
-    "header_offset_bg": "#EEEEEE",
-    "header_border": "#DBDBDB",
+    "header_offset_bg": "#F4F4F4",
+    "header_text": "#424242",
+    "header_border": "#DDDDDD",
     "offset_row_bg": "#F9F9F9",
     "row_range1": "#C8E5E1",
     "row_range2": "#16A085",
@@ -32,8 +33,8 @@
     "row_selection_border": "#0276C2"
   },
   "records": [
-    "<regular style=\"color: #757575\">Code: ${code}</regular>",
-    "<icon style=\"color: #757575\">98</icon> <bold style=\"color: #757575\">[${assetCode}]</bold> <regular style=\"color: #757575\">${assetDescription}</regular>",
-    "<icon style=\"color: #757575\">97</icon> <bold style=\"color: #757575\">[${siteCode}]</bold> <regular style=\"color: #757575\">${siteDescription}</regular>"
+    "<regular style=\"color: #424242\">Code: ${code}</regular>",
+    "<icon style=\"color: #424242\">98</icon> <bold style=\"color: #424242\">[${assetCode}]</bold> <regular style=\"color: #424242\">${assetDescription}</regular>",
+    "<icon style=\"color: #424242\">97</icon> <bold style=\"color: #424242\">[${siteCode}]</bold> <regular style=\"color: #424242\">${siteDescription}</regular>"
   ]
 }

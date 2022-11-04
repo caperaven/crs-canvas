@@ -18,7 +18,7 @@ export default class DayRenderer {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
-        this.#textTheme = canvas._theme.row_range3;
+        this.#textTheme = canvas._theme.header_text;
 
         const count = 24;
         const multiplier = 2;
@@ -45,7 +45,6 @@ export default class DayRenderer {
 
     async setCurrent(index, position) {
         // Each timescale is different. So depending on the timescale we need to set the current shape differently
-
         const date = new Date(this.#baseDate.getTime() + (index * 30) * 60000);
         this.#currentDayText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hour12: false });
         this.#currentPosition = position;

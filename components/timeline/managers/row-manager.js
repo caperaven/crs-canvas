@@ -80,15 +80,16 @@ export class RowManager {
      */
     async #initVirtualization(canvas, scene, items, scale) {
         const addCallback = async (position, index) => {
-            const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 1;
-            const textScale = {x: 0.225, y: 0.225, z: 1};
+            const rowOffset = canvas.__yOffsets.retrieveOffset(this.#scale, "row");
 
             if (index < 0) return;
             const item = items[index];
 
             let shapes = [];
             for (const shape of this.#configuration.shapes) {
-                if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) continue;
+                if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) {
+                    continue
+                };
                 shapes.push(await this.#drawShape(canvas, shape, item, position, index));
             }
 
@@ -96,9 +97,9 @@ export class RowManager {
                 element: canvas,
                 templates: this.#configuration.records,
                 parameters: item,
-                position: {x: 0.25, y: -rowOffset - position, z: -0.001},
-                rowSize: 1,
-                scale: textScale,
+                position: {x: 0.25, y: -rowOffset - position, z: 0},
+                margin: {x: 0, y: 0.4, z: canvas.__zIndices.rowText},
+                scale: {x: 0.25, y: 0.25, z: 1},
                 id: `composite_${position}`
             })
             parentText.isText = true;
@@ -115,7 +116,8 @@ export class RowManager {
         }
 
         scene.onBeforeRenderObservable.addOnce(async () => {
-            this.#virtualization = new StaticVirtualization(1, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
+            //TODO KR: create row size variable on canvas
+            this.#virtualization = new StaticVirtualization(canvas.__rowSize, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
             await this.#virtualization.draw(0);
 
         });
@@ -203,8 +205,9 @@ export class RowManager {
      * This generates the rows background mesh that shows every other row.
      */
     async #createOffsetRows(itemCount, canvas) {
-        const yOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 2;
-        const offsetRowMesh = await this.#createOffsetRowMesh(1, yOffset, canvas);
+        const yOffset = canvas.__yOffsets.retrieveOffset(this.#scale, "offset_row")
+
+        const offsetRowMesh = await this.#createOffsetRowMesh(canvas.__rowSize, yOffset, canvas);
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
         const rowOffsetColors = new Float32Array(4 * offsetRowCount);
@@ -214,12 +217,14 @@ export class RowManager {
         let color = BABYLON.Color3.FromHexString(canvas._theme.offset_row_bg);
         // Render offset row instances
         const headerOffset = 1;
+        let nextPosition = 0;
         for (let i = 0; i < offsetRowCount; i++) {
-            const y = -i - headerOffset;
+            const y = -nextPosition - headerOffset;
 
             const matrix = BABYLON.Matrix.Translation(0, y * 2, 0);
             matrix.copyToArray(rowOffsetMatrices, i * 16);
             colors.push(...[color.r, color.g, color.b, 1]);
+            nextPosition += canvas.__rowSize
         }
 
         rowOffsetColors.set(colors);

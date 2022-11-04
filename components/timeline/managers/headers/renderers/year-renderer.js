@@ -14,12 +14,26 @@ export default class YearRenderer {
     #textScale;
     #bgKey = "year_header_bg";
     #textTheme;
+    #monthToYearOffset = Object.freeze({
+        "January":  1.4,
+        "February": 1.55,
+        "March": 1.15,
+        "April": 1,
+        "May": 0.85,
+        "June": 1,
+        "July": 0.9,
+        "August": 1.3,
+        "September": 1.8,
+        "October": 1.45,
+        "November": 1.7,
+        "December": 1.7,
+    })
 
     async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
-        this.#textTheme = canvas._theme.row_range3;
+        this.#textTheme = canvas._theme.header_text;
 
         const count = 11;
         const multiplier = 5;
@@ -30,7 +44,7 @@ export default class YearRenderer {
 
         for (let i = 0; i <= count; i++) {
             const month = new Date(2022,i,1).toLocaleString('default', { month: 'long' });
-            const textMesh = await createHeaderText(month, canvas, 0, 0, canvas.__zIndices.headerText);
+            const textMesh = await createHeaderText(month, canvas, 0, 0, canvas.__zIndices.headerText, null, true);
             this.#particleSystem.add(month, textMesh, multiplier, true);
             shapes.push({key:month, count: multiplier});
         }
@@ -73,7 +87,7 @@ export default class YearRenderer {
 
         if(this.#currentYearText == shape) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
-            return moveParticle(this.#distanceSystem, particle, shape,  this.#currentPosition,1.6, -0.35, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, this.#monthToYearOffset[this.#currentMonthText], -0.35, this.#textScale)
         }
     }
 }

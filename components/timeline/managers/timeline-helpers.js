@@ -16,7 +16,7 @@ export async function createRect(id, color, x, y, z = 0, width, height, canvas, 
     return meshes[0];
 }
 
-export async function createHeaderText(text, canvas, x, y, z = 0, scale) {
+export async function createHeaderText(text, canvas, x, y, z = 0, scale, bold = false) {
     const min = 0.1;
     const max = 1.25;
 
@@ -25,6 +25,7 @@ export async function createHeaderText(text, canvas, x, y, z = 0, scale) {
             element: canvas,
             text: text,
             position: {x: x, y: y, z: z},
+            bold: bold,
             attributes: [
                 {
                     fn: "Float",
