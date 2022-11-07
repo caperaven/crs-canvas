@@ -36,11 +36,12 @@ export class SelectionManager {
     }
 
     async #click(event) {
-        let offset = 0; // TODO Change this to use canvas y offset
+        let offset = this.#canvas.y_offset;
 
         const engine = this.#canvas.__engine;
         const scene = this.#canvas.__layers[0];
         const screenPosition = new BABYLON.Vector3(scene.pointerX, scene.pointerY, 1);
+
         const vector = BABYLON.Vector3.Unproject(
             screenPosition,
             engine.getRenderWidth(),
@@ -50,7 +51,7 @@ export class SelectionManager {
             scene.getProjectionMatrix()
         );
 
-        this.#mesh.position.y =  Math.ceil(vector.y) - offset;
-        this.#selectionCallback(event, (Math.ceil(vector.y)/-1)-1);
+        this.#mesh.position.y = (Math.trunc((vector.y - offset) / this.#canvas.__rowSize) * this.#canvas.__rowSize) - (this.#canvas.__rowSize / 2) + offset;
+        this.#selectionCallback(event, (-(Math.trunc((vector.y - offset) / this.#canvas.__rowSize)) - 1));
     }
 }
