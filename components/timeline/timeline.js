@@ -87,8 +87,16 @@ export class Timeline extends HTMLElement {
         this.#baseDate = new Date(new Date().toDateString());
         this.#headerManager = new VirtualizationHeaderManager(this.#canvas);
         this.#setYOffset();
-        this.#selectionManager = new SelectionManager(this.#canvas, (index)=> {
-            this.dispatchEvent(new CustomEvent("selection-changed", {detail: {item: this.#data[index], index}}));
+        this.#selectionManager = new SelectionManager(this.#canvas, (event, index) => {
+
+            this.selectedItem = this.#data[index];
+            this.selectedIndex = index;
+            this.dispatchEvent(new CustomEvent("selection-changed", {
+                detail: {
+                    item: this.selectedItem,
+                    index: this.selectedIndex
+                }
+            }));
         });
 
         await crs.call("gfx_timeline_manager", "initialize", {
@@ -98,7 +106,7 @@ export class Timeline extends HTMLElement {
         });
 
         this.#canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
-        
+
         await crs.call("gfx_text", "initialize", {element: this.#canvas});
         await crs.call("gfx_icons", "initialize", {element: this.#canvas});
 
@@ -108,14 +116,18 @@ export class Timeline extends HTMLElement {
         const camera = this.#canvas.__camera;
         await configureCamera(camera, scene);
         this.#selectionManager.init(this.#canvas);
+        this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
     }
 
     async render(items) {
         if (items == null || items.length === 0) return;
 
-        this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
+        if (this.#data != null) {
+            this.#rowManager.dispose(this.#canvas);
+            this.#rowManager = new RowManager(this.#configuration)
+        }
 
-        this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
+        this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
 
         this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
     }
@@ -123,7 +135,7 @@ export class Timeline extends HTMLElement {
     async setScale(scale) {
         if (this.#scale === scale) return;
         this.#scale = scale;
-        if(this.#data != null) {
+        if (this.#data != null) {
             this.#setYOffset();
             await this.clean();
             await this.draw();
@@ -150,6 +162,11 @@ export class Timeline extends HTMLElement {
         }
         await this.#rowManager.clean(this.#canvas, scene);
         await this.#headerManager.removeHeaders();
+    }
+
+    async update(index, item) {
+        const position = this.data[index].__position;
+        await this.#rowManager.redrawAtPosition(position, index,item,this.#canvas);
     }
 }
 

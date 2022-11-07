@@ -85,48 +85,15 @@ class CameraFactory {
         return camera;
     }
 
-
-    static pan2(parts, scene) {
-        const allowXPan = Number(parts[1] || 1);
-        const allowYPan = Number(parts[2] || 1);
-
-        const target = new BABYLON.Vector3(0, 0, 0);
-
-        const halfPI = Math.PI / 2;
-        const camera = new BABYLON.ArcRotateCamera("camera", -halfPI,halfPI, 9, target, scene);
-
-        camera.zoomToMouseLocation = true;
-        camera.upperAlphaLimit = -halfPI;
-        camera.lowerAlphaLimit = -halfPI;
-        camera.upperBetaLimit = halfPI;
-        camera.lowerBetaLimit = halfPI;
-        camera.wheelPrecision = 20;
-        camera.lowerRadiusLimit = 2;
-        camera.upperRadiusLimit = 50;
-        camera.panningAxis = new BABYLON.Vector3(allowXPan, allowYPan, 0);
-
-        let prevRadius = camera.radius;
-        scene.onBeforeRenderObservable.add(() => {
-            let ratio = 0;
-            if (prevRadius != camera.radius) {
-                ratio = prevRadius / camera.radius;
-                prevRadius = camera.radius;
-                camera.panningSensibility *= ratio;
-                camera.wheelPrecision *= ratio;
-            }
-        });
-
-        return camera;
-    }
-
     static async custom_pan(parts, scene) {
         //WIP
-        const camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, -15), scene);
+        const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 0, -15), scene);
 
         camera.attachControl(scene, true);
         camera.inputs.remove(camera.inputs.attached.mouse);
-
         camera._input =  new CustomPanInput(scene, camera);
+        camera.inputs.attached.keyboard.keysDown = [];
+        camera.inputs.attached.keyboard.keysUp = [];
         camera.__forceDisableControls = true;
         camera.minZ = 1;
         camera.maxZ = 15;

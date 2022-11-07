@@ -3,7 +3,6 @@
 @import "./lib/footer.css";
 @import "./lib/header.css";
 @import "./lib/main.css";
-@import "./lib/icons.css";
 @import "./lib/buttons.css";
 @import "./lib/aside.css";
 @import "./lib/color-classes.css";
@@ -33,9 +32,12 @@
 }
 
 *:focus {
-    border: solid 1px var(--cl-focus-dark);
+    border: solid 1px var(--blue);
 }
 
+*[disabled] {
+    cursor: not-allowed !important;
+}
 
 i {
     font-style: normal;

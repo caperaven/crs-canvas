@@ -32,6 +32,7 @@ export class VirtualizationHeaderManager {
         const height = scale !== TIMELINE_SCALE.YEAR ? 1.02 : 0.52
         this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -height / 2, canvas.__zIndices.bgBorderMesh, 9999999, height, canvas, false);
         this.#bgBorderMesh.height = height;
+        this.#bgBorderMesh.position.y = camera.position.y - (this.#bgBorderMesh.height / 2) - camera.offset_y;
     }
 
     async init(baseDate, scale, canvas, scene) {

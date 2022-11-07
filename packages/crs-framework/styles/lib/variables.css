@@ -6,24 +6,41 @@ html {
 
     /* form */
     --cl-text: #272C37;
+    --window: white;
 
-    --cl-focus-dark: #0276C2;
-    --cl-focus-light: #ECF7FF;
+    --blue: #0276C2;
+    --blue-s1: #B9D8EC;
+    --blue-s2: #ECF7FF;
 
-    --cl-required-dark: #F97825;
-    --cl-required-light: #FFF9DD;
+    --red: #E00000;
+    --red-s1: #ED7D7D;
+    --red-s2: #F2AFAF;
+    --red-s3: #FBF3F3;
 
-    --cl-error-dark: #E00000;
-    --cl-error-light: #FBF3F3;
+    --green: #76C422;
+    --green-s1: #B8DF8E;
+    --green-s2: #E8F8D9;
 
-    --cl-success-dark: #76C422;
-    --cl-success-light: #E8F8D9;
+    --greensea: #16A085;
+    --greensea-s1: #C8E5E1;
 
-    --cl-readonly-dark: #ffffff;
-    --cl-readonly-light: #ffffff;
+    --orange: #F97825;
+    --orange-s1: #F9B98F;
+    --orange-s2: #FAD3BA;
 
-    --cl-border: #DDDDDD;
-    --cl-panel: #EEEEEE;
+    --yellow: #F1C40F;
+    --yellow-s1: #FBE381;
+    --yellow-s2: #FFF9DD;
+
+    --grey: #272C37;
+    --grey-s1: #757575;
+    --grey-s2: #DADADA;
+    --grey-s3: #F4F4F4;
+    --grey-surface: #F4F4F4;
+    --grey-s4: #F4F6F8;
+
+    --alt-fg: #FFFFFF;
+    --cl-li-hover: #EEEEEE;
 
     /* sizes */
     --border-width: 1px;
@@ -34,5 +51,6 @@ html {
     --inline-label-length: 10rem;
 
     /* complex */
-    --border: var(--border-width) solid var(--cl-border);
+    --border: var(--border-width) solid var(--grey-s2);
+    --drop-shadow: drop-shadow(0px 2px 3px silver);
 }

@@ -25,7 +25,7 @@ export async function init() {
     await import(crs_modules);
 
     const processModule = await import(crs_process);
-    processModule.initialize(`${packages}/crs-process-api`);
+    await processModule.initialize(`${packages}/crs-process-api`);
 }
 
 async function getPackagesFolder() {

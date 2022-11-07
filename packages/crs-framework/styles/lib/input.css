@@ -5,27 +5,29 @@ input {
     border-radius: var(--radius);
     height: var(--input-height);
     position: relative;
+    border-width: 1px;
+    border-style: solid;
 }
 
 input:required:placeholder-shown {
-    border-color: var(--cl-required-dark);
-    background-color: var(--cl-required-light);
+    border-color: var(--orange);
+    background-color: var(--yellow-s2);
 }
 
 input:focus, input:required:placeholder-shown:focus {
     border: var(--border);
-    border-color: var(--cl-focus-dark);
-    background-color: var(--cl-focus-light);
+    border-color: var(--blue);
+    background-color: var(--blue-s2);
 }
 
 input:invalid {
-    border-color: var(--cl-error-dark);
-    background-color: var(--cl-error-light);
+    border-color: var(--red);
+    background-color: var(--red-s3);
 }
 
 input:valid {
-    border-color: var(--cl-success-dark);
-    background-color: var(--cl-success-light);
+    border-color: var(--green);
+    background-color: var(--green-s2);
 }
 
 input::-webkit-outer-spin-button,

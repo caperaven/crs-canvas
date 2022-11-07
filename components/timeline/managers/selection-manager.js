@@ -11,10 +11,12 @@ export class SelectionManager {
         this.#selectionCallback = selectionCallback;
         this.#clickHandler = this.#click.bind(this);
         canvas.addEventListener("click", this.#clickHandler);
+        canvas.addEventListener("contextmenu", this.#clickHandler);
     }
 
     dispose() {
-        this.#canvas.removeEventListener(this.#clickHandler);
+        this.#canvas.removeEventListener("click",this.#clickHandler);
+        this.#canvas.removeEventListener("contextmenu",this.#clickHandler);
         this.#clickHandler = null;
         this.#clickHandler = null;
         this.#mesh = this.#mesh.dispose();
@@ -33,7 +35,7 @@ export class SelectionManager {
         this.#mesh.position.y = 999 // We need to remove this when selection is recalc on scale change
     }
 
-    async #click() {
+    async #click(event) {
         let offset =  1.5  - this.#canvas.y_offset; // TODO Change this to use canvas y offset
 
         const engine = this.#canvas.__engine;
@@ -48,9 +50,7 @@ export class SelectionManager {
             scene.getProjectionMatrix()
         );
 
-        console.log(Math.ceil(vector.y + offset));
-
         this.#mesh.position.y =  Math.ceil(vector.y) - offset;
-        this.#selectionCallback((Math.ceil(vector.y)/-1)-1);
+        this.#selectionCallback(event, (Math.ceil(vector.y)/-1)-1);
     }
 }

@@ -38,3 +38,35 @@ function getWorkOrders() {
 }
 
 export const workOrderSamples = getWorkOrders();
+
+export function getRandomData(value = 0) {
+
+    let result = [];
+
+    const getStartDate = ()=> {
+        return `2022/1${value}/${value}${randomIntFromInterval(1,9)} 12:00:00.000`;
+    }
+
+    const getEndDate = ()=> {
+        return `2022/1${value}/2${randomIntFromInterval(1,9)} 12:00:00.000`;
+    }
+
+    for (let i = 0; i < 100000; i++) {
+        result.push({
+            "index": i,
+            "code": `Code #${i}`,
+            "assetCode": `Asset Code #${i}`,
+            "assetDescription": `Asset Desc #${i}`,
+            "siteCode": `Site Code #${i}`,
+            "siteDescription": `Site Desc #${i}`,
+            "startOn": getStartDate(),
+            "completeBy": getEndDate(),
+            "receivedOn": getStartDate(),
+            "requiredBy": getEndDate(),
+            "workStartedOn":getStartDate(),
+            "completedOn": getEndDate()
+        })
+    }
+return result;
+
+}

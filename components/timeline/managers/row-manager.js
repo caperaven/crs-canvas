@@ -12,6 +12,7 @@ export class RowManager {
     #virtualization;
     #scale;
     #currentX;
+    #cameraObserver;
     #shapeConfig = Object.freeze({
         "pillar": {
             barHeight: 0.4,
@@ -43,10 +44,12 @@ export class RowManager {
         this.#configuration = config;
     }
 
-    dispose() {
+    dispose(canvas) {
         this.#configuration = null;
         this.#virtualization = this.#virtualization.dispose();
         this.#shapeConfig = null;
+        canvas.__camera.onViewMatrixChangedObservable.remove(this.#cameraObserver);
+        this.#cameraObserver = null;
     }
 
     /**
@@ -72,13 +75,13 @@ export class RowManager {
         this.#scale = scale;
 
         await this.#createOffsetRows(itemCount, canvas, scale);
-        await this.#initVirtualization(canvas, scene, items, scale);
+        await this.#initVirtualization(canvas, scene, items);
     }
 
     /**
      * Start the virtualization process.
      */
-    async #initVirtualization(canvas, scene, items, scale) {
+    async #initVirtualization(canvas, scene, items) {
         const addCallback = async (position, index) => {
             const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 1;
             const textScale = {x: 0.225, y: 0.225, z: 1};
@@ -116,26 +119,15 @@ export class RowManager {
 
         scene.onBeforeRenderObservable.addOnce(async () => {
             this.#virtualization = new StaticVirtualization(1, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
-            await this.#virtualization.draw(0);
+            await this.#draw(canvas);
+
+            this.#setTextPositions(canvas);
 
         });
 
-        canvas.__camera.onViewMatrixChangedObservable.add(() => {
+        this.#cameraObserver = canvas.__camera.onViewMatrixChangedObservable.add(() => {
             this.#draw(canvas);
-
-            this.#currentX = canvas.__camera.position.x - canvas.__camera.offset_x;
-            const instances = this.#virtualization?.instances;
-            if (instances == null) return;
-
-            const keys = Object.keys(instances);
-            for (const key of keys) {
-                if (instances[key] == null) continue;
-                for (const shape of instances[key]) {
-                    if (shape.isText) {
-                        shape.position.x = this.#currentX;
-                    }
-                }
-            }
+            this.#setTextPositions(canvas);
         });
     }
 
@@ -143,10 +135,28 @@ export class RowManager {
         this.#scale = scale;
         await this.#createOffsetRows(count, canvas, scale)
         await this.#draw(canvas);
+        this.#setTextPositions(canvas);
     }
 
     async #draw(canvas) {
         await this.#virtualization.draw(( canvas.__camera.position.y - canvas.__camera.offset_y) / -1);
+
+    }
+
+    #setTextPositions(canvas) {
+        this.#currentX = canvas.__camera.position.x - canvas.__camera.offset_x;
+        const instances = this.#virtualization?.instances;
+        if (instances == null) return;
+
+        const keys = Object.keys(instances);
+        for (const key of keys) {
+            if (instances[key] == null) continue;
+            for (const shape of instances[key]) {
+                if (shape.isText) {
+                    shape.position.x = this.#currentX;
+                }
+            }
+        }
     }
 
     /**

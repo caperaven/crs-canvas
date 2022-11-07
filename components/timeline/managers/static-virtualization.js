@@ -27,6 +27,9 @@ export class StaticVirtualization {
     }
 
     dispose() {
+        for (const key of Object.keys(this.#instances)) {
+            this.#removeCallback(this.#instances[key]);
+        }
         this.#size = null;
         this.#roundValue = null;
         this.#instances = null;

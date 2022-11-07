@@ -14,7 +14,9 @@
         <button click.call="setScale('week')">Week</button>
         <button click.call="setScale('month')">Month</button>
         <button click.call="setScale('year')">Year</button>
+        <button click.call="resetData(0)">First Data</button>
+        <button click.call="resetData(1)">Second Data</button>
     </div>
 
-    <crs-timeline ready.call="setTimelineData" data-config="./app/timeline/shapes.json" data-scale="month"></crs-timeline>
+    <crs-timeline id="timeline" ready.call="setTimelineData" contextmenu.call="showContextMenu" data-config="./app/timeline/shapes.json" data-scale="month"></crs-timeline>
 </div>

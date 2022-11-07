@@ -4036,6 +4036,8 @@ var StaticInflationManager = class {
     await this.inflateElements(element.children, context);
   }
   async #parseTextContent(element, context) {
+    if (element.children.length > 0)
+      return;
     if (element.textContent.indexOf("&{") != -1) {
       return element.textContent = await crsbinding.translations.get_with_markup(element.textContent);
     }

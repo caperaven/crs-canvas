@@ -5,6 +5,13 @@ import {find, findAll, createQueryFunction} from "./query.js";
 import {EventMock} from "./event-mock.js";
 
 export class ElementMock {
+    static async from(tag, innerHTML, id, parentElement) {
+        const instance = new ElementMock(tag, id, parentElement);
+        instance.innerHTML = innerHTML;
+        createMockChildren(instance);
+        return instance;
+    }
+
     constructor(tag, id, parentElement) {
         mockElement(this, tag, id, parentElement);
 
@@ -15,12 +22,17 @@ export class ElementMock {
 }
 
 export function mockElement(instance, tag, id) {
+    if (instance.__events != null) {
+        return instance;
+    }
+
     instance.__events = [];
     instance.queryResults = {};
 
     instance.nodeName = (tag || "div").toUpperCase();
     instance.id = id;
     instance.name = id;
+    instance.tagName = instance.nodeName;
 
     instance.textContent = "";
     instance.innerText = "";
@@ -51,6 +63,7 @@ export function mockElement(instance, tag, id) {
 
     Object.defineProperty(instance, "firstElementChild", {
         get() {
+            if (this.children == null) return null;
             if (this.children.length == 0) return null;
             return this.children[0];
         }
@@ -58,6 +71,8 @@ export function mockElement(instance, tag, id) {
 
     Object.defineProperty(instance, "nextElementSibling", {
         get() {
+            if (this.parentElement == null) return null;
+
             const index = this.parentElement.children.indexOf(this);
             return this.parentElement.children[index + 1];
         }
@@ -65,6 +80,8 @@ export function mockElement(instance, tag, id) {
 
     Object.defineProperty(instance, "previousElementSibling", {
         get() {
+            if (this.parentElement == null) return null;
+
             const index = this.parentElement.children.indexOf(this);
             return this.parentElement.children[index - 1];
         }
@@ -83,6 +100,19 @@ export function mockElement(instance, tag, id) {
         }
     })
 
+    Object.defineProperty(instance, "textContent", {
+        enumerable: true,
+        configurable: true,
+        get() {
+            const childText = this.children.map(c => c.textContent).join(" ");
+            return childText + (this._textContent ?? "");
+        },
+        set(newValue) {
+            this._textContent = newValue;
+            instance.children.length = 0;
+        }
+    });
+
     return instance;
 }
 
@@ -100,25 +130,38 @@ function getAttribute(attr) {
 }
 
 function setAttribute(attr, value) {
-    const attrObj = {
-        name: attr,
-        value: value,
-        ownerElement: this
-    };
+    let hasAttr = true;
+    let attrObj = this.attributes.find(item => item.name == attr);
+    let oldValue = "";
 
-    const old = this.getAttribute(attr);
-    this.attributes.push(attrObj);
+    if (attrObj == null) {
+        attrObj = {
+            name: attr,
+            value: value,
+            ownerElement: this
+        };
+        hasAttr = false;
+    } else {
+        oldValue = attrObj.value;
+        attrObj.value = value
+    }
+
+    if (hasAttr == false) {
+        this.attributes.push(attrObj);
+    }
 
     if (this["attributeChangedCallback"] != null) {
-        this["attributeChangedCallback"](attr, old.value, value);
+        this["attributeChangedCallback"](attr, oldValue, value);
     }
 }
 
-function removeAttribute (attr) {
+function removeAttribute(attr) {
     const attrObj = this.attributes.find(item => item.name == attr);
 
     if (attrObj != null) {
         const index = this.attributes.indexOf(attrObj);
+        if (index == -1) return;
+
         this.attributes.splice(index, 1);
         attrObj.ownerElement = null;
     }
