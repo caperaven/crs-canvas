@@ -27,10 +27,27 @@ export class Timeline extends HTMLElement {
         headerBorder: -0.003,
         headerBg: -0.003,
         headerText: -0.004,
-        rowShape: -0.0007,
+        rowShape: -0.0005,
+        rowText: -0.0006,
         offsetRow: 0,
         selectionMesh: -0.0001,
     })
+    #yOffsets = Object.freeze({
+        default_header: 1,
+        year_header: 0.5,
+        default_row: 1.25,
+        year_row: 0.75,
+        default_offset_row: 1.65,
+        year_offset_row: 2.15,
+        default_selection: 0,
+        year_selection: 0,
+        retrieveOffset: (scale, offset) => {
+            const item = `${scale}_${offset}`;
+            const result = this.#yOffsets[item] != null ? this.#yOffsets[item] : this.#yOffsets[`default_${offset}`];
+            return result;
+        }
+    })
+    #rowSize = 1.25;
 
     static get observedAttributes() {
         return ["data-scale"];
@@ -45,6 +62,8 @@ export class Timeline extends HTMLElement {
         requestAnimationFrame(async () => {
             this.#canvas = this.querySelector("canvas") || this.canvas;
             this.#canvas.__zIndices = this.#zIndices;
+            this.#canvas.__rowSize = this.#rowSize;
+            this.#canvas.__yOffsets = this.#yOffsets;
 
             const ready = async () => {
                 await crs.call("gfx_theme", "set", {
@@ -144,7 +163,7 @@ export class Timeline extends HTMLElement {
 
     #setYOffset() {
         if (this.#canvas == null) return;
-        this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? 1 : 0.5;
+        this.#canvas.y_offset = this.#yOffsets.retrieveOffset(this.#scale, "selection");
     }
 
     async draw() {

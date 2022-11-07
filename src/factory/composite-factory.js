@@ -59,14 +59,11 @@ class CompositeFactory {
     /**
      * Create multiple lines from template strings as shown above
      */
-    static async createRows(canvas, parentNode, templates, parameters, startingPosition, rowSize, scale) {
-        const numberOfLines = templates.length;
-
-        const lineSegmentPosition = (rowSize / (numberOfLines + 1)) / scale.y;
-        let currentPositionY = (startingPosition.y / scale.y) + lineSegmentPosition;
+    static async createRows(canvas, parentNode, templates, parameters, startingPosition, itemMargin, scale) {
+        let currentYPosition = ((startingPosition.y / scale.y) - (scale.y));
         for (const template of templates) {
-            await this.createLine(canvas, parentNode, template, parameters,{x: startingPosition.x, y: currentPositionY, z: startingPosition.z});
-            currentPositionY -= lineSegmentPosition;
+            await this.createLine(canvas, parentNode, template, parameters,{x: (startingPosition.x / scale.x) + itemMargin.x, y: currentYPosition, z: (startingPosition.z / scale.z) + itemMargin.z});
+            currentYPosition -= 1 + itemMargin.y;
         }
     }
 }
@@ -80,8 +77,8 @@ export class CompositeFactoryActions {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const templates = await crs.process.getValue(step.args.templates, context, process, item);
         const parameters = await crs.process.getValue(step.args.parameters, context, process, item);
-        const position = await crs.process.getValue(step.args.position || {x: 0, y: 0, z: 0}, context, process, item);
-        const rowSize = await crs.process.getValue(step.args.rowSize || 1, context, process, item);
+        const position = await crs.process.getValue(step.args.position || new BABYLON.Vector3(0, 0, 0), context, process, item);
+        const itemMargin = await crs.process.getValue(step.args.margin || new BABYLON.Vector3(0, 0, 0), context, process, item);
         const scale = await crs.process.getValue(step.args.scale || new BABYLON.Vector3(1, 1, 1), context, process, item);
         const parentId = await crs.process.getValue(step.args.id || "root", context, process, item);
 
@@ -89,7 +86,7 @@ export class CompositeFactoryActions {
         parentNode.scaling.x = scale.x;
         parentNode.scaling.y = scale.y;
         parentNode.scaling.z = scale.z;
-        await CompositeFactory.createRows(canvas, parentNode, templates, parameters, position, rowSize, scale);
+        await CompositeFactory.createRows(canvas, parentNode, templates, parameters, position, itemMargin, scale);
         return parentNode;
     }
 }

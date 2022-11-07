@@ -7,6 +7,7 @@ import {ParticleHeader} from "./particle-header.js";
 
 export class VirtualizationHeaderManager {
     #bgBorderMesh;
+    #splittingBorder
     #cameraObserver;
     #headers;
 
@@ -24,15 +25,25 @@ export class VirtualizationHeaderManager {
 
         this.#bgBorderMesh.dispose();
         this.#bgBorderMesh = null;
+
+        this.#splittingBorder?.dispose();
+        this.#splittingBorder = null;
     }
 
     async createHeaders(baseDate, scale, canvas) {
         this.#headers = await HeaderFactory[scale](baseDate, scale, canvas);
 
-        const height = scale !== TIMELINE_SCALE.YEAR ? 1.02 : 0.52
-        this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, -height / 2, canvas.__zIndices.bgBorderMesh, 9999999, height, canvas, false);
+        const height = canvas.__yOffsets.retrieveOffset(scale, "header");
+        this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, (-height / 2), canvas.__zIndices.bgBorderMesh, 9999999, height, canvas, false);
         this.#bgBorderMesh.height = height;
         this.#bgBorderMesh.position.y = camera.position.y - (this.#bgBorderMesh.height / 2) - camera.offset_y;
+        this.#bgBorderMesh.enableEdgesRendering();
+        this.#bgBorderMesh.edgesWidth = 1.0;
+        this.#bgBorderMesh.edgesColor = BABYLON.Color4.FromHexString(canvas._theme.header_border);
+
+        if (scale !== TIMELINE_SCALE.YEAR) {
+            await this.#createSplittingBorder(canvas);
+        }
     }
 
     async init(baseDate, scale, canvas, scene) {
@@ -49,7 +60,8 @@ export class VirtualizationHeaderManager {
     #addCameraObserver(canvas) {
         this.#cameraObserver = canvas.__camera.onViewMatrixChangedObservable.add(async (camera) => {
             const position = camera.position.x - camera.offset_x;
-            this.#bgBorderMesh.position.y = camera.position.y - (this.#bgBorderMesh.height / 2) - camera.offset_y;
+            this.#bgBorderMesh.position.y = camera.position.y - camera.offset_y - ((this.#bgBorderMesh.height / 2));
+            if (this.#splittingBorder != null) this.#splittingBorder.position.y = camera.position.y - camera.offset_y - 0.5;
 
             for (const header of this.#headers) {
                 await header.draw(position);
@@ -60,6 +72,22 @@ export class VirtualizationHeaderManager {
     #removeCameraObserver(canvas) {
         canvas.__camera.onViewMatrixChangedObservable.remove(this.#cameraObserver);
         this.#cameraObserver = null;
+    }
+
+    async #createSplittingBorder(canvas) {
+        this.#splittingBorder = BABYLON.MeshBuilder.CreateLines("lines", {
+            points: [
+                new BABYLON.Vector3(-999, 0, 0),
+                new BABYLON.Vector3(999, 0, 0),
+            ],
+            colors: [
+                BABYLON.Color4.FromHexString(canvas._theme.header_border),
+                BABYLON.Color4.FromHexString(canvas._theme.header_border)
+            ],
+            updatable: true
+        });
+        this.#splittingBorder.position.y = -0.5;
+        this.#splittingBorder.position.z = canvas.__zIndices.bgBorderMesh;
     }
 }
 

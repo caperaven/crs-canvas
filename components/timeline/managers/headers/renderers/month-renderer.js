@@ -20,7 +20,7 @@ export default class MonthRenderer {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
-        this.#textTheme = canvas._theme.row_range3;
+        this.#textTheme = canvas._theme.header_text;
 
         const count = 31;
         const multiplier = 2;
@@ -30,7 +30,7 @@ export default class MonthRenderer {
         const shapes = [];
 
         for (let i = 1; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10, canvas.__zIndices.headerText);
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 10, canvas.__zIndices.headerText, null, true);
             this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
             shapes.push({key:i.toString(), count: multiplier});
         }
@@ -40,8 +40,8 @@ export default class MonthRenderer {
         shapes.push({key: this.#bgKey, count: bgCount});
 
         const weekdayBg = await createRect(this.#weekdayBgKey, canvas._theme.header_bg, 0, 0, canvas.__zIndices.headerBg,0.985, 0.5, canvas);
-        this.#particleSystem.add(this.#weekdayBgKey, weekdayBg,weekdayBgCount, true);
-            shapes.push({key: this.#weekdayBgKey, count: weekdayBgCount});
+        this.#particleSystem.add(this.#weekdayBgKey, weekdayBg, weekdayBgCount, true);
+        shapes.push({key: this.#weekdayBgKey, count: weekdayBgCount});
 
         this.#distanceSystem = new DistanceSystem(shapes, multiplier);
     }

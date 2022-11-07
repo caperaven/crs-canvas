@@ -21,7 +21,6 @@ function getDate(min, max) {
         value = `0${value}`;
     }
 
-
     return `2022/11/${value} 12:00:00.000`;
 }
 

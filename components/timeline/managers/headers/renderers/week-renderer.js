@@ -13,23 +13,26 @@ export default class WeekRenderer {
     #particleSystem;
     #textScale;
     #bgKey = "week_header_bg";
+    #weekdayBgKey = "weekend_bg"
+    #isWeekday;
     #textTheme;
 
     async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
-        this.#textTheme = canvas._theme.row_range3;
+        this.#textTheme = canvas._theme.header_text;
 
         const count = 31;
         const multiplier = 2;
         const textMultiplier = 8;
         const bgCount =  2 * count;
+        const weekdayBgCount =  2 * count;
 
         const shapes = [];
 
         for (let i = 0; i <= count; i++) {
-            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0, canvas.__zIndices.headerText);
+            const textMesh = await createHeaderText(i.toString(), canvas, 0, 0, canvas.__zIndices.headerText, null, true);
             this.#particleSystem.add(i.toString(), textMesh, multiplier, true);
             shapes.push({key:i.toString(), count: multiplier});
         }
@@ -47,6 +50,10 @@ export default class WeekRenderer {
         this.#particleSystem.add(this.#bgKey, bgMesh,bgCount, true);
         shapes.push({key: this.#bgKey, count: bgCount});
 
+        const weekdayBg = await createRect(this.#weekdayBgKey, canvas._theme.header_bg, 0, 0, canvas.__zIndices.headerBg,3.985, 0.5, canvas);
+        this.#particleSystem.add(this.#weekdayBgKey, weekdayBg, weekdayBgCount, true);
+        shapes.push({key: this.#weekdayBgKey, count: weekdayBgCount});
+
         this.#distanceSystem = new DistanceSystem(shapes, multiplier);
     }
 
@@ -57,6 +64,8 @@ export default class WeekRenderer {
         this.#currentDayNumber = date.getDate();
         this.#currentDayText = date.toLocaleString('en-us', {weekday:'long'});
         this.#currentPosition = position;
+        const day = date.getDay();
+        this.#isWeekday = day !== 0 && day !== 6;
     }
 
     async move(particle) {
@@ -73,6 +82,10 @@ export default class WeekRenderer {
         if(this.#currentDayNumber == shape) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, -2.8, -0.85, this.#textScale)
+        }
+
+        if(this.#weekdayBgKey === shape && this.#isWeekday === true) {
+            return moveParticle(this.#distanceSystem, particle, this.#weekdayBgKey, this.#currentPosition,-1, -0.75);
         }
     }
 }
