@@ -57,10 +57,10 @@ export class Timeline extends HTMLElement {
                         year_header: 0.5,
                         default_row: 1.25,
                         year_row: 0.75,
-                        default_offset_row: 1.65,
+                        default_offset_row: 1.6,
                         year_offset_row: 2.15,
-                        default_selection: 0,
-                        year_selection: 0
+                        default_selection: 0.25,
+                        year_selection: -0.5
                     }
                 }
             });
