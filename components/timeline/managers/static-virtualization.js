@@ -73,9 +73,6 @@ export class StaticVirtualization {
 
     async #drawForCurrent() {
         const startPoint = Math.floor(this.#position / this.#size) * this.#size;
-        const endPoint = startPoint + this.#size;
-
-        if (this.#position > startPoint && this.#position < endPoint) return;
 
         const startDrawPosition = startPoint - this.#buffer;
         const endDrawPosition = startPoint + this.#frustum + this.#buffer;
