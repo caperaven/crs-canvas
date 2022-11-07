@@ -25,7 +25,7 @@ export class SelectionManager {
     }
 
     async init() {
-        this.#mesh = await createRect("selection-plane",  this.#canvas._theme.row_selection, 5, 999, this.#canvas.__zIndices.selectionMesh, 999999, this.#canvas.__rowSize,  this.#canvas, false);
+        this.#mesh = await createRect("selection-plane",  this.#canvas._theme.row_selection, 0, 999, this.#canvas.__zIndices.selectionMesh, 999999, this.#canvas.__rowSize,  this.#canvas, false);
         this.#mesh.enableEdgesRendering();
         this.#mesh.edgesWidth = 1.0;
         this.#mesh.edgesColor = BABYLON.Color4.FromHexString( this.#canvas._theme.row_selection_border)

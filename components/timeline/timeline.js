@@ -5,6 +5,7 @@ import "./managers/timeline-manager.js";
 import "./../../src/managers/text-manager.js";
 import "./../../src/managers/icons-manager.js";
 import "./../../src/factory/composite-factory.js";
+import "./../timeline/managers/offset-manager.js";
 
 import {configureCamera} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
@@ -32,21 +33,6 @@ export class Timeline extends HTMLElement {
         offsetRow: 0,
         selectionMesh: -0.0001,
     })
-    #yOffsets = Object.freeze({
-        default_header: 1,
-        year_header: 0.5,
-        default_row: 1.25,
-        year_row: 0.75,
-        default_offset_row: 1.65,
-        year_offset_row: 2.15,
-        default_selection: 0,
-        year_selection: 0,
-        retrieveOffset: (scale, offset) => {
-            const item = `${scale}_${offset}`;
-            const result = this.#yOffsets[item] != null ? this.#yOffsets[item] : this.#yOffsets[`default_${offset}`];
-            return result;
-        }
-    })
     #rowSize = 1.25;
 
     static get observedAttributes() {
@@ -63,7 +49,21 @@ export class Timeline extends HTMLElement {
             this.#canvas = this.querySelector("canvas") || this.canvas;
             this.#canvas.__zIndices = this.#zIndices;
             this.#canvas.__rowSize = this.#rowSize;
-            this.#canvas.__yOffsets = this.#yOffsets;
+            await crs.call("offset_manager", "initialize", {
+                element: this.#canvas,
+                offsets: {
+                    y: {
+                        default_header: 1,
+                        year_header: 0.5,
+                        default_row: 1.25,
+                        year_row: 0.75,
+                        default_offset_row: 1.65,
+                        year_offset_row: 2.15,
+                        default_selection: 0,
+                        year_selection: 0
+                    }
+                }
+            });
 
             const ready = async () => {
                 await crs.call("gfx_theme", "set", {
@@ -89,6 +89,7 @@ export class Timeline extends HTMLElement {
     async disconnectedCallback() {
         this.#headerManager = this.#headerManager.dispose(this.#canvas)
         this.#rowManager = this.#rowManager.dispose()
+        await crs.call("offset_manager", "dispose", {element: this.#canvas});
         this.#canvas = null;
         this.#baseDate = null;
         this.#configuration = null;
@@ -163,7 +164,7 @@ export class Timeline extends HTMLElement {
 
     #setYOffset() {
         if (this.#canvas == null) return;
-        this.#canvas.y_offset = this.#yOffsets.retrieveOffset(this.#scale, "selection");
+        this.#canvas.y_offset = this.#canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_selection" : "year_selection");
     }
 
     async draw() {

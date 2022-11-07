@@ -33,7 +33,7 @@ export class VirtualizationHeaderManager {
     async createHeaders(baseDate, scale, canvas) {
         this.#headers = await HeaderFactory[scale](baseDate, scale, canvas);
 
-        const height = canvas.__yOffsets.retrieveOffset(scale, "header");
+        const height = canvas.__offsets.get("y", scale !== TIMELINE_SCALE.YEAR ? "default_header" : "year_header");
         this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, (-height / 2), canvas.__zIndices.bgBorderMesh, 9999999, height, canvas, false);
         this.#bgBorderMesh.height = height;
         this.#bgBorderMesh.position.y = camera.position.y - (this.#bgBorderMesh.height / 2) - camera.offset_y;

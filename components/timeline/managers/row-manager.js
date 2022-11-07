@@ -83,7 +83,7 @@ export class RowManager {
      */
     async #initVirtualization(canvas, scene, items) {
         const addCallback = async (position, index) => {
-            const rowOffset = canvas.__yOffsets.retrieveOffset(this.#scale, "row");
+            const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_row" : "year_row");
 
             if (index < 0) return;
             const item = items[index];
@@ -119,7 +119,6 @@ export class RowManager {
         }
 
         scene.onBeforeRenderObservable.addOnce(async () => {
-            //TODO KR: create row size variable on canvas
             this.#virtualization = new StaticVirtualization(canvas.__rowSize, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
             await this.#draw(canvas);
             this.#setTextPositions(canvas);
@@ -214,7 +213,7 @@ export class RowManager {
      * This generates the rows background mesh that shows every other row.
      */
     async #createOffsetRows(itemCount, canvas) {
-        const yOffset = canvas.__yOffsets.retrieveOffset(this.#scale, "offset_row")
+        const yOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_offset_row" : "year_offset_row");
 
         const offsetRowMesh = await this.#createOffsetRowMesh(canvas.__rowSize, yOffset, canvas);
         const offsetRowCount = Math.round(itemCount / 2);
