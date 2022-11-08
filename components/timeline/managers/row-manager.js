@@ -76,6 +76,7 @@ export class RowManager {
 
         await this.#createOffsetRows(itemCount, canvas, scale);
         await this.#initVirtualization(canvas, scene, items);
+        this.#setTextPositions(canvas);
     }
 
     /**

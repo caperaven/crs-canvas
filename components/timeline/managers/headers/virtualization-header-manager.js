@@ -23,7 +23,7 @@ export class VirtualizationHeaderManager {
         }
         this.#headers = null;
 
-        this.#bgBorderMesh.dispose();
+        this.#bgBorderMesh?.dispose();
         this.#bgBorderMesh = null;
 
         this.#splittingBorder?.dispose();
