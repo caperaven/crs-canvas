@@ -51,7 +51,8 @@ export class SelectionManager {
             scene.getProjectionMatrix()
         );
 
-        this.#mesh.position.y = (Math.trunc((vector.y - offset) / this.#canvas.__rowSize) * this.#canvas.__rowSize) - (this.#canvas.__rowSize / 2) + offset;
-        this.#selectionCallback(event, (-(Math.trunc((vector.y - offset) / this.#canvas.__rowSize)) - 1));
+        if(this.#selectionCallback(event, (-(Math.trunc((vector.y - offset) / this.#canvas.__rowSize)) - 1))) {
+            this.#mesh.position.y = (Math.trunc((vector.y - offset) / this.#canvas.__rowSize) * this.#canvas.__rowSize) - (this.#canvas.__rowSize / 2) + offset;
+        };
     }
 }

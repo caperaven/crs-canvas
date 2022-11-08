@@ -108,7 +108,7 @@ export class Timeline extends HTMLElement {
         this.#headerManager = new VirtualizationHeaderManager(this.#canvas);
         this.#setYOffset();
         this.#selectionManager = new SelectionManager(this.#canvas, (event, index) => {
-
+            if (this.#data[index] == null) return false;
             this.selectedItem = this.#data[index];
             this.selectedIndex = index;
             this.dispatchEvent(new CustomEvent("selection-changed", {
@@ -117,6 +117,7 @@ export class Timeline extends HTMLElement {
                     index: this.selectedIndex
                 }
             }));
+            return true;
         });
 
         await crs.call("gfx_timeline_manager", "initialize", {

@@ -85,7 +85,7 @@ export class RowManager {
         const addCallback = async (position, index) => {
             const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_row" : "year_row");
 
-            if (index < 0) return;
+            if (index < 0 || (index > (items.length-1))) return;
             const item = items[index];
 
             let shapes = [];
