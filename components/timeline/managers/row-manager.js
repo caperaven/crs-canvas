@@ -48,7 +48,7 @@ export class RowManager {
         this.#configuration = null;
         this.#virtualization = this.#virtualization.dispose();
         this.#shapeConfig = null;
-        canvas.__camera.onViewMatrixChangedObservable.remove(this.#cameraObserver);
+        canvas?.__camera?.onViewMatrixChangedObservable?.remove(this.#cameraObserver);
         this.#cameraObserver = null;
     }
 
