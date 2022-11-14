@@ -13,6 +13,7 @@ import {VirtualizationHeaderManager} from "./managers/headers/virtualization-hea
 import {RowManager} from "./managers/row-manager.js";
 import {SelectionManager} from "./managers/selection-manager.js";
 import {TIMELINE_SCALE} from "./timeline-scale.js";
+import {createBaseDashedLine} from "./managers/timeline-helpers.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
@@ -148,9 +149,10 @@ export class Timeline extends HTMLElement {
             this.#rowManager = new RowManager(this.#configuration)
         }
 
-        this.#data = items; // TODO GM. Need to use data manager for this. We don't want to keep data in memory.
+        this.#data = items; // TODO V2 GM. Need to use data manager for this. We don't want to keep data in memory.
 
         this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
+        await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0]);
     }
 
     async setScale(scale) {
@@ -186,7 +188,7 @@ export class Timeline extends HTMLElement {
     }
 
     async update(index, item) {
-        const position = this.data[index].__position;
+        const position = this.#data[index].__position;
         await this.#rowManager.redrawAtPosition(position, index,item,this.#canvas);
     }
 }

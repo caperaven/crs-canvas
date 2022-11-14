@@ -43,3 +43,26 @@ export async function createHeaderText(text, canvas, x, y, z = 0, scale, bold = 
     textMesh.scaling = scale
     return textMesh;
 }
+
+export async function createBaseDashedLine(camera, scene) {
+    return new Promise((resolve)=> {
+        scene.onBeforeRenderObservable.addOnce(async () => {
+            const x = camera.position.x - camera.offset_x;
+            const y = camera.view_height;
+
+            const   points = [
+                new BABYLON.Vector3(x, -1, -0.2),
+                new BABYLON.Vector3(x, -15,  -0.2)
+            ];
+
+            const lines =BABYLON.Mesh.CreateDashedLines("dashedLines", points, 1, 1, 50, scene)
+
+            lines.color = BABYLON.Color3.Red();
+
+            camera.onViewMatrixChangedObservable.add((camera)=> {
+                lines.position.y = camera.position.y - camera.offset_y ;
+            });
+            resolve(lines);
+        });
+    })
+}

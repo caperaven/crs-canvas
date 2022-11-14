@@ -3,6 +3,7 @@ import "../../../src/managers/geometry-factory-manager.js";
 import "../../../src/factory/timeline-shape-factory.js"
 import {TIMELINE_SCALE} from "../timeline-scale.js";
 import {StaticVirtualization} from "./static-virtualization.js";
+import {TimelineShapes} from "../timeline-shapes.js";
 
 /**
  * This class is responsible for rendering the rows and includes generating the geometry and virtualization
@@ -11,34 +12,7 @@ export class RowManager {
     #configuration;
     #virtualization;
     #scale;
-    #currentX;
     #cameraObserver;
-    #shapeConfig = Object.freeze({
-        "pillar": {
-            barHeight: 0.4,
-            triangleHeight: 0.1,
-            triangleWidth: 0.1,
-            theme: "row_range1",
-            yOffset: 0.15,
-            zOffset: 0.00001
-        },
-        "range_indicator": {
-            barHeight: 0.05,
-            triangleHeight: 0.1,
-            triangleWidth: 0.2,
-            theme: "row_range3",
-            yOffset: 0.35,
-            zOffset: 0.00002
-        },
-        "rect": {
-            barHeight: 0.3,
-            triangleHeight: null,
-            triangleWidth: null,
-            theme: "row_range2",
-            yOffset: 0.0075,
-            zOffset: 0.00003
-        }
-    })
 
     constructor(config) {
         this.#configuration = config;
@@ -46,17 +20,12 @@ export class RowManager {
 
     dispose(canvas) {
         this.#configuration = null;
+        this.#scale = null;
         this.#virtualization = this.#virtualization.dispose();
-        this.#shapeConfig = null;
         canvas?.__camera?.onViewMatrixChangedObservable?.remove(this.#cameraObserver);
         this.#cameraObserver = null;
     }
 
-    /**
-     * This cleans up meshes when swapping between timeline views such as day / week ...
-     * @param canvas
-     * @param scene
-     */
     clean(canvas, scene) {
         const meshesToDispose = scene.meshes.filter(mesh => mesh.id.includes("range_item") || mesh.id.includes("offset_row"));
         for (const mesh of meshesToDispose) {
@@ -66,10 +35,7 @@ export class RowManager {
         this.#virtualization.clearInstances();
     }
 
-    /**
-     * This draws the rows based on the data you have given.
-     * THis is called at startup and then virtualization will take over.
-     */
+
     async init(items, canvas, scene, baseDate, scale) {
         const itemCount = items.length;
         this.#scale = scale;
@@ -79,44 +45,15 @@ export class RowManager {
         this.#setTextPositions(canvas);
     }
 
-    /**
-     * Start the virtualization process.
-     */
+
     async #initVirtualization(canvas, scene, items) {
         const addCallback = async (position, index) => {
-            const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_row" : "year_row");
-
             if (index < 0 || (index > (items.length-1))) return;
-            const item = items[index];
-
-            let shapes = [];
-            for (const shape of this.#configuration.shapes) {
-                if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) {
-                    continue
-                };
-                shapes.push(await this.#drawShape(canvas, shape, item, position, index));
-            }
-
-            const parentText = await crs.call("gfx_composite", "create", {
-                element: canvas,
-                templates: this.#configuration.records,
-                parameters: item,
-                position: {x: 0.25, y: -rowOffset - position, z: 0},
-                margin: {x: 0, y: 0.4, z: canvas.__zIndices.rowText},
-                scale: {x: 0.25, y: 0.25, z: 1},
-                id: `composite_${position}`
-            })
-            parentText.isText = true;
-            shapes.push(parentText);
-
-            return shapes;
+            return this.#drawRow(position, index, items[index], canvas);
         }
 
-        const removeCallback = (shapes) => {
-            if (shapes == null) return;
-            for (const shape of shapes) {
-                shape.dispose();
-            }
+        const removeCallback =async (shapes) => {
+            await this.#removeRow(shapes)
         }
 
         scene.onBeforeRenderObservable.addOnce(async () => {
@@ -141,11 +78,20 @@ export class RowManager {
 
     async #draw(canvas) {
         await this.#virtualization.draw(( canvas.__camera.position.y - canvas.__camera.offset_y) / -1);
+    }
 
+
+
+    async #removeRow(shapes, position) {
+        shapes = shapes || this.#virtualization.instances[position];
+        if (shapes == null) return;
+        for (const shape of shapes) {
+            shape.dispose();
+        }
+        delete this.#virtualization.instances[position];
     }
 
     #setTextPositions(canvas) {
-        this.#currentX = canvas.__camera.position.x - canvas.__camera.offset_x;
         const instances = this.#virtualization?.instances;
         if (instances == null) return;
 
@@ -154,15 +100,34 @@ export class RowManager {
             if (instances[key] == null) continue;
             for (const shape of instances[key]) {
                 if (shape.isText) {
-                    shape.position.x = this.#currentX;
+                    shape.position.x = canvas.__camera.position.x - canvas.__camera.offset_x;
                 }
             }
         }
     }
 
-    /**
-     * This generates the geometry and returns the mesh to draw.
-     */
+    async redrawAtPosition(position, index, item, canvas) {
+        await this.#removeRow(null,position);
+        this.#virtualization.instances[position] = await this.#drawRow(position, index, item, canvas);
+        this.#setTextPositions(canvas);
+    }
+
+    async #drawRow(position, index, item, canvas) {
+        item.__position = position;
+
+        let shapes = [];
+        for (const shape of this.#configuration.shapes) {
+            if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) {
+                continue;
+            }
+            shapes.push(await this.#drawShape(canvas, shape, item, position, index));
+        }
+
+        shapes.push(await this.#drawText(position, item, canvas));
+
+        return shapes;
+    }
+
     async #drawShape(canvas, shape, item, position, index) {
         const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 1;
 
@@ -177,13 +142,13 @@ export class RowManager {
         item.actual_geom[shape.shapeType] ||= await crs.call("gfx_timeline_shape_factory", shape.shapeType, {
             aabb: {
                 minX: result.x1,
-                minY: (-position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset,
+                minY: (-position - rowOffset) - TimelineShapes[shape.shapeType]?.yOffset,
                 maxX: result.x2,
-                maxY: ((-position - rowOffset) - this.#shapeConfig[shape.shapeType]?.yOffset) - (this.#shapeConfig[shape.shapeType]?.barHeight / 2)
+                maxY: ((-position - rowOffset) - TimelineShapes[shape.shapeType]?.yOffset) - (TimelineShapes[shape.shapeType]?.barHeight / 2)
             },
-            triangle_height: this.#shapeConfig[shape.shapeType]?.triangleHeight,
-            triangle_width: this.#shapeConfig[shape.shapeType]?.triangleWidth,
-            bar_height: this.#shapeConfig[shape.shapeType]?.barHeight
+            triangle_height: TimelineShapes[shape.shapeType]?.triangleHeight,
+            triangle_width: TimelineShapes[shape.shapeType]?.triangleWidth,
+            bar_height: TimelineShapes[shape.shapeType]?.barHeight
         });
 
         const args = {
@@ -193,10 +158,10 @@ export class RowManager {
                 indices: item.actual_geom[shape.shapeType].indices
             },
             name: `range_item_${shape.shapeType}_${this.#scale}_${index}`,
-            position: {x: 0, y: 0, z: canvas.__zIndices.rowShape - this.#shapeConfig[shape.shapeType]?.zOffset},
+            position: {x: 0, y: 0, z: canvas.__zIndices.rowShape - TimelineShapes[shape.shapeType]?.zOffset},
             material: {
                 id: `${shape.shapeType}_mat`,
-                color: canvas._theme[this.#shapeConfig[shape.shapeType]?.theme]
+                color: canvas._theme[TimelineShapes[shape.shapeType]?.theme]
             }
         };
 
@@ -206,8 +171,23 @@ export class RowManager {
         }
 
         const mesh = await crs.call("gfx_geometry", "from", args);
-        // mesh.freezeWorldMatrix();
+        mesh.freezeWorldMatrix();
         return mesh;
+    }
+
+    async #drawText(position, item, canvas) {
+        const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_row" : "year_row");
+        const parentText = await crs.call("gfx_composite", "create", {
+            element: canvas,
+            templates: this.#configuration.records,
+            parameters: item,
+            position: {x: 0.25, y: -rowOffset - position, z: 0},
+            margin: {x: 0, y: 0.4, z: canvas.__zIndices.rowText},
+            scale: {x: 0.25, y: 0.25, z: 1},
+            id: `composite_${position}`
+        })
+        parentText.isText = true;
+        return parentText;
     }
 
     /**
