@@ -7,12 +7,17 @@ import "./../../components/timeline/timeline-actions.js"
 
 export default class Timeline extends crsbinding.classes.ViewBase {
 
+    get targetDate() {
+        return this.getProperty("targetDate");
+    }
+
+    set targetDate(newValue) {
+        this.setProperty("targetDate", newValue);
+    }
+
     async connectedCallback() {
         this.timeline = document.querySelector("crs-timeline")
         await super.connectedCallback();
-
-
-
     }
 
     async showInspector() {
@@ -71,5 +76,10 @@ export default class Timeline extends crsbinding.classes.ViewBase {
                 });
             }
         }, {status: "a"});
+    }
+
+    jumpToDate() {
+        if (this.targetDate == null) return;
+        this.timeline.jumpToDate(new Date(this.targetDate));
     }
 }
