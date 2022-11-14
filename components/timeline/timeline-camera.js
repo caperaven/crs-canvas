@@ -31,3 +31,8 @@ export async function configureCamera(camera, scene) {
 function calculateTangent(adjacent, opposite) {
     return opposite / adjacent;
 }
+
+export async function jumpToDate(canvas, baseDate, targetDate, scale) {
+    const result = await crs.call("gfx_timeline_manager", "get", {element: canvas, start: baseDate, end: targetDate, scale: scale});
+    canvas.__camera.position.x = result.x2;
+}

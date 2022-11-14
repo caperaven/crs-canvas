@@ -7,7 +7,7 @@ import "./../../src/managers/icons-manager.js";
 import "./../../src/factory/composite-factory.js";
 import "./../timeline/managers/offset-manager.js";
 
-import {configureCamera} from "./timeline-camera.js";
+import {configureCamera, jumpToDate} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
 import {VirtualizationHeaderManager} from "./managers/headers/virtualization-header-manager.js";
 import {RowManager} from "./managers/row-manager.js";
@@ -190,6 +190,11 @@ export class Timeline extends HTMLElement {
     async update(index, item) {
         const position = this.#data[index].__position;
         await this.#rowManager.redrawAtPosition(position, index,item,this.#canvas);
+    }
+
+    async jumpToDate(date) {
+        if (date == null) return;
+        await jumpToDate(this.#canvas, this.#baseDate, date, this.#scale);
     }
 }
 
