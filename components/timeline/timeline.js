@@ -112,7 +112,7 @@ export class Timeline extends HTMLElement {
             if (this.#data[index] == null) return false;
             this.selectedItem = this.#data[index];
             this.selectedIndex = index;
-            this.dispatchEvent(new CustomEvent("selection-changed", {
+            this.dispatchEvent(new CustomEvent("selectedItemChange", {
                 detail: {
                     item: this.selectedItem,
                     index: this.selectedIndex

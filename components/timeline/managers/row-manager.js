@@ -80,8 +80,6 @@ export class RowManager {
         await this.#virtualization.draw(( canvas.__camera.position.y - canvas.__camera.offset_y) / -1);
     }
 
-
-
     async #removeRow(shapes, position) {
         shapes = shapes || this.#virtualization.instances[position];
         if (shapes == null) return;

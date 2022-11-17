@@ -7,7 +7,7 @@ class TimelineActions {
 
 
     static async get_selected(step, context, process, item) {
-        const timeline = await crs.dom.get_element(step, context, process, item);
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
 
         const result = {
             index: timeline.selectedIndex,
@@ -22,7 +22,7 @@ class TimelineActions {
     }
 
     static async update_item(step, context, process, item) {
-        const timeline = await crs.dom.get_element(step, context, process, item);
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
 
         const updatedItem =  await crs.process.getValue(step.args.updatedItem, context, process, item);
         const index =  await crs.process.getValue(step.args.index, context, process, item);
