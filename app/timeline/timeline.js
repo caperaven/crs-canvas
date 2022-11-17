@@ -82,4 +82,8 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         if (this.targetDate == null) return;
         this.timeline.jumpToDate(new Date(this.targetDate));
     }
+
+    async jumpToSelected() {
+        await crs.call("gfx_timeline", "go_to_selected", {element: this.timeline, field: "completeBy"});
+    }
 }

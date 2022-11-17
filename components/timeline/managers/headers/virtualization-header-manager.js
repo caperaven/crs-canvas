@@ -93,11 +93,12 @@ export class VirtualizationHeaderManager {
 
 class HeaderFactory {
     static async day(baseDate, scale, canvas) {
-        const result = await this.year(baseDate, scale, canvas, TIMELINE_SCALE.DAY);
+        const result = await this.dayMonth(baseDate, scale, canvas);
+
         const dayHeader = new ParticleHeader();
         await dayHeader.init(baseDate, scale, canvas);
-
         result.push(dayHeader);
+
         return result
     }
 
@@ -108,6 +109,12 @@ class HeaderFactory {
 
         result.push(weekHeader);
         return result
+    }
+
+    static async dayMonth(baseDate, scale, canvas, relativeScale = TIMELINE_SCALE.DAY) {
+        const dayMonthHeader = new ParticleHeader();
+        await dayMonthHeader.init(baseDate, "day-month", canvas, relativeScale);
+        return [dayMonthHeader];
     }
 
     static async month(baseDate, scale, canvas) {

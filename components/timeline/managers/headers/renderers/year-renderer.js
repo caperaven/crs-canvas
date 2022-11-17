@@ -2,6 +2,21 @@ import {createHeaderText, createRect} from "../../timeline-helpers.js";
 import {DistanceSystem} from "../../../../../src/helpers/distance-system.js";
 import {moveParticle} from "./particle-helpers.js";
 
+export const monthToYearOffset = Object.freeze({
+    "January":  1.4,
+    "February": 1.55,
+    "March": 1.15,
+    "April": 1,
+    "May": 0.85,
+    "June": 1,
+    "July": 0.9,
+    "August": 1.3,
+    "September": 1.8,
+    "October": 1.45,
+    "November": 1.7,
+    "December": 1.7,
+})
+
 export default class YearRenderer {
     #distanceSystem;
     #currentMonthText;
@@ -14,20 +29,6 @@ export default class YearRenderer {
     #textScale;
     #bgKey = "year_header_bg";
     #textTheme;
-    #monthToYearOffset = Object.freeze({
-        "January":  1.4,
-        "February": 1.55,
-        "March": 1.15,
-        "April": 1,
-        "May": 0.85,
-        "June": 1,
-        "July": 0.9,
-        "August": 1.3,
-        "September": 1.8,
-        "October": 1.45,
-        "November": 1.7,
-        "December": 1.7,
-    })
 
     async init(canvas, particleSystem, baseDate, textScale) {
         this.#textScale = textScale;
@@ -87,7 +88,7 @@ export default class YearRenderer {
 
         if(this.#currentYearText == shape) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
-            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, this.#monthToYearOffset[this.#currentMonthText], -0.35, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, monthToYearOffset[this.#currentMonthText], -0.35, this.#textScale)
         }
     }
 }
