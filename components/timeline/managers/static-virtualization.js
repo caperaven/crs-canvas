@@ -79,6 +79,7 @@ export class StaticVirtualization {
 
         for (let position = startDrawPosition; position < endDrawPosition; position += this.#size) {
             if (this.#instances[position] == null) {
+                if (this.#size === 48) console.log(startDrawPosition, endDrawPosition);
                 const index = Math.floor(position / this.#size);
                 const result = await this.#addCallback(position, index);
                 this.#instances[position] = result;

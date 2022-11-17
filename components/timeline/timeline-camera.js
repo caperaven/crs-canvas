@@ -33,6 +33,5 @@ function calculateTangent(adjacent, opposite) {
 }
 
 export async function jumpToDate(canvas, baseDate, targetDate, scale) {
-    const result = await crs.call("gfx_timeline_manager", "get", {element: canvas, start: baseDate, end: targetDate, scale: scale});
-    canvas.__camera.position.x = result.x2;
+    await crs.call("gfx_timeline", "jump_to_date", {element: canvas, base: baseDate, date: targetDate, scale: scale});
 }

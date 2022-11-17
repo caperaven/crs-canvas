@@ -18,6 +18,14 @@ export class ParticleHeader {
 
         if (scale === TIMELINE_SCALE.YEAR) {
             this.#virtualization = await createYearVirtualization(this.#headerParticleManager, baseDate, canvas, relativeScale);
+        } else if (scale === "day-month") {
+            const rangeProperties = await crs.call("gfx_timeline_manager", "set_range", {
+                element: canvas,
+                base: baseDate,
+                scale: relativeScale
+            });
+
+            this.#virtualization = await createStaticVirtualization(this.#headerParticleManager, rangeProperties.width * 48, baseDate, canvas);
         } else {
             const rangeProperties = await crs.call("gfx_timeline_manager", "set_range", {
                 element: canvas,

@@ -40,6 +40,18 @@ export class Timeline extends HTMLElement {
         return ["data-scale"];
     }
 
+    get baseDate() {
+        return this.#baseDate;
+    }
+
+    get scale() {
+        return this.#scale;
+    }
+
+    get canvas() {
+        return this.#canvas;
+    }
+
     async connectedCallback() {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
         this.#configuration = await fetch(this.dataset.config).then(result => result.json());
