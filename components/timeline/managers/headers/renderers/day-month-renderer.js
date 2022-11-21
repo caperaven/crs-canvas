@@ -27,6 +27,7 @@ export default class DayMonthRenderer {
 
         const count = 31;
         const multiplier = 2;
+        const textMultiplier = 24;
         const bgCount =  2 * count;
 
         const shapes = [];
@@ -43,8 +44,8 @@ export default class DayMonthRenderer {
         for (let i = 0; i < 12; i++) {
             const month = monthDate.toLocaleString('default', { month: 'long' });
             const monthTextMesh = await createHeaderText(month, canvas, 0, 0, canvas.__zIndices.headerText, null, true);
-            this.#particleSystem.add(month, monthTextMesh, multiplier, true);
-            shapes.push({key: month, count: multiplier});
+            this.#particleSystem.add(month, monthTextMesh, textMultiplier, true);
+            shapes.push({key: month, count: textMultiplier});
 
             monthDate.setMonth(monthDate.getMonth() + 1);
         }
@@ -53,8 +54,8 @@ export default class DayMonthRenderer {
         const baseYear = baseDate.getFullYear();
         for (let i = baseYear  - 20; i < baseYear + 20; i++) {
             const yearTextMesh = await createHeaderText(i.toString(), canvas, 0, 0, canvas.__zIndices.headerText, null, false);
-            this.#particleSystem.add(i.toString(), yearTextMesh, multiplier, true);
-            shapes.push({key:i.toString(), count: multiplier});
+            this.#particleSystem.add(i.toString(), yearTextMesh, textMultiplier, true);
+            shapes.push({key:i.toString(), count: textMultiplier});
         }
 
         const bgMesh = await createRect(this.#bgKey, canvas._theme.header_border, 0, 0, canvas.__zIndices.headerBorder,0.02, 0.5, canvas);
@@ -78,25 +79,25 @@ export default class DayMonthRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,5, -0.25);
+            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.25);
         }
 
         if(this.#currentDayNumber == shape) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             //NOTE KR: having to add a bunch on the x-offset -> could be because of GMT+2?
-            return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 5.2,  -0.35, this.#textScale);
+            return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.2,  -0.35, this.#textScale);
         }
 
         if (this.#currentMonth == shape) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             //NOTE KR: having to add a bunch on the x-offset -> could be because of GMT+2?
-            return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 5.55,  -0.35, this.#textScale);
+            return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.55,  -0.35, this.#textScale);
         }
 
         if (this.#currentYear == shape) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
             //NOTE KR: having to add a bunch on the x-offset -> could be because of GMT+2?
-            return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 5.25 + this.#currentMonthOffset,  -0.35, this.#textScale);
+            return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.25 + this.#currentMonthOffset,  -0.35, this.#textScale);
         }
     }
 }

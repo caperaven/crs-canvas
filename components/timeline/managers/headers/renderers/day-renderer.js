@@ -30,7 +30,7 @@ export default class DayRenderer {
         for (let i = 0; i < count; i++) {
             const date = new Date(this.#baseDate.getTime());
             date.setHours(i,0,0);
-            const text = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hour12: false });
+            const text = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' , hourCycle: 'h23' });
             const textMesh = await createHeaderText(text, canvas, 0, 10, canvas.__zIndices.headerText);
             this.#particleSystem.add(text, textMesh, textMultiplier, true);
             shapes.push({key:text, count: textMultiplier});
@@ -46,7 +46,7 @@ export default class DayRenderer {
     async setCurrent(index, position) {
         // Each timescale is different. So depending on the timescale we need to set the current shape differently
         const date = new Date(this.#baseDate.getTime() + (index * 30) * 60000);
-        this.#currentDayText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hour12: false });
+        this.#currentDayText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hourCycle: 'h23' });
         this.#currentPosition = position;
     }
 

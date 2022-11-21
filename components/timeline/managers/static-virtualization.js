@@ -19,7 +19,7 @@ export class StaticVirtualization {
         this.#addCallback = addCallback;
         this.#removeCallback = removeCallback;
 
-        this.#buffer = 5 //this.#size * Math.abs(frustum);
+        this.#buffer =  this.#size * 5;
         this.#frustum = frustum;
 
         const parts = this.#size.toString().split(".");
@@ -79,7 +79,6 @@ export class StaticVirtualization {
 
         for (let position = startDrawPosition; position < endDrawPosition; position += this.#size) {
             if (this.#instances[position] == null) {
-                if (this.#size === 48) console.log(startDrawPosition, endDrawPosition);
                 const index = Math.floor(position / this.#size);
                 const result = await this.#addCallback(position, index);
                 this.#instances[position] = result;

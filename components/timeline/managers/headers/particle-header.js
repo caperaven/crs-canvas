@@ -16,6 +16,7 @@ export class ParticleHeader {
         this.#headerParticleManager = new HeaderParticleManager();
         await this.#headerParticleManager.initialize(scale, baseDate, canvas);
 
+        // TODO GM Convention over code here
         if (scale === TIMELINE_SCALE.YEAR) {
             this.#virtualization = await createYearVirtualization(this.#headerParticleManager, baseDate, canvas, relativeScale);
         } else if (scale === "day-month") {

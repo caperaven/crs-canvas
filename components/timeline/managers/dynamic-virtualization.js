@@ -4,7 +4,6 @@ export class DynamicVirtualization {
     #instances = {};
     #position;
     #busy;
-    #buffer;
     #frustum;
     #pageSize;
 
@@ -20,7 +19,6 @@ export class DynamicVirtualization {
         this.#sizeManager = new SizeManager(()=> {});
         this.#sizeManager.append(items);
 
-        this.#buffer = 5 //this.#size * Math.abs(frustum);
         this.#frustum = frustum;
         this.#pageSize = Math.max((this.#frustum * 2) / items[0].size, 8);
         console.log(this.#pageSize) ;
@@ -29,7 +27,6 @@ export class DynamicVirtualization {
     dispose() {
         this.#instances = null;
         this.#position = null;
-        this.#buffer = null;
         this.#addCallback = null;
         this.#removeCallback = null;
         this.#sizeManager =  this.#sizeManager.dispose();
@@ -49,8 +46,7 @@ export class DynamicVirtualization {
     }
 
     async #drawForCurrent() {
-
-        const sizeItems =  this.#sizeManager.getAtSizeLocation(this.#position, this.#pageSize);
+        const sizeItems = this.#sizeManager.getAtSizeLocation(this.#position, this.#pageSize);
 
         if(this.#lastDrawPosition ===  sizeItems[0].position) return;
 

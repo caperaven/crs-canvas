@@ -34,7 +34,8 @@ export class Timeline extends HTMLElement {
         offsetRow: 0,
         selectionMesh: -0.0001,
     })
-    #rowSize = 1.25;
+    #rowSize = 1.25
+    #todayLineMesh;
 
     static get observedAttributes() {
         return ["data-scale"];
@@ -108,6 +109,7 @@ export class Timeline extends HTMLElement {
         this.#configuration = null;
         this.#data = null;
         this.#scale = null;
+        this.#todayLineMesh = this.#todayLineMesh.dispose();
     }
 
     async attributeChangedCallback(name, oldValue, newValue) {
@@ -154,6 +156,7 @@ export class Timeline extends HTMLElement {
     }
 
     async render(items) {
+        await this.clean();
         if (items == null || items.length === 0) return;
 
         if (this.#data != null) {
@@ -164,7 +167,7 @@ export class Timeline extends HTMLElement {
         this.#data = items; // TODO V2 GM. Need to use data manager for this. We don't want to keep data in memory.
 
         this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
-        await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0]);
+        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0]);
     }
 
     async setScale(scale) {
@@ -191,12 +194,16 @@ export class Timeline extends HTMLElement {
     }
 
     async clean() {
-        const scene = this.#canvas.__layers[0];
-        for (const item of this.#data) {
-            delete item.actual_geom;
+        if(this.#data) {
+            for (const item of this.#data) {
+                delete item.actual_geom;
+            }
+            const scene = this.#canvas.__layers[0];
+
+            await this.#rowManager.clean(this.#canvas, scene);
+            await this.#headerManager.removeHeaders();
+            this.#todayLineMesh.dispose();
         }
-        await this.#rowManager.clean(this.#canvas, scene);
-        await this.#headerManager.removeHeaders();
     }
 
     async update(index, item) {
