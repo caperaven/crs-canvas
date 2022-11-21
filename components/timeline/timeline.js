@@ -32,6 +32,7 @@ export class Timeline extends HTMLElement {
         rowShape: -0.0005,
         rowText: -0.0006,
         offsetRow: 0,
+        offsetTextRow: -0.00061,
         selectionMesh: -0.0001,
     })
     #rowSize = 1.25
@@ -73,6 +74,10 @@ export class Timeline extends HTMLElement {
                         year_row: 0.75,
                         default_offset_row: 1.6,
                         year_offset_row: 2.15,
+                        default_offset_row_bg: 1.5,
+                        year_offset_row_bg: 1,
+                        default_text_offset_row_bg: 0.38,
+                        year_text_offset_row_bg: 0.38,
                         default_selection: 0.25,
                         year_selection: -0.5
                     }

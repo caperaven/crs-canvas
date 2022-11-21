@@ -21,7 +21,6 @@ export class DynamicVirtualization {
 
         this.#frustum = frustum;
         this.#pageSize = Math.max((this.#frustum * 2) / items[0].size, 8);
-        console.log(this.#pageSize) ;
     }
 
     dispose() {

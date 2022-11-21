@@ -23,7 +23,7 @@ export default class DayMonthRenderer {
         this.#textScale = textScale;
         this.#baseDate = baseDate;
         this.#particleSystem = particleSystem;
-        this.#textTheme = canvas._theme.header_text;
+        this.#textTheme = BABYLON.Color4.FromHexString(canvas._theme.header_text);
 
         const count = 31;
         const multiplier = 2;
@@ -83,19 +83,19 @@ export default class DayMonthRenderer {
         }
 
         if(this.#currentDayNumber == shape) {
-            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
+            particle.color = this.#textTheme;
             //NOTE KR: having to add a bunch on the x-offset -> could be because of GMT+2?
             return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.2,  -0.35, this.#textScale);
         }
 
         if (this.#currentMonth == shape) {
-            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
+            particle.color = this.#textTheme;
             //NOTE KR: having to add a bunch on the x-offset -> could be because of GMT+2?
             return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.55,  -0.35, this.#textScale);
         }
 
         if (this.#currentYear == shape) {
-            particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
+            particle.color = this.#textTheme;
             //NOTE KR: having to add a bunch on the x-offset -> could be because of GMT+2?
             return moveParticle(this.#distanceSystem, particle, shape,this.#currentPosition, 0.25 + this.#currentMonthOffset,  -0.35, this.#textScale);
         }

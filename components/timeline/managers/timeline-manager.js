@@ -64,46 +64,13 @@ class MonthScale {
 }
 
 class YearScale {
+    //returns the difference in year time between the two given months
     async get(min, date, zoomFactor = 0) {
         const minDate = new Date(getDate(min));
         const maxDate = new Date(getDate(date));
 
-        //get amount of months between the two dates
-        const differenceInMonths = this.#getDifferenceInMonths(minDate, maxDate);
-        if (differenceInMonths === 0) {
-            //Date occurs in the same month of the same year
-            const isLeap = this.#getLeap(minDate.getFullYear());
-            return this.#getWidth(minDate, maxDate, isLeap);
-        } else {
-            //Cycle through in-between months, building up totalWidth
-            let previousDate = new Date(minDate);
-            let totalWidth = 0;
-            if (differenceInMonths > 0) {
-                for (let i = 0; i < differenceInMonths; i++) {
-                    const newDate = new Date(previousDate);
-                    newDate.setMonth(previousDate.getMonth() + 1);
-
-                    const isLeap = this.#getLeap(newDate.getFullYear());
-                    const width = this.#getWidth(previousDate, newDate, isLeap);
-                    totalWidth += width;
-
-                    previousDate = newDate;
-                }
-            } else {
-                for (let i = 0; i > differenceInMonths; i--) {
-                    const newDate = new Date(previousDate);
-                    newDate.setMonth(previousDate.getMonth() - 1);
-
-                    const isLeap = this.#getLeap(newDate.getFullYear());
-                    const width = this.#getWidth(previousDate, newDate, isLeap);
-                    totalWidth += width;
-
-                    previousDate = newDate;
-                }
-            }
-
-            return totalWidth;
-        }
+        const isLeap = this.#getLeap(minDate.getFullYear()) ? true: this.#getLeap(maxDate.getFullYear());
+        return this.#getWidth(minDate, maxDate, 0, isLeap);
     }
 
     async setScale(base, relativeItemWidth) {

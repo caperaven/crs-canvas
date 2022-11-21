@@ -11,30 +11,21 @@ export default async function getMonths(baseDate, canvas, scale) {
         const dateItem = new Date(startingMonthDate.getTime());
         dateItem.setMonth(dateItem.getMonth() + i);
 
-        //calculate size
-        const daysInMonth = calcDaysInMonth(dateItem.getMonth(), dateItem.getFullYear());
-        let sizeOfMonth;
-        if (scale === TIMELINE_SCALE.YEAR) {
-            sizeOfMonth = (daysInMonth/ 31) * 4
-        }
-        else {
-            sizeOfMonth = daysInMonth * YearFactor[scale];
-        }
+        const nextDate = new Date(dateItem);
+        nextDate.setMonth(nextDate.getMonth() + 1);
 
-        //calculate position
         const result = await crs.call("gfx_timeline_manager", "get", {
             element: canvas,
-            start: baseDate,
-            end: dateItem,
+            start: dateItem,
+            end: nextDate,
             scale: scale
         });
-        const position = result.x2;
 
         items.push({
             date: dateItem,
             index: i,
-            position: position,
-            size: sizeOfMonth
+            position: result.x2,
+            size: result.width
         })
     }
 

@@ -4,6 +4,7 @@ import "../../../src/factory/timeline-shape-factory.js"
 import {TIMELINE_SCALE} from "../timeline-scale.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 import {TimelineShapes} from "../timeline-shapes.js";
+import {createRect} from "./timeline-helpers.js";
 
 /**
  * This class is responsible for rendering the rows and includes generating the geometry and virtualization
@@ -13,6 +14,32 @@ export class RowManager {
     #virtualization;
     #scale;
     #cameraObserver;
+    #shapeConfig = Object.freeze({
+        "pillar": {
+            barHeight: 0.4,
+            triangleHeight: 0.1,
+            triangleWidth: 0.1,
+            theme: "row_range1",
+            yOffset: 0.15,
+            zOffset: 0.00001
+        },
+        "range_indicator": {
+            barHeight: 0.05,
+            triangleHeight: 0.1,
+            triangleWidth: 0.2,
+            theme: "row_range3",
+            yOffset: 0.35,
+            zOffset: 0.00002
+        },
+        "rect": {
+            barHeight: 0.3,
+            triangleHeight: null,
+            triangleWidth: null,
+            theme: "row_range2",
+            yOffset: 0.0075,
+            zOffset: 0.00003
+        }
+    })
 
     constructor(config) {
         this.#configuration = config;
@@ -48,8 +75,44 @@ export class RowManager {
 
     async #initVirtualization(canvas, scene, items) {
         const addCallback = async (position, index) => {
+            const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_row" : "year_row");
+            const textBgYOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_text_offset_row_bg" : "year_text_offset_row_bg");
+
             if (index < 0 || (index > (items.length-1))) return;
-            return this.#drawRow(position, index, items[index], canvas);
+            const item = items[index];
+
+            let shapes = [];
+
+            //Create shapes
+            for (const shape of this.#configuration.shapes) {
+                if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) {
+                    continue
+                };
+                shapes.push(await this.#drawShape(canvas, shape, item, position, index));
+            }
+
+            //Create Text
+            //TODO KR: creating text should return size of largest string of text in order to set width of backgroun
+            const parentText = await crs.call("gfx_composite", "create", {
+                element: canvas,
+                templates: this.#configuration.records,
+                parameters: item,
+                position: {x: 0.25, y: -rowOffset - position, z: 0},
+                margin: {x: 0, y: 0.4, z: canvas.__zIndices.rowText},
+                scale: {x: 0.25, y: 0.25, z: 1},
+                id: `composite_${position}`
+            })
+            parentText.isText = true;
+            shapes.push(parentText);
+
+            //Create background text
+            const isEven = index % 2 === 1;
+            const color = isEven ? canvas._theme.offset_row_bg : canvas._theme.light_row_text_bg;
+            const textBackground = await createRect("timeline_offset_row_text_bg", color, 0, -rowOffset - position - textBgYOffset, canvas.__zIndices.offsetTextRow, 5,  canvas.__rowSize - 0.05, canvas, false);
+            textBackground.isTextBackground = true;
+            shapes.push(textBackground);
+
+            return shapes;
         }
 
         const removeCallback =async (shapes) => {
@@ -71,7 +134,7 @@ export class RowManager {
 
     async redraw(count, scale, canvas){
         this.#scale = scale;
-        await this.#createOffsetRows(count, canvas, scale)
+        await this.#createOffsetRows(count, canvas, scale);
         await this.#draw(canvas);
         this.#setTextPositions(canvas);
     }
@@ -100,6 +163,10 @@ export class RowManager {
                 if (shape.isText) {
                     shape.position.x = canvas.__camera.position.x - canvas.__camera.offset_x;
                 }
+
+                if (shape.isTextBackground) {
+                    shape.position.x = 2.5 + (canvas.__camera.position.x - canvas.__camera.offset_x);
+                }
             }
         }
     }
@@ -127,7 +194,8 @@ export class RowManager {
     }
 
     async #drawShape(canvas, shape, item, position, index) {
-        const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? 1.5 : 1;
+        const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_offset_row_bg" : "year_offset_row_bg");
+        const shapeProperties = this.#shapeConfig[shape.shapeType];
 
         const result = await crs.call("gfx_timeline_manager", "get", {
             element: canvas,
@@ -140,13 +208,13 @@ export class RowManager {
         item.actual_geom[shape.shapeType] ||= await crs.call("gfx_timeline_shape_factory", shape.shapeType, {
             aabb: {
                 minX: result.x1,
-                minY: (-position - rowOffset) - TimelineShapes[shape.shapeType]?.yOffset,
+                minY: (-position - rowOffset) - shapeProperties.yOffset,
                 maxX: result.x2,
-                maxY: ((-position - rowOffset) - TimelineShapes[shape.shapeType]?.yOffset) - (TimelineShapes[shape.shapeType]?.barHeight / 2)
+                maxY: ((-position - rowOffset) - shapeProperties.yOffset) - (shapeProperties.barHeight / 2)
             },
-            triangle_height: TimelineShapes[shape.shapeType]?.triangleHeight,
-            triangle_width: TimelineShapes[shape.shapeType]?.triangleWidth,
-            bar_height: TimelineShapes[shape.shapeType]?.barHeight
+            triangle_height: shapeProperties.triangleHeight,
+            triangle_width: shapeProperties.triangleWidth,
+            bar_height: shapeProperties.barHeight
         });
 
         const args = {
@@ -156,10 +224,10 @@ export class RowManager {
                 indices: item.actual_geom[shape.shapeType].indices
             },
             name: `range_item_${shape.shapeType}_${this.#scale}_${index}`,
-            position: {x: 0, y: 0, z: canvas.__zIndices.rowShape - TimelineShapes[shape.shapeType]?.zOffset},
+            position: {x: 0, y: 0, z: canvas.__zIndices.rowShape - shapeProperties.zOffset},
             material: {
                 id: `${shape.shapeType}_mat`,
-                color: canvas._theme[TimelineShapes[shape.shapeType]?.theme]
+                color: canvas._theme[shapeProperties.theme]
             }
         };
 
@@ -194,7 +262,7 @@ export class RowManager {
     async #createOffsetRows(itemCount, canvas) {
         const yOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_offset_row" : "year_offset_row");
 
-        const offsetRowMesh = await this.#createOffsetRowMesh(canvas.__rowSize, yOffset, canvas);
+        const offsetRowMesh = await this.#createOffsetRowMesh(999999,  canvas.__rowSize, {x: 0, y: yOffset, z: canvas.__zIndices.offsetRow}, canvas, "timeline_offset_row_bg");
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
         const rowOffsetColors = new Float32Array(4 * offsetRowCount);
@@ -222,22 +290,22 @@ export class RowManager {
     /**
      * This creates the row mesh for the offset rows.
      */
-    async #createOffsetRowMesh(height, y = 0, canvas) {
+    async #createOffsetRowMesh(width, height, position, canvas, meshId = "timeline_offset_row_bg", matId = "timeline_row", color = canvas._theme.offset_row_bg) {
         const meshes = await crs.call("gfx_mesh_factory", "create", {
             element: canvas,
             mesh: {
-                name: "timeline_offset_row_bg",
+                name: meshId,
                 type: "plane",
                 options: {
-                    width: 999999,
+                    width: width,
                     height: height
                 }
             },
             material: {
-                id: "timeline_row",
-                color: canvas._theme.offset_row_bg,
+                id: matId,
+                color: color,
             },
-            positions: [{x: 0, y: y, z: canvas.__zIndices.offsetRow}]
+            positions: [{x: position.x, y: position.y, z: position.z}]
         })
         return meshes[0];
     }

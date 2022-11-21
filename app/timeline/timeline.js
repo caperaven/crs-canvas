@@ -84,6 +84,6 @@ export default class Timeline extends crsbinding.classes.ViewBase {
     }
 
     async jumpToSelected() {
-        await crs.call("gfx_timeline", "go_to_selected", {element: this.timeline, field: "completeBy"});
+        await crs.call("gfx_timeline", "go_to_selected", {element: this.timeline, field: "startOn"});
     }
 }
