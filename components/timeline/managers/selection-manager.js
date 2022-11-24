@@ -1,10 +1,11 @@
-import {createRect} from "./timeline-helpers.js";
+import {createRect} from "../timeline-helpers.js";
 
 export class SelectionManager {
     #canvas;
     #mesh;
     #clickHandler;
     #selectionCallback;
+    #roundValue;
 
     constructor(canvas, selectionCallback) {
         this.#canvas = canvas;
@@ -15,8 +16,8 @@ export class SelectionManager {
     }
 
     dispose() {
-        this.#canvas.removeEventListener("click",this.#clickHandler);
-        this.#canvas.removeEventListener("contextmenu",this.#clickHandler);
+        this.#canvas.removeEventListener("click", this.#clickHandler);
+        this.#canvas.removeEventListener("contextmenu", this.#clickHandler);
         this.#clickHandler = null;
         this.#clickHandler = null;
         this.#mesh = this.#mesh.dispose();
@@ -25,10 +26,10 @@ export class SelectionManager {
     }
 
     async init() {
-        this.#mesh = await createRect("selection-plane",  this.#canvas._theme.row_selection, 0, 999, this.#canvas.__zIndices.selectionMesh, 999999, this.#canvas.__rowSize,  this.#canvas, false);
+        this.#mesh = await createRect("selection-plane", this.#canvas._theme.row_selection, 0, 999, this.#canvas.__zIndices.selectionMesh, 999999, this.#canvas.__rowSize, this.#canvas, false);
         this.#mesh.enableEdgesRendering();
         this.#mesh.edgesWidth = 1.0;
-        this.#mesh.edgesColor = BABYLON.Color4.FromHexString( this.#canvas._theme.row_selection_border)
+        this.#mesh.edgesColor = BABYLON.Color4.FromHexString(this.#canvas._theme.row_selection_border);
     }
 
     async hide() {
@@ -36,12 +37,10 @@ export class SelectionManager {
     }
 
     async #click(event) {
-        let offset = this.#canvas.y_offset;
-
         const engine = this.#canvas.__engine;
         const scene = this.#canvas.__layers[0];
-        const screenPosition = new BABYLON.Vector3(scene.pointerX, scene.pointerY, 1);
 
+        const screenPosition = new BABYLON.Vector3(scene.pointerX, scene.pointerY, 1);
         const vector = BABYLON.Vector3.Unproject(
             screenPosition,
             engine.getRenderWidth(),
@@ -51,8 +50,14 @@ export class SelectionManager {
             scene.getProjectionMatrix()
         );
 
-        if(this.#selectionCallback(event, (-(Math.trunc((vector.y - offset) / this.#canvas.__rowSize)) - 1))) {
-            this.#mesh.position.y = (Math.trunc((vector.y - offset) / this.#canvas.__rowSize) * this.#canvas.__rowSize) - (this.#canvas.__rowSize / 2) + offset;
-        };
+        const position = (vector.y / -1) - this.#canvas.y_offset
+
+        if (position < 0) return;
+
+        const index = Math.trunc(position / this.#canvas.__rowSize);
+
+        if (this.#selectionCallback(event, index)) {
+            this.#mesh.position.y = (this.#canvas.__rowSize * index + this.#canvas.y_offset) / -1 - (this.#canvas.__rowSize / 2);
+        }
     }
 }

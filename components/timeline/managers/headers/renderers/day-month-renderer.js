@@ -1,4 +1,4 @@
-import {createHeaderText, createRect} from "../../timeline-helpers.js";
+import {createHeaderText, createRect} from "../../../timeline-helpers.js";
 import {DistanceSystem} from "../../../../../src/helpers/distance-system.js";
 import {moveParticle} from "./particle-helpers.js";
 import {monthToYearOffset} from "./year-renderer.js";

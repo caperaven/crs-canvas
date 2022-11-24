@@ -26,9 +26,6 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         });
     }
 
-    async setTimelineData() {
-        this.timeline.render(getRandomData());
-    }
 
     async resetData(value) {
         this.timeline.render(getRandomData(value));
@@ -87,3 +84,26 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         await crs.call("gfx_timeline", "go_to_selected", {element: this.timeline, field: "startOn"});
     }
 }
+
+class FakeDatasource {
+    static async perform(step, context, process, item) {
+        await this[step.action]?.(step, context, process, item);
+    }
+
+    static async load(step) {
+        const element = step.args.element;
+
+        element._tempData = getRandomData();
+        return element._tempData;
+    }
+
+    static async get_by_index(step) {
+        const element = step.args.element;
+        const index = step.args.index;
+
+        return element._tempData[index];
+    }
+
+}
+
+crs.intent.datasource = FakeDatasource;

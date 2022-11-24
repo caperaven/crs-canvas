@@ -2,7 +2,7 @@ import "../../../../src/managers/mesh-factory-manager.js";
 import "../../../../src/managers/particle-manager.js";
 import "../../../../src/managers/text-manager.js";
 import {TIMELINE_SCALE} from "../../timeline-scale.js";
-import {createRect} from "../timeline-helpers.js";
+import {createRect} from "../../timeline-helpers.js";
 import {ParticleHeader} from "./particle-header.js";
 
 export class VirtualizationHeaderManager {
@@ -33,7 +33,7 @@ export class VirtualizationHeaderManager {
     async createHeaders(baseDate, scale, canvas) {
         this.#headers = await HeaderFactory[scale](baseDate, scale, canvas);
 
-        const height = canvas.__offsets.get("y", scale !== TIMELINE_SCALE.YEAR ? "default_header" : "year_header");
+        const height = scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_header : canvas.__offsets.y.year_header;
         this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, (-height / 2), canvas.__zIndices.bgBorderMesh, 9999999, height, canvas, false);
         this.#bgBorderMesh.height = height;
         this.#bgBorderMesh.position.y = camera.position.y - (this.#bgBorderMesh.height / 2) - camera.offset_y;

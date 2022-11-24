@@ -5,7 +5,6 @@ import "./managers/timeline-manager.js";
 import "./../../src/managers/text-manager.js";
 import "./../../src/managers/icons-manager.js";
 import "./../../src/factory/composite-factory.js";
-import "./../timeline/managers/offset-manager.js";
 
 import {configureCamera, jumpToDate} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
@@ -13,7 +12,7 @@ import {VirtualizationHeaderManager} from "./managers/headers/virtualization-hea
 import {RowManager} from "./managers/row-manager.js";
 import {SelectionManager} from "./managers/selection-manager.js";
 import {TIMELINE_SCALE} from "./timeline-scale.js";
-import {createBaseDashedLine} from "./managers/timeline-helpers.js";
+import {createBaseDashedLine, createRect} from "./timeline-helpers.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
@@ -34,7 +33,28 @@ export class Timeline extends HTMLElement {
         offsetRow: 0,
         offsetTextRow: -0.00061,
         selectionMesh: -0.0001,
-    })
+    });
+
+    #offsets = Object.freeze({
+        y: {
+            default_header: 1,
+            year_header: 0.5,
+            default_row: 1.25,
+            year_row: 0.75,
+            default_offset_row: 1.6,
+            year_offset_row: 2.15,
+            default_offset_row_bg: 1.5,
+            year_offset_row_bg: 1,
+            default_text_offset_row_bg: 0.38,
+            year_text_offset_row_bg: 0.38,
+            default_selection: 0.25,
+            year_selection: -0.5
+        }
+    });
+
+    #selectedItem;
+    #selectedIndex;
+
     #rowSize = 1.25
     #todayLineMesh;
 
@@ -57,42 +77,16 @@ export class Timeline extends HTMLElement {
     async connectedCallback() {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
         this.#configuration = await fetch(this.dataset.config).then(result => result.json());
-
         this.#scale = this.dataset.scale || 'month';
 
         requestAnimationFrame(async () => {
             this.#canvas = this.querySelector("canvas") || this.canvas;
             this.#canvas.__zIndices = this.#zIndices;
+            this.#canvas.__offsets = this.#offsets;
             this.#canvas.__rowSize = this.#rowSize;
-            await crs.call("offset_manager", "initialize", {
-                element: this.#canvas,
-                offsets: {
-                    y: {
-                        default_header: 1,
-                        year_header: 0.5,
-                        default_row: 1.25,
-                        year_row: 0.75,
-                        default_offset_row: 1.6,
-                        year_offset_row: 2.15,
-                        default_offset_row_bg: 1.5,
-                        year_offset_row_bg: 1,
-                        default_text_offset_row_bg: 0.38,
-                        year_text_offset_row_bg: 0.38,
-                        default_selection: 0.25,
-                        year_selection: -0.5
-                    }
-                }
-            });
 
             const ready = async () => {
-                await crs.call("gfx_theme", "set", {
-                    element: this.#canvas,
-                    theme: this.#configuration.theme
-                });
-
                 this.#canvas.removeEventListener("ready", ready);
-                this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-
                 await this.#init();
                 await crs.call("component", "notify_ready", {element: this});
             }
@@ -108,13 +102,12 @@ export class Timeline extends HTMLElement {
     async disconnectedCallback() {
         this.#headerManager = this.#headerManager.dispose(this.#canvas)
         this.#rowManager = this.#rowManager.dispose()
-        await crs.call("offset_manager", "dispose", {element: this.#canvas});
-        this.#canvas = null;
         this.#baseDate = null;
         this.#configuration = null;
         this.#data = null;
         this.#scale = null;
         this.#todayLineMesh = this.#todayLineMesh.dispose();
+        this.#canvas = null;
     }
 
     async attributeChangedCallback(name, oldValue, newValue) {
@@ -124,55 +117,68 @@ export class Timeline extends HTMLElement {
     }
 
     async #init() {
-        this.#baseDate = new Date(new Date().toDateString());
-        this.#headerManager = new VirtualizationHeaderManager(this.#canvas);
-        this.#setYOffset();
-        this.#selectionManager = new SelectionManager(this.#canvas, (event, index) => {
-            if (this.#data[index] == null) return false;
-            this.selectedItem = this.#data[index];
-            this.selectedIndex = index;
-            this.dispatchEvent(new CustomEvent("selectedItemChange", {
-                detail: {
-                    item: this.selectedItem,
-                    index: this.selectedIndex
-                }
-            }));
-            return true;
-        });
-
-        await crs.call("gfx_timeline_manager", "initialize", {
+        await crs.call("gfx_theme", "set", {
             element: this.#canvas,
-            base: this.#baseDate,
-            scale: this.#scale
+            theme: this.#configuration.theme
         });
 
-        this.#canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
+        this.#baseDate = new Date(new Date().toDateString());
 
+        await crs.call("gfx_timeline_manager", "initialize", {element: this.#canvas, base: this.#baseDate, scale: this.#scale});
         await crs.call("gfx_text", "initialize", {element: this.#canvas});
         await crs.call("gfx_icons", "initialize", {element: this.#canvas});
 
+        this.#headerManager = new VirtualizationHeaderManager();
         this.#rowManager = new RowManager(this.#configuration);
+        this.#canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
 
         const scene = this.#canvas.__layers[0];
         const camera = this.#canvas.__camera;
         await configureCamera(camera, scene);
-        this.#selectionManager.init(this.#canvas);
+        this.#setYOffset();
+        await this.#initSelection();
+
         this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
+
+        await this.render();
     }
 
-    async render(items) {
-        await this.clean();
+    async #initSelection() {
+        this.#selectionManager = new SelectionManager(this.#canvas, async  (event, index) => {
+            if(index < 0) return;
+
+            let item = await crs.call("datasource", "get_by_index", {
+                element: this,
+                index: index
+            });
+
+            this.#selectedItem = item;
+            this.#selectedIndex = index;
+            this.dispatchEvent(new CustomEvent("selectedItemChange", {
+                detail: {
+                    item: this.#selectedItem,
+                    index: this.#selectedIndex
+                }
+            }));
+            return true;
+        });
+        this.#selectionManager.init(this.#canvas);
+    }
+
+    async #getData() {
+        let items = await crs.call("datasource", "load", {
+            element: this
+        }); // We've created this temporary system, it will be changed to data manager in v2.
+        return items;
+    }
+
+    async render() {
+        const items = await this.#getData();
         if (items == null || items.length === 0) return;
 
-        if (this.#data != null) {
-            this.#rowManager.dispose(this.#canvas);
-            this.#rowManager = new RowManager(this.#configuration)
-        }
 
-        this.#data = items; // TODO V2 GM. Need to use data manager for this. We don't want to keep data in memory.
-
-        this.#rowManager.init(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
-        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0]);
+        this.#rowManager.render(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
+        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0], this.#scale, this.#canvas);
     }
 
     async setScale(scale) {
@@ -187,14 +193,16 @@ export class Timeline extends HTMLElement {
 
     #setYOffset() {
         if (this.#canvas == null) return;
-        this.#canvas.y_offset = this.#canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_selection" : "year_selection");
+        this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? 1 : 0.5;
+
+        createRect("test", "#ff0000", 1,-1,-0.01,0.1, 0.1, this.#canvas)
     }
 
     async draw() {
         await this.#rowManager.redraw(this.#data.length, this.#scale, this.#canvas);
         await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
         await this.#selectionManager.hide();
-
+        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0], this.#scale, this.#canvas);
         this.#canvas.__camera.position.x = this.#canvas.__camera.offset_x;
     }
 
@@ -213,7 +221,7 @@ export class Timeline extends HTMLElement {
 
     async update(index, item) {
         const position = this.#data[index].__position;
-        await this.#rowManager.redrawAtPosition(position, index,item,this.#canvas);
+        await this.#rowManager.redrawRowAtPosition(position, index,item,this.#canvas);
     }
 
     async jumpToDate(date) {

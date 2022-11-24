@@ -4,7 +4,7 @@ import "../../../src/factory/timeline-shape-factory.js"
 import {TIMELINE_SCALE} from "../timeline-scale.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 import {TimelineShapes} from "../timeline-shapes.js";
-import {createRect} from "./timeline-helpers.js";
+import {createRect} from "../timeline-helpers.js";
 
 /**
  * This class is responsible for rendering the rows and includes generating the geometry and virtualization
@@ -14,32 +14,6 @@ export class RowManager {
     #virtualization;
     #scale;
     #cameraObserver;
-    #shapeConfig = Object.freeze({
-        "pillar": {
-            barHeight: 0.4,
-            triangleHeight: 0.1,
-            triangleWidth: 0.1,
-            theme: "row_range1",
-            yOffset: 0.15,
-            zOffset: 0.00001
-        },
-        "range_indicator": {
-            barHeight: 0.05,
-            triangleHeight: 0.1,
-            triangleWidth: 0.2,
-            theme: "row_range3",
-            yOffset: 0.35,
-            zOffset: 0.00002
-        },
-        "rect": {
-            barHeight: 0.3,
-            triangleHeight: null,
-            triangleWidth: null,
-            theme: "row_range2",
-            yOffset: 0.0075,
-            zOffset: 0.00003
-        }
-    })
 
     constructor(config) {
         this.#configuration = config;
@@ -62,85 +36,40 @@ export class RowManager {
         this.#virtualization.clearInstances();
     }
 
-
-    async init(items, canvas, scene, baseDate, scale) {
-        const itemCount = items.length;
+    async render(items, canvas, scene, baseDate, scale) {
         this.#scale = scale;
-
-        await this.#createOffsetRows(itemCount, canvas, scale);
         await this.#initVirtualization(canvas, scene, items);
-        this.#setTextPositions(canvas);
-    }
-
-
-    async #initVirtualization(canvas, scene, items) {
-        const addCallback = async (position, index) => {
-            const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_row" : "year_row");
-            const textBgYOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_text_offset_row_bg" : "year_text_offset_row_bg");
-
-            if (index < 0 || (index > (items.length-1))) return;
-            const item = items[index];
-
-            let shapes = [];
-
-            //Create shapes
-            for (const shape of this.#configuration.shapes) {
-                if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) {
-                    continue
-                };
-                shapes.push(await this.#drawShape(canvas, shape, item, position, index));
-            }
-
-            //Create Text
-            //TODO KR: creating text should return size of largest string of text in order to set width of backgroun
-            const parentText = await crs.call("gfx_composite", "create", {
-                element: canvas,
-                templates: this.#configuration.records,
-                parameters: item,
-                position: {x: 0.25, y: -rowOffset - position, z: 0},
-                margin: {x: 0, y: 0.4, z: canvas.__zIndices.rowText},
-                scale: {x: 0.25, y: 0.25, z: 1},
-                id: `composite_${position}`
-            })
-            parentText.isText = true;
-            shapes.push(parentText);
-
-            //Create background text
-            const isEven = index % 2 === 1;
-            const color = isEven ? canvas._theme.offset_row_bg : canvas._theme.light_row_text_bg;
-            const textBackground = await createRect("timeline_offset_row_text_bg", color, 0, -rowOffset - position - textBgYOffset, canvas.__zIndices.offsetTextRow, 5,  canvas.__rowSize - 0.05, canvas, false);
-            textBackground.isTextBackground = true;
-            shapes.push(textBackground);
-
-            return shapes;
-        }
-
-        const removeCallback =async (shapes) => {
-            await this.#removeRow(shapes)
-        }
-
-        scene.onBeforeRenderObservable.addOnce(async () => {
-            this.#virtualization = new StaticVirtualization(canvas.__rowSize, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
-            await this.#draw(canvas);
-            this.#setTextPositions(canvas);
-
-        });
-
+        const itemCount = items.length;
+        await this.#createOffsetRows(itemCount, canvas, scale);
+        await this.#draw(canvas);
         this.#cameraObserver = canvas.__camera.onViewMatrixChangedObservable.add(() => {
             this.#draw(canvas);
             this.#setTextPositions(canvas);
         });
     }
 
-    async redraw(count, scale, canvas){
-        this.#scale = scale;
-        await this.#createOffsetRows(count, canvas, scale);
-        await this.#draw(canvas);
+    async redrawRowAtPosition(index, item, canvas) {
+        const position = index * canvas.__rowSize;
+        await this.#removeRow(null,position);
+        this.#virtualization.instances[position] = await this.#drawRow(position, index, item, canvas);
         this.#setTextPositions(canvas);
     }
 
-    async #draw(canvas) {
-        await this.#virtualization.draw(( canvas.__camera.position.y - canvas.__camera.offset_y) / -1);
+    async #initVirtualization(canvas, scene, items) {
+        return new Promise((resolve)=> {
+            canvas.__camera.onViewMatrixChangedObservable.addOnce(async () => {
+                const addCallback = async (position, index) => {
+                    if (index < 0 || (index > (items.length-1))) return;
+                    return this.#drawRow(position, index, items[index], canvas);
+                }
+
+                const removeCallback =async (shapes) => {
+                    await this.#removeRow(shapes)
+                }
+                this.#virtualization = new StaticVirtualization(canvas.__rowSize, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
+                resolve();
+            });
+        });
     }
 
     async #removeRow(shapes, position) {
@@ -171,31 +100,43 @@ export class RowManager {
         }
     }
 
-    async redrawAtPosition(position, index, item, canvas) {
-        await this.#removeRow(null,position);
-        this.#virtualization.instances[position] = await this.#drawRow(position, index, item, canvas);
+    async #draw(canvas) {
+        await this.#virtualization.draw(( canvas.__camera.position.y - canvas.__camera.offset_y) / -1);
         this.#setTextPositions(canvas);
     }
 
     async #drawRow(position, index, item, canvas) {
-        item.__position = position;
+
+        const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_row : canvas.__offsets.y.year_row;
+        const textBgYOffset =this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_text_offset_row_bg : canvas.__offsets.y.year_text_offset_row_bg;
+
 
         let shapes = [];
+
+        //Create shapes
         for (const shape of this.#configuration.shapes) {
             if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) {
-                continue;
+                continue
             }
             shapes.push(await this.#drawShape(canvas, shape, item, position, index));
         }
 
+
         shapes.push(await this.#drawText(position, item, canvas));
+
+        //Create text background
+        const isEven = index % 2 === 1;
+        const color = isEven ? canvas._theme.offset_row_bg : canvas._theme.light_row_text_bg;
+        const textBackground = await createRect("timeline_offset_row_text_bg", color, 0, -rowOffset - position - textBgYOffset, canvas.__zIndices.offsetTextRow, 5,  canvas.__rowSize - 0.05, canvas, false);
+        textBackground.isTextBackground = true;
+        shapes.push(textBackground);
 
         return shapes;
     }
 
     async #drawShape(canvas, shape, item, position, index) {
-        const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_offset_row_bg" : "year_offset_row_bg");
-        const shapeProperties = this.#shapeConfig[shape.shapeType];
+        const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_offset_row_bg : canvas.__offsets.y.year_offset_row_bg;
+        const shapeProperties = TimelineShapes[shape.shapeType];
 
         const result = await crs.call("gfx_timeline_manager", "get", {
             element: canvas,
@@ -242,7 +183,9 @@ export class RowManager {
     }
 
     async #drawText(position, item, canvas) {
-        const rowOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_row" : "year_row");
+        const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_row : canvas.__offsets.y.year_row;
+        //Create Text
+        //TODO KR: creating text should return size of largest string of text in order to set width of backgroun
         const parentText = await crs.call("gfx_composite", "create", {
             element: canvas,
             templates: this.#configuration.records,
@@ -260,16 +203,12 @@ export class RowManager {
      * This generates the rows background mesh that shows every other row.
      */
     async #createOffsetRows(itemCount, canvas) {
-        const yOffset = canvas.__offsets.get("y", this.#scale !== TIMELINE_SCALE.YEAR ? "default_offset_row" : "year_offset_row");
+        const yOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_offset_row : canvas.__offsets.y.year_offset_row;
 
         const offsetRowMesh = await this.#createOffsetRowMesh(999999,  canvas.__rowSize, {x: 0, y: yOffset, z: canvas.__zIndices.offsetRow}, canvas, "timeline_offset_row_bg");
         const offsetRowCount = Math.round(itemCount / 2);
         const rowOffsetMatrices = new Float32Array(16 * offsetRowCount);
-        const rowOffsetColors = new Float32Array(4 * offsetRowCount);
 
-        let colors = [];
-
-        let color = BABYLON.Color3.FromHexString(canvas._theme.offset_row_bg);
         // Render offset row instances
         const headerOffset = 1;
         let nextPosition = 0;
@@ -278,13 +217,10 @@ export class RowManager {
 
             const matrix = BABYLON.Matrix.Translation(0, y * 2, 0);
             matrix.copyToArray(rowOffsetMatrices, i * 16);
-            colors.push(...[color.r, color.g, color.b, 1]);
             nextPosition += canvas.__rowSize
         }
 
-        rowOffsetColors.set(colors);
         offsetRowMesh.thinInstanceSetBuffer("matrix", rowOffsetMatrices);
-        offsetRowMesh.thinInstanceSetBuffer("color", rowOffsetColors, 4);
     }
 
     /**

@@ -44,15 +44,22 @@ export async function createHeaderText(text, canvas, x, y, z = 0, scale, bold = 
     return textMesh;
 }
 
-export async function createBaseDashedLine(camera, scene) {
+export async function createBaseDashedLine(camera, scene, scale, canvas) {
     return new Promise((resolve)=> {
         scene.onBeforeRenderObservable.addOnce(async () => {
-            const x = camera.position.x - camera.offset_x;
-            const y = camera.view_height;
+
+            const result = await crs.call("gfx_timeline_manager", "get", {
+                element: canvas,
+                start: new Date(),
+                end: new Date(),
+                scale:  scale
+            });
+
+            const x = result.x2;
 
             const   points = [
-                new BABYLON.Vector3(x, -1, -0.2),
-                new BABYLON.Vector3(x, -15,  -0.2)
+                new BABYLON.Vector3(x, canvas.y_offset + 1.25, -0.02),
+                new BABYLON.Vector3(x, -camera.view_height,  -0.02)
             ];
 
             const lines =BABYLON.Mesh.CreateDashedLines("dashedLines", points, 1, 1, 50, scene)
