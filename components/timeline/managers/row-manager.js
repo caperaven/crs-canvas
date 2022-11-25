@@ -27,7 +27,7 @@ export class RowManager {
         this.#cameraObserver = null;
     }
 
-    clean(canvas, scene) {
+    clear(canvas, scene) {
         const meshesToDispose = scene.meshes.filter(mesh => mesh.id.includes("range_item") || mesh.id.includes("offset_row"));
         for (const mesh of meshesToDispose) {
             mesh.dispose();
@@ -38,6 +38,7 @@ export class RowManager {
 
     async render(items, canvas, scene, baseDate, scale) {
         this.#scale = scale;
+        await this.#waitTillReady(scene);
         await this.#initVirtualization(canvas, scene, items);
         const itemCount = items.length;
         await this.#createOffsetRows(itemCount, canvas, scale);
@@ -56,17 +57,20 @@ export class RowManager {
     }
 
     async #initVirtualization(canvas, scene, items) {
-        return new Promise((resolve)=> {
-            canvas.__camera.onViewMatrixChangedObservable.addOnce(async () => {
-                const addCallback = async (position, index) => {
-                    if (index < 0 || (index > (items.length-1))) return;
-                    return this.#drawRow(position, index, items[index], canvas);
-                }
+        const addCallback = async (position, index) => {
+            if (index < 0 || (index > (items.length-1))) return;
+            return this.#drawRow(position, index, items[index], canvas);
+        }
 
-                const removeCallback =async (shapes) => {
-                    await this.#removeRow(shapes)
-                }
-                this.#virtualization = new StaticVirtualization(canvas.__rowSize, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
+        const removeCallback =async (shapes) => {
+            await this.#removeRow(shapes)
+        }
+        this.#virtualization = new StaticVirtualization(canvas.__rowSize, canvas.__camera.view_height, addCallback.bind(this), removeCallback);
+    }
+
+    async #waitTillReady(scene) {
+        return new Promise((resolve)=> {
+            scene.onBeforeRenderObservable.addOnce(async () => {
                 resolve();
             });
         });
@@ -145,7 +149,7 @@ export class RowManager {
             scale:  this.#scale
         });
 
-        item.actual_geom ||= {};
+        item.actual_geom = {};
         item.actual_geom[shape.shapeType] ||= await crs.call("gfx_timeline_shape_factory", shape.shapeType, {
             aabb: {
                 minX: result.x1,

@@ -137,10 +137,7 @@ export class Timeline extends HTMLElement {
         await configureCamera(camera, scene);
         this.#setYOffset();
         await this.#initSelection();
-
-        this.#headerManager.init(this.#baseDate, this.#scale, this.#canvas, this.#canvas.__layers[0]);
-
-        await this.render();
+        await this.render(true);
     }
 
     async #initSelection() {
@@ -172,13 +169,19 @@ export class Timeline extends HTMLElement {
         return items;
     }
 
-    async render() {
+    async render(firstRender) {
+        if(firstRender !== true) {
+            await this.clean();
+        }
         const items = await this.#getData();
         if (items == null || items.length === 0) return;
 
+        const scene = this.#canvas.__layers[0];
 
-        this.#rowManager.render(items, this.#canvas, this.#canvas.__layers[0], this.#baseDate, this.#scale);
-        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0], this.#scale, this.#canvas);
+        await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
+        await this.#rowManager.render(items, this.#canvas, scene, this.#baseDate, this.#scale);
+
+        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera,scene , this.#scale, this.#canvas);
     }
 
     async setScale(scale) {
@@ -198,25 +201,20 @@ export class Timeline extends HTMLElement {
         createRect("test", "#ff0000", 1,-1,-0.01,0.1, 0.1, this.#canvas)
     }
 
-    async draw() {
-        await this.#rowManager.redraw(this.#data.length, this.#scale, this.#canvas);
-        await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
-        await this.#selectionManager.hide();
-        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0], this.#scale, this.#canvas);
-        this.#canvas.__camera.position.x = this.#canvas.__camera.offset_x;
-    }
+    // async draw() {
+    //     await this.#rowManager.redraw(this.#data.length, this.#scale, this.#canvas);
+    //     await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
+    //     await this.#selectionManager.hide();
+    //     this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, this.#canvas.__layers[0], this.#scale, this.#canvas);
+    //     this.#canvas.__camera.position.x = this.#canvas.__camera.offset_x;
+    // }
 
     async clean() {
-        if(this.#data) {
-            for (const item of this.#data) {
-                delete item.actual_geom;
-            }
-            const scene = this.#canvas.__layers[0];
+        const scene = this.#canvas.__layers[0];
 
-            await this.#rowManager.clean(this.#canvas, scene);
-            await this.#headerManager.removeHeaders();
-            this.#todayLineMesh.dispose();
-        }
+        await this.#rowManager.clear(this.#canvas, scene);
+        await this.#headerManager.removeHeaders();
+        this.#todayLineMesh.dispose();
     }
 
     async update(index, item) {

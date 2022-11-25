@@ -31,6 +31,7 @@ export class VirtualizationHeaderManager {
     }
 
     async createHeaders(baseDate, scale, canvas) {
+        scale = scale || TIMELINE_SCALE.MONTH;
         this.#headers = await HeaderFactory[scale](baseDate, scale, canvas);
 
         const height = scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_header : canvas.__offsets.y.year_header;
@@ -44,17 +45,10 @@ export class VirtualizationHeaderManager {
         if (scale !== TIMELINE_SCALE.YEAR) {
             await this.#createSplittingBorder(canvas);
         }
-    }
 
-    async init(baseDate, scale, canvas, scene) {
-        scale = scale || TIMELINE_SCALE.MONTH;
-
-        scene.onBeforeRenderObservable.addOnce(async () => {
-            await this.createHeaders(baseDate, scale, canvas);
-            if (this.#cameraObserver == null) {
-                this.#addCameraObserver(canvas);
-            }
-        });
+        if (this.#cameraObserver == null) {
+            this.#addCameraObserver(canvas);
+        }
     }
 
     #addCameraObserver(canvas) {

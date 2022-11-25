@@ -26,9 +26,20 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         });
     }
 
-
     async resetData(value) {
-        this.timeline.render(getRandomData(value));
+
+        for (const item of this.timeline._tempData) {
+            item.startOn = `2022/12/08 12:00:00.000`;
+            item.completeBy = `2022/12/10 12:00:00.000`;
+
+            item.receivedOn = `2022/12/08 12:00:00.000`;
+            item.requiredBy = `2022/12/10 12:00:00.000`;
+
+            item.workStartedOn = `2022/12/08 12:00:00.000`;
+            item.completedOn = `2022/12/10 12:00:00.000`;
+        }
+
+        this.timeline.render();
     }
 
     async setScale(scale) {
@@ -92,6 +103,8 @@ class FakeDatasource {
 
     static async load(step) {
         const element = step.args.element;
+
+        if(element._tempData) return element._tempData;
 
         element._tempData = getRandomData();
         return element._tempData;
