@@ -15,7 +15,7 @@ export class TimelineShapeFactory {
         const triangle_height = await crs.process.getValue(step.args.triangle_height) ?? 0.1;
         const triangle_width = await crs.process.getValue(step.args.triangle_width) ?? 0.2;
 
-        const path = [
+        let path = [
             [['m'],[aabb.minX],[aabb.minY],[0.0]],
             [['l'],[aabb.maxX],[aabb.minY],[0.0]],
             [['l'],[aabb.maxX],[aabb.minY + bar_height],[0.0]],
@@ -25,7 +25,21 @@ export class TimelineShapeFactory {
             [['l'],[aabb.minX + (triangle_width / 2.0)],[aabb.minY + bar_height + triangle_height],[0.0]],
             [['l'],[aabb.minX],[aabb.minY + bar_height],[0.0]],
             [['z']]
-        ]
+        ];
+
+        if (Math.abs(aabb.maxX - aabb.minX) < triangle_width) {
+            aabb.maxX = aabb.minX + triangle_width / 2;
+            aabb.minX = aabb.minX - triangle_width / 2;
+            path = [
+                [['m'],[aabb.minX],[aabb.minY],[0.0]],
+                [['l'],[aabb.maxX],[aabb.minY],[0.0]],
+                [['l'],[aabb.maxX],[aabb.minY + bar_height],[0.0]],
+                [['l'],[aabb.minX + triangle_width],[aabb.minY + bar_height],[0.0]],
+                [['l'],[aabb.minX + (triangle_width / 2.0)],[aabb.minY + bar_height + triangle_height],[0.0]],
+                [['l'],[aabb.minX],[aabb.minY + bar_height],[0.0]],
+                [['z']]
+            ];
+        }
 
         path.every(i => i.join(","));
         const path_str = path.join(",");
@@ -48,6 +62,11 @@ export class TimelineShapeFactory {
         const triangle_height = await crs.process.getValue(step.args.triangle_height) ?? 0.1;
         const triangle_width = await crs.process.getValue(step.args.triangle_width) ?? 0.2;
         const top_triangle = await crs.process.getValue(step.args.top_triangle) ?? false;
+
+        if (aabb.maxX - aabb.minX < triangle_width * 2) {
+            aabb.maxX = aabb.minX + (triangle_width * 2) / 2;
+            aabb.minX = aabb.minX - (triangle_width * 2) / 2;
+        }
 
         const path = [
             [['m'],[aabb.minX], [aabb.minY], [0.0]],
@@ -84,6 +103,12 @@ export class TimelineShapeFactory {
         if (aabb == null) return;
 
         const bar_height = await crs.process.getValue(step.args.bar_height) ?? 0.1;
+        const minimum_width = await crs.process.getValue(step.args.minimum_width) ?? 0.1;
+
+        if (aabb.maxX - aabb.minX < 0.2) {
+            aabb.minX = aabb.minX - (minimum_width / 2);
+            aabb.maxX = aabb.minX + minimum_width;
+        }
 
         const path = [
             [['m'],[aabb.minX], [aabb.minY], [0.0]],
