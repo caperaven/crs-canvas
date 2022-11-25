@@ -50,9 +50,9 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             },
             rect: {
                 aabb: {
-                    minX: -0.05,
+                    minX: 0,
                     minY: 0.45,
-                    maxX: -0.05,
+                    maxX: 0,
                     maxY: 0.75
                 },
                 bar_height: 0.3
@@ -86,9 +86,9 @@ export default class Welcome extends crsbinding.classes.ViewBase {
             },
             rect: {
                 aabb: {
-                    minX: 1.1,
+                    minX: 1.0,
                     minY: 0.45,
-                    maxX: 1.1,
+                    maxX: 1.0,
                     maxY: 0.75
                 },
                 bar_height: 0.3
