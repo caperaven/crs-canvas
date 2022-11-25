@@ -9,7 +9,8 @@
     "scripts": {
         "build-geometry": "wasm-pack build wasm/geometry/ --target web --out-dir ../../bin",
         "test": "deno test --allow-all ./tests",
-        "bundle": "deno run --allow-read --allow-write --allow-env --allow-run  --allow-net ./build/build.js"
+        "bundle": "deno run --allow-read --allow-write --allow-env --allow-run  --allow-net ./build/build.js",
+        "run": "caddy run"
     },
     "license": "ISC"
 }

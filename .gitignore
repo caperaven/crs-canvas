@@ -1,3 +1,4 @@
+.idea/
 /node_modules/
 package-lock.json
 yarn.lock
@@ -6,5 +7,4 @@ yarn-error.log
 /dist/
 /publish/
 /wasm/geometry/Cargo.lock
-wasm/geometry/target/.rustc_info.json
 /wasm/geometry/target/
