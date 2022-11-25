@@ -39,9 +39,9 @@ export default class Welcome extends crsbinding.classes.ViewBase {
         await this.range_bars(canvas, {
             pillar: {
                 aabb: {
-                    minX: -0.1,
+                    minX: 0.0,
                     minY: 0.3,
-                    maxX: 0.1,
+                    maxX: -3.0,
                     maxY: 0.5
                 },
                 triangle_height: 0.1,
@@ -52,7 +52,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
                 aabb: {
                     minX: 0,
                     minY: 0.45,
-                    maxX: 0,
+                    maxX: -3.0,
                     maxY: 0.75
                 },
                 bar_height: 0.3
@@ -61,7 +61,7 @@ export default class Welcome extends crsbinding.classes.ViewBase {
                 aabb: {
                     minX: 0.0,
                     minY: 0.0,
-                    maxX: 0.0,
+                    maxX: -3.0,
                     maxY: 0.2
                 },
                 triangle_height: 0.15,

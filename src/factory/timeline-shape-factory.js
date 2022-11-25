@@ -27,7 +27,7 @@ export class TimelineShapeFactory {
             [['z']]
         ];
 
-        if (Math.abs(aabb.maxX - aabb.minX) < triangle_width) {
+        if (Math.abs(aabb.maxX - aabb.minX) < triangle_width || aabb.minX > aabb.maxX) {
             aabb.maxX = aabb.minX + triangle_width / 2;
             aabb.minX = aabb.minX - triangle_width / 2;
             path = [
@@ -63,7 +63,7 @@ export class TimelineShapeFactory {
         const triangle_width = await crs.process.getValue(step.args.triangle_width) ?? 0.2;
         const top_triangle = await crs.process.getValue(step.args.top_triangle) ?? false;
 
-        if (aabb.maxX - aabb.minX < triangle_width * 2) {
+        if (Math.abs(aabb.maxX - aabb.minX) < triangle_width * 2 || aabb.minX > aabb.maxX) {
             aabb.maxX = aabb.minX + (triangle_width * 2) / 2;
             aabb.minX = aabb.minX - (triangle_width * 2) / 2;
         }
