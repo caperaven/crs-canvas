@@ -49,8 +49,8 @@ export class RowManager {
         });
     }
 
-    async redrawRowAtPosition(index, item, canvas) {
-        const position = index * canvas.__rowSize;
+    async redrawRowAtIndex(index, item, canvas) {
+        const position = this.#getPositionForIndex(index, canvas);
         await this.#removeRow(null,position);
         this.#virtualization.instances[position] = await this.#drawRow(position, index, item, canvas);
         this.#setTextPositions(canvas);
@@ -113,18 +113,16 @@ export class RowManager {
 
         const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_row : canvas.__offsets.y.year_row;
         const textBgYOffset =this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_text_offset_row_bg : canvas.__offsets.y.year_text_offset_row_bg;
-
-
         let shapes = [];
 
         //Create shapes
         for (const shape of this.#configuration.shapes) {
-            if (item[shape.fromField] == null || item[shape.toField] == null || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]) {
+            // old condition || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]
+            if (item[shape.fromField] == null || item[shape.toField] == null ) {
                 continue
             }
             shapes.push(await this.#drawShape(canvas, shape, item, position, index));
         }
-
 
         shapes.push(await this.#drawText(position, item, canvas));
 
@@ -148,6 +146,7 @@ export class RowManager {
             end: item[shape.toField],
             scale:  this.#scale
         });
+
 
         item.actual_geom = {};
         item.actual_geom[shape.shapeType] ||= await crs.call("gfx_timeline_shape_factory", shape.shapeType, {
@@ -248,5 +247,9 @@ export class RowManager {
             positions: [{x: position.x, y: position.y, z: position.z}]
         })
         return meshes[0];
+    }
+
+    #getPositionForIndex(index, canvas) {
+        return (canvas.__rowSize * index);
     }
 }

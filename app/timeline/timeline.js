@@ -119,4 +119,4 @@ class FakeDatasource {
 
 }
 
-crs.intent.datasource = FakeDatasource;
+crs.intent.timeline_datasource = FakeDatasource;

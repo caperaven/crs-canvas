@@ -36,7 +36,7 @@ export class SelectionManager {
         this.#mesh.position.y = 999 // We need to remove this when selection is recalc on scale change
     }
 
-    async #click(event) {
+    async #click() {
         const engine = this.#canvas.__engine;
         const scene = this.#canvas.__layers[0];
 
@@ -56,8 +56,14 @@ export class SelectionManager {
 
         const index = Math.trunc(position / this.#canvas.__rowSize);
 
-        if (this.#selectionCallback(event, index)) {
+        this.moveSelectionToIndex(index);
+    }
+
+    moveSelectionToIndex(index) {
+        if (this.#selectionCallback(index)) {
             this.#mesh.position.y = (this.#canvas.__rowSize * index + this.#canvas.y_offset) / -1 - (this.#canvas.__rowSize / 2);
         }
     }
+
+
 }

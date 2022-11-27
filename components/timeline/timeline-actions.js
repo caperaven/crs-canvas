@@ -20,21 +20,10 @@ class TimelineActions {
             }});
     }
 
-    static async go_to_selected(step, context, process, item) {
-        const selected = await this.get_selected(step, context, process, item);
-        if (selected.index == null || selected.item == null) return;
-
-        const field = await crs.process.getValue(step.args.field, context, process, item);
-        if (selected.item[field] == null) return;
-
-        const timeline = await crs.dom.get_element(step, context, process, item);
-        await this.jump_to_date({
-            args: {
-                element: timeline?.canvas,
-                base: timeline?.baseDate,
-                date: selected.item[field],
-                scale: timeline?.scale
-            }});
+    static async set_scale(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        const scale = await crs.process.getValue(step.args.scale, context, process, item);
+        await timeline.setScale(scale);
     }
 
     static async jump_to_date(step, context, process, item) {
