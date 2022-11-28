@@ -104,6 +104,14 @@ class TimelineActions {
 
         await timeline.render();
     }
+
+    static async resize(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+
+        setTimeout(async ()=> {
+            await timeline.canvas.__resize();
+        }, 210)
+    }
 }
 
 crs.intent.gfx_timeline = TimelineActions;

@@ -189,8 +189,23 @@ export class RowManager {
 
     async #drawText(position, item, canvas) {
         const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_row : canvas.__offsets.y.year_row;
-        //Create Text
-        //TODO KR: creating text should return size of largest string of text in order to set width of backgroun
+
+
+        // TODO GM: This is a major hack. Need to discuss strategy with JHR asap
+        const parts =  item.siteDescription.split(" ");
+        let newValue = "";
+        for (const part of parts) {
+            if((newValue.length + part.length) < 30) {
+                newValue += `${part} `;
+            }
+            else {
+                newValue = newValue.trim();
+                newValue += "..."
+                break;
+            }
+        }
+        item.siteDescription = newValue;
+
         const parentText = await crs.call("gfx_composite", "create", {
             element: canvas,
             templates: this.#configuration.textTemplates,

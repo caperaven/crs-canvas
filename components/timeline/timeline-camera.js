@@ -1,5 +1,5 @@
 export async function configureCamera(camera, scene) {
-    let observer = scene.onBeforeRenderObservable.add(() => {
+    scene.onBeforeRenderObservable.addOnce(() => {
         camera.getViewMatrix();
 
         const topLeftNormalised = new BABYLON.Vector3(-1, 1, 1)
@@ -22,8 +22,6 @@ export async function configureCamera(camera, scene) {
 
             camera.position.x = cameraNewX;
             camera.position.y = cameraNewY;
-
-            scene.onBeforeRenderObservable.remove(observer)
         }
     })
 }
