@@ -94,6 +94,21 @@ export default class Timeline extends crsbinding.classes.ViewBase {
     async jumpToSelected() {
         await crs.call("gfx_timeline", "go_to_selected", {element: this.timeline, field: "startOn"});
     }
+
+    async loadNewShapes() {
+        const schema = await fetch("/app/timeline/shapes.json").then((response) => response.json());
+        await crs.call("gfx_timeline", "initialize", {element: this.timeline, schema: schema});
+    }
+
+    async updateShapes() {
+        const schema = await fetch("/app/timeline/shapes.json").then((response) => response.json());
+
+        schema.body.elements[0].textTemplates.pop();
+
+        schema.body.elements[0].shapes.pop();
+        schema.body.elements[0].shapes.pop();
+        await crs.call("gfx_timeline", "update_config", {element: this.timeline, schema: schema});
+    }
 }
 
 class FakeDatasource {

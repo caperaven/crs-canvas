@@ -88,7 +88,7 @@ export class Timeline extends HTMLElement {
 
     async connectedCallback() {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
-        this.#configuration = await fetch(this.dataset.config).then(result => result.json());
+
         this.#scale = this.dataset.scale || 'month';
 
         requestAnimationFrame(async () => {
@@ -99,7 +99,6 @@ export class Timeline extends HTMLElement {
 
             const ready = async () => {
                 this.#canvas.removeEventListener("ready", ready);
-                await this.#init();
                 await crs.call("component", "notify_ready", {element: this});
             }
 
@@ -127,12 +126,7 @@ export class Timeline extends HTMLElement {
             await this.render();
     }
 
-    async #init() {
-        await crs.call("gfx_theme", "set", {
-            element: this.#canvas,
-            theme: this.#configuration.theme
-        });
-
+    async init() {
         this.#baseDate = new Date(new Date().toDateString());
 
         await crs.call("gfx_timeline_manager", "initialize", {element: this.#canvas, base: this.#baseDate, scale: this.#scale});
@@ -140,7 +134,7 @@ export class Timeline extends HTMLElement {
         await crs.call("gfx_icons", "initialize", {element: this.#canvas});
 
         this.#headerManager = new VirtualizationHeaderManager();
-        this.#rowManager = new RowManager(this.#configuration);
+
         this.#canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
 
         const scene = this.#canvas.__layers[0];
@@ -148,7 +142,13 @@ export class Timeline extends HTMLElement {
         await configureCamera(camera, scene);
 
         await this.#initSelection();
-        await this.render(true);
+    }
+
+    setRowConfig(config) {
+        if(this.#rowManager != null) {
+            this.#rowManager.dispose(this.#canvas);
+        }
+        this.#rowManager = new RowManager(config);
     }
 
     async #initSelection() {
@@ -207,7 +207,6 @@ export class Timeline extends HTMLElement {
     async clean() {
         const scene = this.#canvas.__layers[0];
 
-        await this.#rowManager.clear(this.#canvas, scene);
         await this.#headerManager.removeHeaders();
         this.#todayLineMesh.dispose();
     }

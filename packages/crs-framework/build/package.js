@@ -11,6 +11,8 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 await init();
 
+const copy_instead = ["monaco"]
+
 /**
  * This packages a js file with its dependencies as one file.
  * @param file
@@ -26,8 +28,6 @@ export async function bundleJs(file, output, minified) {
         format: "esm",
         minify: minified
     })
-
-    console.log(result);
 }
 
 /**
@@ -46,9 +46,9 @@ export async function copyDirectory(source, target) {
             continue;
         }
 
-        await Deno.copyFile(`${source}/${dirEntry.name}`, `${target}/${dirEntry.name}`);
-
-        console.log(`${source}/${dirEntry.name}`);
+        const sourceFile = `${source}/${dirEntry.name}`;
+        await Deno.copyFile(sourceFile, `${target}/${dirEntry.name}`);
+        console.log(sourceFile);
     }
 }
 
@@ -64,6 +64,13 @@ export async function packageFolder(source, target, minified) {
 
     for await (const dirEntry of Deno.readDir(source)) {
         if (dirEntry.isDirectory == true) {
+            if (copy_instead.indexOf(dirEntry.name) != -1) {
+                const newSource = `${source}/${dirEntry.name}`;
+                const newTarget = `${target}/${dirEntry.name}`;
+                await copyDirectory(newSource, newTarget);
+                continue;
+            }
+
             await ensureDir(`${target}/${dirEntry.name}`);
             await packageFolder(`${source}/${dirEntry.name}`, `${target}/${dirEntry.name}`, minified);
             continue;
@@ -103,6 +110,8 @@ export async function packageFile(sourceFile, targetFile, loader, format, minifi
     const src = await Deno.readTextFile(sourceFile);
     const result = await esbuild.transform(src, { loader: loader, minify: minified, format: format });
     await Deno.writeTextFile(targetFile, result.code);
+
+    console.log(sourceFile);
 }
 
 /**
@@ -120,6 +129,7 @@ export async function packageHTML(sourceFile, targetFile, minified) {
     }
 
     await Deno.writeTextFile(targetFile, src);
+    console.log(sourceFile);
 }
 
 /**
@@ -129,14 +139,14 @@ export async function packageHTML(sourceFile, targetFile, minified) {
  * @param minified
  * @returns {Promise<void>}
  */
-export async function bundleCss(file, output, minified) {
-    const result = await esbuild.build({
-        entryPoints: [file],
+export async function bundleCss(sourceFile, output, minified) {
+    await esbuild.build({
+        entryPoints: [sourceFile],
         bundle: true,
         loader: {".css": "css"},
         outfile: output,
         minify: minified
     })
 
-    console.log(result);
+    console.log(sourceFile);
 }

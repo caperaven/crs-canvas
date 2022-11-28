@@ -22,8 +22,10 @@ export class RowManager {
     dispose(canvas) {
         this.#configuration = null;
         this.#scale = null;
+        this.clear(canvas, canvas.__layers[0]);
         this.#virtualization = this.#virtualization.dispose();
         canvas?.__camera?.onViewMatrixChangedObservable?.remove(this.#cameraObserver);
+
         this.#cameraObserver = null;
     }
 
@@ -32,8 +34,6 @@ export class RowManager {
         for (const mesh of meshesToDispose) {
             mesh.dispose();
         }
-
-        this.#virtualization.clearInstances();
     }
 
     async render(items, canvas, scene, baseDate, scale) {
@@ -98,7 +98,7 @@ export class RowManager {
                 }
 
                 if (shape.isTextBackground) {
-                    shape.position.x = 2.5 + (canvas.__camera.position.x - canvas.__camera.offset_x);
+                    shape.position.x = 2.575 + (canvas.__camera.position.x - canvas.__camera.offset_x);
                 }
             }
         }
@@ -129,7 +129,7 @@ export class RowManager {
         //Create text background
         const isEven = index % 2 === 1;
         const color = isEven ? canvas._theme.offset_row_bg : canvas._theme.light_row_text_bg;
-        const textBackground = await createRect("timeline_offset_row_text_bg", color, 0, -rowOffset - position - textBgYOffset, canvas.__zIndices.offsetTextRow, 5,  canvas.__rowSize - 0.05, canvas, false);
+        const textBackground = await createRect("timeline_offset_row_text_bg", color, 0, -rowOffset - position - textBgYOffset, canvas.__zIndices.offsetTextRow, 5,  canvas.__rowSize - 0.15, canvas, false);
         textBackground.isTextBackground = true;
         shapes.push(textBackground);
 
@@ -191,7 +191,7 @@ export class RowManager {
         //TODO KR: creating text should return size of largest string of text in order to set width of backgroun
         const parentText = await crs.call("gfx_composite", "create", {
             element: canvas,
-            templates: this.#configuration.records,
+            templates: this.#configuration.textTemplates,
             parameters: item,
             position: {x: 0.25, y: -rowOffset - position, z: 0},
             margin: {x: 0, y: 0.4, z: canvas.__zIndices.rowText},
@@ -250,6 +250,6 @@ export class RowManager {
     }
 
     #getPositionForIndex(index, canvas) {
-        return (canvas.__rowSize * index);
+        return canvas.__rowSize * index;
     }
 }

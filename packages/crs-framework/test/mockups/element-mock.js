@@ -113,6 +113,20 @@ export function mockElement(instance, tag, id) {
         }
     });
 
+    Object.defineProperty(instance, "content", {
+        enumerable: true,
+        configurable: true,
+        get() {
+            if (instance.nodeName !== "TEMPLATE") return;
+            const clone = cloneElementMock(this);
+            clone.id = "document-fragment";
+            clone.nodeName = "DOCUMENT-FRAGMENT";
+            return clone;
+        },
+
+        set(newValue) {}
+    });
+
     return instance;
 }
 
@@ -126,6 +140,11 @@ function getAttribute(attr) {
     if (this.attributes.length == 0) return;
 
     const result = this.attributes.find(item => item.name == attr);
+
+    if (result) {
+        result.nodeValue = result.value;
+    }
+
     return result?.value;
 }
 
@@ -203,8 +222,22 @@ function cloneNode() {
 }
 
 function appendChild(element) {
-    this.children.push(element);
-    element.parentElement = this;
+    if (element.nodeName != "DOCUMENT-FRAGMENT") {
+        this.children.push(element);
+        element.parentElement = this;
+        return element;
+    }
+
+    // move children of document fragment to this children
+    for (const child of element.children) {
+        this.children.push(child);
+        child.parentElement = this;
+    }
+
+    //TODO: We need functionality like this to truly represent some test scenarios
+    // if (element.connectedCallback != null) {
+    //     element.connectedCallback();
+    // }
     return element;
 
 }
@@ -215,6 +248,10 @@ function removeChild(child) {
     if (index != -1) {
         const removed = this.children.splice(index, 1);
         removed.parentElement = null;
+        //TODO: We need functionality like this to truly represent some test scenarios
+        // if (element.disconnectedCallback != null) {
+        //     element.disconnectedCallback();
+        // }
         return removed;
     }
 
@@ -274,7 +311,7 @@ function attachShadow(args) {
 
 function getBoundingClientRect() {
     if (this.bounds == null) {
-        throw new Error("bounds on element mock must be set");
+        this.bounds = {}
     }
     return this.bounds;
 }

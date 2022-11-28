@@ -58,7 +58,7 @@ export async function createBaseDashedLine(camera, scene, scale, canvas) {
             const x = result.x2;
 
             const   points = [
-                new BABYLON.Vector3(x, canvas.y_offset + 1.25, -0.02),
+                new BABYLON.Vector3(x, canvas.y_offset / -1, -0.02),
                 new BABYLON.Vector3(x, -camera.view_height,  -0.02)
             ];
 

@@ -1266,22 +1266,35 @@ function createSource() {
   return result.join("\n");
 }
 function createSourceFrom(exp) {
+  const isExp = exp.indexOf("==") != -1;
   const parts = exp.split("=");
-  const value = processRightPart.call(this, parts[1].trim());
+  const value = isExp == true ? processRightExp.call(this, parts.slice(1, parts.length)) : processRightPart.call(this, parts[1].trim());
   const src = processLeftPart.call(this, parts[0].trim(), value);
   return src;
 }
+function processRightExp(parts) {
+  const firstPart = parts[0].trim();
+  if (firstPart.indexOf("attr(") != -1) {
+    parts[0] = processAttr.call(this, firstPart);
+  } else if (firstPart.indexOf("prop(") != -1) {
+    parts[0] = processProp.call(this, firstPart);
+  } else {
+    parts[0] = `crsbinding.data.getProperty(${this._context}, "${firstPart}")`;
+  }
+  parts[1] = "==";
+  return parts.join(" ");
+}
 function processRightPart(part) {
-  if (part.indexOf("attribute(") != -1) {
+  if (part.indexOf("attr(") != -1) {
     return processAttr.call(this, part);
   }
-  if (part.indexOf("property(") != -1) {
+  if (part.indexOf("prop(") != -1) {
     return processProp.call(this, part);
   }
   return crsbinding.expression.sanitize(part, this._ctxName, true).expression;
 }
 function processAttr(part) {
-  const parts = part.replace("attribute(", "").replace(")", "").split(",");
+  const parts = part.replace("attr(", "").replace(")", "").split(",");
   const left = parts[0].trim();
   const attr = parts[1].trim();
   if (left == "this") {
@@ -1293,7 +1306,7 @@ function processAttr(part) {
   return `${parts.length == 2 ? "element" : "document"}.querySelector(${left}).getAttribute(${attr})`;
 }
 function processProp(part) {
-  const parts = part.replace("property(", "").replace(")", "").split(",");
+  const parts = part.replace("prop(", "").replace(")", "").split(",");
   const left = parts[0].trim();
   let path2 = parts[1].trim();
   let pathExp = `[${path2}]`;
@@ -1353,44 +1366,44 @@ var ProcessProvider = class extends ProviderBase {
     this._eventHandler = null;
     super.dispose();
   }
-  event() {
+  event(event) {
     if (globalThis.crs?.process == null) {
       return console.error("crs-process-api not present or running at this time");
     }
     if (this._value[0] == "{") {
-      executeStep(this);
+      executeStep(this, event);
     } else {
       const left = this._value.split("{")[0];
       if (left.indexOf("[") == -1) {
-        executeFunction(this);
+        executeFunction(this, event);
       } else {
-        executeProcess(this);
+        executeProcess(this, event);
       }
     }
   }
 };
-function executeStep(provider) {
+function executeStep(provider, event) {
   const exp = sanitize(provider._value, provider._context);
-  const step = getObject(exp, provider._context);
+  const step = getObject(exp, provider._context, event);
   const ctx = crsbinding.data.getContext(provider._context);
   crs.process.runStep(step, ctx, null, null);
 }
-function executeFunction(provider) {
+function executeFunction(provider, event) {
   const exp = sanitize(provider._value, provider._context);
   const parts = exp.split("(");
   const fnParts = parts[0].split(".");
   const stepStr = `{type: "${fnParts[0]}", action: "${fnParts[1]}", args: ${parts[1]}}`.replace(")", "");
-  const step = getObject(stepStr, provider._context);
+  const step = getObject(stepStr, provider._context, event);
   const ctx = crsbinding.data.getContext(provider._context);
   crs.process.runStep(step, ctx, null, null);
 }
-function executeProcess(provider) {
+function executeProcess(provider, event) {
   const exp = sanitize(provider._value, provider._context);
   const schemaParts = exp.split("[");
   const schema = schemaParts[0];
   const processParts = schemaParts[1].replace("]", "").split("(");
   const process = processParts[0];
-  const parameters = getParameters(processParts[1].replace(")", "").trim(), provider._context);
+  const parameters = getParameters(processParts[1].replace(")", "").trim(), provider._context, event);
   const ctx = crsbinding.data.getContext(provider._context);
   const args = {
     context: ctx,
@@ -1406,24 +1419,24 @@ function executeProcess(provider) {
   }
   crsbinding.events.emitter.emit("run-process", args);
 }
-function getObject(str, id) {
+function getObject(str, id, event) {
   if (str.indexOf("{") == -1) {
     str = `{${str}}`;
   }
-  const fn = new Function("context", `return ${str};`);
+  const fn = new Function("context", "$event", `return ${str};`);
   const context = crsbinding.data.getContext(id);
   const binding = crsbinding.data.getData(id).data;
   let ctx = {};
   Object.assign(ctx, binding);
   Object.assign(ctx, context);
-  const result = fn(ctx);
+  const result = fn(ctx, event);
   ctx = null;
   return result;
 }
-function getParameters(str, id) {
+function getParameters(str, id, event) {
   if (str.length == 0)
     return null;
-  return getObject(str, id);
+  return getObject(str, id, event);
 }
 function sanitize(str, bId) {
   return str.replace("bId", `bId: ${bId}`).split("$context.").join("context.");
@@ -1807,8 +1820,12 @@ async function parseElement(element, context, options) {
   if (nodeName != "template" && nodeName != "perspective-element" && element.children?.length > 0) {
     await parseElements(element.children, context, options);
   }
-  if (nodeName == "template" && element.getAttribute("src") != null) {
-    return await parseHTMLFragment(element, context, options);
+  if (nodeName == "template") {
+    for (const key of crsbinding.templateProviders.keys) {
+      if (element.getAttribute(key) != null) {
+        return await crsbinding.templateProviders.items[key](element, context, options);
+      }
+    }
   }
   const attributes = Array.from(element.attributes || []);
   const boundAttributes = attributes.filter(
@@ -1854,9 +1871,8 @@ async function parseAttribute(attr, context, ctxName, parentId) {
   return provider;
 }
 async function parseHTMLFragment(element, context, options) {
-  if (options?.folder == null)
-    return;
-  const file = crsbinding.utils.relativePathFrom(options.folder, element.getAttribute("src"));
+  const folder = options?.folder || "/";
+  const file = crsbinding.utils.relativePathFrom(folder, element.getAttribute("src"));
   const tpl = document.createElement("template");
   tpl.innerHTML = await fetch(file).then((result) => result.text());
   const instance = tpl.content.cloneNode(true);
@@ -1979,7 +1995,7 @@ var ForInflateProvider = class extends ProviderBase {
       console.error("for.inflate must have a data-id attribute");
       return;
     }
-    crsbinding.inflationManager.register(this.key, this._element, this.singular);
+    await crsbinding.inflationManager.register(this.key, this._element, this.singular);
     this._collectionChangedHandler = this._collectionChanged.bind(this);
     this.listenOnPath(this.plural, this._collectionChangedHandler);
   }
@@ -2385,14 +2401,14 @@ var InflationCodeGenerator = class {
     for (let i = 0; i < element.children.length; i++) {
       const child = element.children[i];
       if (child.nodeName == "TEMPLATE") {
-        this._processTemplate(child);
+        await this._processTemplate(child);
       } else {
         this.path = `${path2}.children[${i}]`;
         await this._processElement(element.children[i]);
       }
     }
   }
-  _processTemplate(element) {
+  async _processTemplate(element) {
     const key = `${this.parentKey}_${this.templateKeys.length + 1}`;
     this.templateKeys.push(key);
     element.dataset.key = key;
@@ -2401,7 +2417,7 @@ var InflationCodeGenerator = class {
       const parts = forStatementParts(value);
       const code = `${this.path}.appendChild(crsbinding.inflationManager.get("${key}", ${parts.plural}));`;
       this.inflateSrc.push(code);
-      crsbinding.inflationManager.register(key, element, parts.singular);
+      await crsbinding.inflationManager.register(key, element, parts.singular);
       element.parentElement.removeChild(element);
     }
   }
@@ -3448,7 +3464,7 @@ var BindableElement = class extends HTMLElement {
     this.__properties.clear();
     delete this.__properties;
     if (this.load != null) {
-      this.load();
+      await this.load();
     }
     this.isReady = true;
     this.dispatchEvent(new CustomEvent("ready"));
@@ -3740,9 +3756,9 @@ function forceClean(id) {
 }
 
 // src/lib/renderCollection.js
-function renderCollection(template, data, elements = null, parentElement = null) {
+async function renderCollection(template, data, elements = null, parentElement = null) {
   const id = "render-collection";
-  crsbinding.inflationManager.register(id, template);
+  await crsbinding.inflationManager.register(id, template);
   let fragment = crsbinding.inflationManager.get(id, data, elements, 0);
   if (fragment != null && parentElement != null) {
     parentElement.appendChild(fragment);
@@ -4219,6 +4235,14 @@ var crsbinding2 = {
     flattenPropertyPath,
     getConverterParts
   },
+  templateProviders: {
+    keys: [],
+    items: {},
+    add: (key, fn) => {
+      crsbinding2.templateProviders.keys.push(key);
+      crsbinding2.templateProviders.items[key] = fn;
+    }
+  },
   templates: {
     data: {},
     load: loadTemplate,
@@ -4233,4 +4257,5 @@ var crsbinding2 = {
 globalThis.crsbinding = crsbinding2;
 crsbinding2.$globals = crsbinding2.data.addObject("globals");
 crsbinding2.data.globals = crsbinding2.data.getValue(crsbinding2.$globals);
+crsbinding2.templateProviders.add("src", parseHTMLFragment);
 globalThis.crsb = crsbinding2;

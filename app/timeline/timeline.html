@@ -18,6 +18,8 @@
         <input value.bind="targetDate" type="datetime-local">
         <button click.call="jumpToDate()">Jump</button>
         <button click.call="jumpToSelected()">View Selected</button>
+        <button click.call="loadNewShapes()">Load new shapes with parser</button>
+        <button click.call="updateShapes()">Update shapes</button>
     </div>
 
     <crs-timeline id="timeline" contextmenu.call="showContextMenu" data-config="./app/timeline/shapes.json" data-scale="month"></crs-timeline>

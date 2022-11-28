@@ -1,1 +1,46 @@
-class s{static async perform(i,a,t,r){await this[i.action]?.(i,a,t,r)}static async filter_children(i,a,t,r){const n=await crs.process.getValue(i.args.filter,a,t,r);await c(i.args.element,n)}}async function c(e,i){e=await crs.dom.get_element(e);const a=i.length>0;for(let t of e.children){if(t.removeAttribute("aria-hidden"),t.tagName=="HR"&&a){t.setAttribute("aria-hidden","true");continue}t.dataset.tags&&a&&t.dataset.tags.indexOf(i)==-1&&t.setAttribute("aria-hidden","true")}}crs.intent.dom_collection=s;export{s as DomCollectionActions};
+/**
+ * This contains actions for working with lists.
+ * Filtering, sorting ...
+ */
+
+export class DomCollectionActions {
+    static async perform(step, context, process, item) {
+        await this[step.action]?.(step, context, process, item);
+    }
+
+    static async filter_children(step, context, process, item) {
+        const filterString = await crs.process.getValue(step.args.filter, context, process, item);
+        await filter(step.args.element, filterString);
+    }
+
+    static async toggle_selection(step, context, process, item) {
+        const target = await crs.dom.get_element(step.args.target, context, process, item);
+        const selectedElement = target.parentElement.querySelector("[aria-selected='true']");
+
+        if(selectedElement != null) {
+            selectedElement.removeAttribute("aria-selected");
+        }
+
+        target.setAttribute("aria-selected", "true");
+    }
+}
+
+async function filter(element, filter) {
+    element = await crs.dom.get_element(element);
+    const hasFilter = filter.length > 0;
+
+    for (let child of element.children) {
+        child.removeAttribute("aria-hidden");
+
+        if (child.tagName == "HR" && hasFilter) {
+            child.setAttribute("aria-hidden", "true");
+            continue;
+        }
+
+        if (child.dataset.tags && hasFilter && child.dataset.tags.indexOf(filter) == -1) {
+            child.setAttribute("aria-hidden", "true");
+        }
+    }
+}
+
+crs.intent.dom_collection = DomCollectionActions;

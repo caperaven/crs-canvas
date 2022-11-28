@@ -1,3 +1,5 @@
+import {TimelineParser} from "./parser/timeline-parser.js";
+
 class TimelineActions {
     static async perform(step, context, process, item) {
         return this[step.action]?.(step, context, process, item);
@@ -24,6 +26,19 @@ class TimelineActions {
         const timeline = await crs.dom.get_element(step.args.element, context, process, item);
         const scale = await crs.process.getValue(step.args.scale, context, process, item);
         await timeline.setScale(scale);
+    }
+
+    static async jump_to_today(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step, context, process, item);
+
+        await this.jump_to_date({
+            args: {
+                element: timeline?.canvas,
+                base: timeline?.baseDate,
+                date: new Date(),
+                scale: timeline?.scale
+            }
+        });
     }
 
     static async jump_to_date(step, context, process, item) {
@@ -64,6 +79,30 @@ class TimelineActions {
         }
 
         return selectedItem;
+    }
+
+    static async initialize(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        let schema = await crs.process.getValue(step.args.schema, context, process, item);
+
+        timeline.__parser = await crs.createSchemaLoader(new TimelineParser());
+
+        if(schema == null) {
+            schema = await fetch(timeline.dataset.config).then(result => result.json());
+        }
+        await timeline.__parser.parse(schema, timeline);
+        await timeline.init();
+
+        await timeline.render(true);
+    }
+
+    static async update_config(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        let schema = await crs.process.getValue(step.args.schema, context, process, item);
+
+        await timeline.__parser.parse(schema, timeline);
+
+        await timeline.render();
     }
 }
 
