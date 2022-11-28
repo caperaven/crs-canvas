@@ -34,6 +34,8 @@ export class RowManager {
         for (const mesh of meshesToDispose) {
             mesh.dispose();
         }
+
+        this.#virtualization?.clearInstances();
     }
 
     async render(items, canvas, scene, baseDate, scale) {

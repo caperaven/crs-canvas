@@ -207,6 +207,7 @@ export class Timeline extends HTMLElement {
     async clean() {
         const scene = this.#canvas.__layers[0];
 
+        await this.#rowManager.clear(this.#canvas, scene);
         await this.#headerManager.removeHeaders();
         this.#todayLineMesh.dispose();
     }
