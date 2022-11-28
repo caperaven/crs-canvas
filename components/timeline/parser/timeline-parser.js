@@ -1,5 +1,5 @@
-import "./../../../packages/crs-framework/packages/crs-schema/crs-schema.js"
-import {BaseParser} from "../../../packages/crs-framework/packages/crs-schema/base-parser.js";
+import "/packages/crs-framework/packages/crs-schema/crs-schema.js"
+import {BaseParser} from "/packages/crs-framework/packages/crs-schema/base-parser.js";
 
 import BodyProvider from "./providers/body-provider.js"
 import RowsProvider from "./providers/rows-provider.js"
