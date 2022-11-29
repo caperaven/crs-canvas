@@ -96,6 +96,11 @@ class TimelineActions {
         await timeline.render(true);
     }
 
+    static async render(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        await timeline.render();
+    }
+
     static async update_config(step, context, process, item) {
         const timeline = await crs.dom.get_element(step.args.element, context, process, item);
         let schema = await crs.process.getValue(step.args.schema, context, process, item);
