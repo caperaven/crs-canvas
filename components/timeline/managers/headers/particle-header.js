@@ -36,7 +36,9 @@ export class ParticleHeader {
 
             this.#virtualization = await createStaticVirtualization(this.#headerParticleManager, rangeProperties.width, baseDate, canvas);
         }
-        await this.draw(0);
+
+        const position = canvas.__camera.position.x - canvas.__camera.offset_x;
+        await this.draw(position);
     }
 
     async draw(position) {
