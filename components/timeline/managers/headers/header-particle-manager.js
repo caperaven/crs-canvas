@@ -36,7 +36,7 @@ export class HeaderParticleManager {
         this.#observer = canvas.__camera.onViewMatrixChangedObservable.add((camera)=> {
             this.#system.mesh.position.y = camera.position.y - camera.offset_y ;
         });
-        this.#system.mesh.position.y = camera.position.y - camera.offset_y ;
+        this.#system.mesh.position.y = canvas.__camera.position.y - canvas.__camera.offset_y ;
     }
 
     async render(index, position) {

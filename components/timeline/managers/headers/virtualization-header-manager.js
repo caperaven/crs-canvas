@@ -37,7 +37,7 @@ export class VirtualizationHeaderManager {
         const height = scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_header : canvas.__offsets.y.year_header;
         this.#bgBorderMesh = await createRect("header_bg", canvas._theme.header_offset_bg, canvas.__camera.offset_x, (-height / 2), canvas.__zIndices.bgBorderMesh, 9999999, height, canvas, false);
         this.#bgBorderMesh.height = height;
-        this.#bgBorderMesh.position.y = camera.position.y - (this.#bgBorderMesh.height / 2) - camera.offset_y;
+        this.#bgBorderMesh.position.y = canvas.__camera.position.y - (this.#bgBorderMesh.height / 2) - canvas.__camera.offset_y;
         this.#bgBorderMesh.enableEdgesRendering();
         this.#bgBorderMesh.edgesWidth = 1.0;
         this.#bgBorderMesh.edgesColor = BABYLON.Color4.FromHexString(canvas._theme.header_border);

@@ -12,7 +12,5 @@ export default class ThemeProvider extends BaseProvider {
             element: ctx.canvas,
             theme: item.theme
         });
-
-        console.log(item, ctx);
     }
 }

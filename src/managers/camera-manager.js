@@ -86,7 +86,6 @@ class CameraFactory {
     }
 
     static async custom_pan(parts, scene) {
-        //WIP
         const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 0, -15), scene);
 
         camera.attachControl(scene, true);
@@ -94,11 +93,9 @@ class CameraFactory {
         camera._input =  new CustomPanInput(scene, camera);
         camera.inputs.attached.keyboard.keysDown = [];
         camera.inputs.attached.keyboard.keysUp = [];
-        camera.__forceDisableControls = true;
         camera.minZ = 1;
         camera.maxZ = 15;
 
-        globalThis.camera = camera; // remove this when done testing camera
         return camera;
     }
 }
