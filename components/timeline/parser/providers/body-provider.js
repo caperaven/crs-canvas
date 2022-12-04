@@ -1,6 +1,4 @@
-import {BaseProvider} from "/packages/crs-framework/packages/crs-schema/html/crs-base-provider.js";
-
-export default class BodyProvider extends BaseProvider {
+export default class BodyProvider extends crs.classes.BaseProvider {
     get key() {
         return "body"
     }

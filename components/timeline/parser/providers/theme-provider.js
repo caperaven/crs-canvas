@@ -1,6 +1,4 @@
-import {BaseProvider} from "/packages/crs-framework/packages/crs-schema/html/crs-base-provider.js";
-
-export default class ThemeProvider extends BaseProvider {
+export default class ThemeProvider extends crs.classes.BaseProvider  {
     get key() {
         return "theme"
     }

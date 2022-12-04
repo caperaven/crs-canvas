@@ -1,6 +1,4 @@
-import {BaseProvider} from "/packages/crs-framework/packages/crs-schema/html/crs-base-provider.js";
-
-export default class RowsProvider extends BaseProvider {
+export default class RowsProvider extends crs.classes.BaseProvider {
     get key() {
         return "rows"
     }
