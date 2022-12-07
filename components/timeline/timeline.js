@@ -122,8 +122,18 @@ export class Timeline extends HTMLElement {
     }
 
     async setScale(newValue) {
-            this.#scale = newValue;
-            await this.render();
+        if (this.#scale === newValue) return;
+        const previousScale = this.#scale;
+        this.#scale = newValue;
+
+        await this.render();
+        await this.#scrollToDate(previousScale)
+    }
+
+    async #scrollToDate(scale) {
+        const currentX = this.#canvas.__camera.position.x;
+        const date = await crs.call("gfx_timeline_manager", "get_date_at_x", {element: this.#canvas, scale: scale, x: currentX});
+        await crs.call("gfx_timeline", "jump_to_date", {element: this.#canvas, base: this.#baseDate, date: date, scale: this.#scale});
     }
 
     async init() {

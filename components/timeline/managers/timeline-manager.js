@@ -28,6 +28,11 @@ function getDate(date) {
 }
 
 class DayScale {
+    async getDateAtX(min, x) {
+        const dateAtX = ((x / ViewToScaleFactor.day) * 3.6e+6) + getDate(min)
+        return new Date(getDate(new Date(dateAtX)));
+    }
+
     async get(min, date, zoomFactor = 0) {
         const differenceInHours = (getDate(date) - getDate(min)) / 3.6e+6;
         return differenceInHours * (ViewToScaleFactor.day + zoomFactor);
@@ -40,6 +45,11 @@ class DayScale {
 }
 
 class WeekScale {
+    async getDateAtX(min, x) {
+        const dateAtX = ((x / (ViewToScaleFactor.week / 24)) * 3.6e+6) + getDate(min)
+        return new Date(getDate(new Date(dateAtX)));
+    }
+
     async get(min, date, zoomFactor = 0) {
         const differenceInHours = (getDate(date) - getDate(min)) / 3.6e+6;
         return differenceInHours * ((ViewToScaleFactor.week / 24) + (zoomFactor / 24));
@@ -52,6 +62,11 @@ class WeekScale {
 }
 
 class MonthScale {
+    async getDateAtX(min, x) {
+        const dateAtX = ((x / (ViewToScaleFactor.month / 24)) *  3.6e+6) + getDate(min);
+        return new Date(getDate(new Date(dateAtX)));
+    }
+
     async get(min, date, zoomFactor = 0) {
         const differenceInHours = (getDate(date) - getDate(min)) / 3.6e+6;
         return differenceInHours * ((ViewToScaleFactor.month / 24) + (zoomFactor / 24));
@@ -64,6 +79,30 @@ class MonthScale {
 }
 
 class YearScale {
+    async getDateAtX(min, x) {
+        const minDate = new Date(getDate(min));
+        const isMinLeap = this.#getLeap(minDate.getFullYear());
+        const leapFactor = isMinLeap ? 8784 / 12 : 8760 / 12;
+        const dateAtX = ((x / (ViewToScaleFactor.year / leapFactor)) * 3.6e+6) + getDate(minDate);
+        return new Date(getDate(dateAtX));
+    }
+
+    #getDifferenceInMonths(minDate, maxDate) {
+        return (maxDate.getMonth() - minDate.getMonth()) + (12 * (maxDate.getFullYear() - minDate.getFullYear()));
+    }
+
+    #getLeap(year) {
+        return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
+    }
+
+    #getWidth(minDate, maxDate, zoomFactor, isLeap, relativeItemWidth) {
+        const differenceInHours = (getDate(maxDate) - getDate(minDate)) / 3.6e+6;
+        const leapFactor = isLeap ? 8784 / 12 : 8760 / 12;
+
+        const factor = relativeItemWidth || ViewToScaleFactor.year;
+        return  differenceInHours * ((factor/ leapFactor) + (zoomFactor / leapFactor));
+    }
+
     //returns the difference in year time between the two given months
     async get(min, date, zoomFactor = 0) {
         const minDate = new Date(getDate(min));
@@ -85,24 +124,7 @@ class YearScale {
 
         return {width: width};
     }
-
-    #getDifferenceInMonths(minDate, maxDate) {
-        return (maxDate.getMonth() - minDate.getMonth()) + (12 * (maxDate.getFullYear() - minDate.getFullYear()));
-    }
-
-    #getLeap(year) {
-        return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
-    }
-
-    #getWidth(minDate, maxDate, zoomFactor, isLeap, relativeItemWidth) {
-        const differenceInHours = (getDate(maxDate) - getDate(minDate)) / 3.6e+6;
-        const leapFactor = isLeap ? 8784 / 12 : 8760 / 12;
-
-        const factor = relativeItemWidth || ViewToScaleFactor.year;
-        return  differenceInHours * ((factor/ leapFactor) + (zoomFactor / leapFactor));
-    }
 }
-
 
 class TimelineManager {
     #baseDate;
@@ -146,6 +168,11 @@ class TimelineManager {
             width: width
         }
     }
+
+    async getDateAtX(canvas, scale, x) {
+        const dateAtX = await this[`_${scale}Scale`].getDateAtX(this.#baseDate, x);
+        return dateAtX;
+    }
 }
 
 class TimelineManagerActions {
@@ -180,6 +207,13 @@ class TimelineManagerActions {
         const end = await crs.process.getValue(step.args.end, context, process, item);
         const scale = await crs.process.getValue(step.args.scale, context, process, item);
         return await canvas.__timelineManager.get(start, end, scale);
+    }
+
+    static async get_date_at_x(step, context, process, item) {
+        const canvas = await crs.dom.get_element(step, context, process, item);
+        const scale = await crs.process.getValue(step.args.scale, context, process, item);
+        const x = await crs.process.getValue(step.args.x, context, process, item);
+        return await canvas.__timelineManager.getDateAtX(canvas, scale, x);
     }
 }
 
