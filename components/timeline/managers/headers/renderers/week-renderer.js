@@ -71,21 +71,21 @@ export default class WeekRenderer {
     async move(particle) {
         const shape = this.#particleSystem.getKeyById(particle.shapeId);
         if(this.#bgKey === shape) {
-            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,-3, -0.75);
+            return moveParticle(this.#distanceSystem, particle, this.#bgKey, this.#currentPosition,0, -0.75);
         }
 
         if(shape == this.#currentDayText) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
-            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, -2.4, -0.85, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.6, -0.85, this.#textScale)
         }
 
         if(this.#currentDayNumber == shape) {
             particle.color = BABYLON.Color4.FromHexString(this.#textTheme);
-            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, -2.8, -0.85, this.#textScale)
+            return moveParticle(this.#distanceSystem, particle, shape, this.#currentPosition, 0.2, -0.85, this.#textScale)
         }
 
         if(this.#weekdayBgKey === shape && this.#isWeekday === true) {
-            return moveParticle(this.#distanceSystem, particle, this.#weekdayBgKey, this.#currentPosition,-1, -0.75);
+            return moveParticle(this.#distanceSystem, particle, this.#weekdayBgKey, this.#currentPosition,2, -0.75);
         }
     }
 }
