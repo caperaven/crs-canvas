@@ -43,11 +43,11 @@ export function getRandomData(value = 0) {
     let result = [];
 
     const getStartDate = ()=> {
-        return `2022/11/29 13:00:00.000`;
+        return `2022/12/01 00:00:00.000`;
     }
 
     const getEndDate = ()=> {
-        return `2022/11/30 13:00:00.000`;
+        return `2022/12/02 00:00:00.000`;
     }
 
     for (let i = 0; i < 100000; i++) {

@@ -70,9 +70,16 @@
         import "./packages/babylonjs/babylon.js";
         import "./packages/babylonjs/babylonjs.materials.min.js";
         import "./packages/babylonjs/babylon.gui.min.js";
+        import {BaseProvider} from "./packages/crs-framework/packages/crs-schema/html/crs-base-provider.js";
+        import {BaseParser} from "./packages/crs-framework/packages/crs-schema/base-parser.js";
         import {initialize} from "./packages/crs-framework/packages/crs-process-api/crs-process-api.js";
+        import "./packages/crs-framework/packages/crs-schema/crs-schema.js";
 
         import IndexViewModel from "./index.js";
+
+        crs.classes ||= {};
+        crs.classes.BaseProvider = BaseProvider
+        crs.classes.BaseParser = BaseParser
 
         window.addEventListener("load", async (event) => {
             await crs.modules.enableBinding([

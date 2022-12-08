@@ -44,6 +44,7 @@ export default class Timeline extends crsbinding.classes.ViewBase {
 
     async setScale(scale) {
         this.timeline.dataset.scale = scale;
+        this.timeline.setScale(scale);
     }
 
     async showContextMenu(event) {
