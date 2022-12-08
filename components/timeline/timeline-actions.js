@@ -85,7 +85,7 @@ class TimelineActions {
         const timeline = await crs.dom.get_element(step.args.element, context, process, item);
         let schema = await crs.process.getValue(step.args.schema, context, process, item);
 
-        timeline.__parser = await crs.createTimelineSchemaLoader(new TimelineParser());
+        timeline.__parser = await crs.createSchemaLoader(new TimelineParser());
 
         if(schema == null) {
             schema = await fetch(timeline.dataset.config).then(result => result.json());
