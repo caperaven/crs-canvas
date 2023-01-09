@@ -38,7 +38,7 @@ export default class YearRenderer {
 
         const count = 11;
         const multiplier = 5;
-        const textMultiplier = 8;
+        const textMultiplier = 12;
         const bgCount =  2 * count;
 
         const shapes = [];
@@ -68,7 +68,7 @@ export default class YearRenderer {
     async setCurrent(index, position) {
         const date = new Date(this.#baseDate.getFullYear(), this.#baseDate.getMonth());
 
-        date.setMonth(date.getMonth() + index+ 1);
+        date.setMonth(date.getMonth() + index + 1);
 
         this.#currentMonthText = date.toLocaleString('default', { month: 'long' });
         this.#currentYearText = date.getFullYear();
