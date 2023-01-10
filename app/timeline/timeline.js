@@ -42,6 +42,11 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         this.timeline.render();
     }
 
+    async load() {
+        super.load();
+        await this.loadNewShapes();
+    }
+
     async setScale(scale) {
         this.timeline.dataset.scale = scale;
         this.timeline.setScale(scale);

@@ -1,4 +1,6 @@
-export async function configureCamera(camera, scene) {
+export async function configureCamera(canvas) {
+    const camera = canvas.__camera;
+    const scene = canvas.__layers[0];
     scene.onBeforeRenderObservable.addOnce(() => {
         camera.getViewMatrix();
 
@@ -22,8 +24,26 @@ export async function configureCamera(camera, scene) {
 
             camera.position.x = cameraNewX;
             camera.position.y = cameraNewY;
+
+
         }
-    })
+    });
+
+    camera.onAfterCheckInputsObservable.add(() => {
+        console.log(camera.cameraDirection);
+        if (camera.cameraDirection.y !== 0) {
+            if (camera.position.y >= camera.offset_y) {
+                camera.position.y = camera.offset_y;
+            }
+
+
+            if (camera.position.y <= camera.__maxYCamera) {
+                camera.position.y = camera.__maxYCamera < camera.offset_y ? camera.__maxYCamera : camera.offset_y;
+            }
+        }
+    });
+
+
 }
 
 function calculateTangent(adjacent, opposite) {

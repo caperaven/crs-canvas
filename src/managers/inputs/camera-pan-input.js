@@ -1,14 +1,8 @@
 export class CustomPanInput {
     #pointerObserver;
     #lastPosition;
-
-    #max_z = -250;
-    #min_z = -1;
-    #zoom_speed = 0.001;
-
     #camera;
     #scene;
-
     #pointerHandler;
 
 
@@ -58,12 +52,7 @@ export class CustomPanInput {
             let xDelta = speed * xdir;
             let yDelta = speed * -ydir;
 
-
-            // if ((this.#camera.position.x + xDelta) < this.#camera.offset_x) {
-            //     xDelta = 0;
-            // }
-
-            if ((this.#camera.position.y + yDelta) > this.#camera.offset_y) {
+            if ((this.#camera.position.y + yDelta) > this.#camera.offset_y || this.#camera.__maxYCamera > (this.#camera.position.y + yDelta)) {
                 yDelta = 0;
             }
 
@@ -74,7 +63,6 @@ export class CustomPanInput {
             this.#camera.position.addInPlace(this.#camera._transformedDirection);
 
             this.#lastPosition.set(this.#scene.pointerX, this.#scene.pointerY, 0);
-
         }
     }
 

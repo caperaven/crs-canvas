@@ -50,7 +50,7 @@ export function getRandomData(value = 0) {
         return `2022/12/02 00:00:00.000`;
     }
 
-    for (let i = 0; i < 100000; i++) {
+    for (let i = 0; i < 25; i++) {
         result.push({
             "index": i,
             "code": `Code #${i}`,

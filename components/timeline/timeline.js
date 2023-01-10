@@ -16,9 +16,7 @@ import {createBaseDashedLine, createRect} from "./timeline-helpers.js";
 
 export class Timeline extends HTMLElement {
     #canvas;
-    #configuration;
     #scale;
-    #data;
     #baseDate;
     #headerManager;
     #rowManager;
@@ -114,8 +112,6 @@ export class Timeline extends HTMLElement {
         this.#headerManager = this.#headerManager.dispose(this.#canvas)
         this.#rowManager = this.#rowManager.dispose()
         this.#baseDate = null;
-        this.#configuration = null;
-        this.#data = null;
         this.#scale = null;
         this.#todayLineMesh = this.#todayLineMesh.dispose();
         this.#canvas = null;
@@ -147,9 +143,7 @@ export class Timeline extends HTMLElement {
 
         this.#canvas._text_scale = new BABYLON.Vector3(0.3, 0.3, 1);
 
-        const scene = this.#canvas.__layers[0];
-        const camera = this.#canvas.__camera;
-        await configureCamera(camera, scene);
+        await configureCamera(this.#canvas);
 
         await this.#initSelection();
     }
@@ -191,7 +185,6 @@ export class Timeline extends HTMLElement {
     }
 
     async render(firstRender) {
-
         if(firstRender !== true) {
             await this.clean();
         }
@@ -200,6 +193,8 @@ export class Timeline extends HTMLElement {
         const items = await this.#getData();
         if (items == null || items.length === 0) return;
 
+        this.#canvas.__rowCount = items.length;
+
         this.#selectionManager.moveSelectionToIndex(this.selectedIndex || 0);
         const scene = this.#canvas.__layers[0];
 
@@ -207,10 +202,16 @@ export class Timeline extends HTMLElement {
         await this.#rowManager.render(items, this.#canvas, scene, this.#baseDate, this.#scale);
 
         this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera,scene , this.#scale, this.#canvas);
+        this.#setCameraYLimits();
+    }
+
+    #setCameraYLimits() {
+        // We get the max camera value using row size and count, then subtract the offset
+       const value = -this.#canvas.y_offset + ((this.#canvas.__rowSize * this.#canvas.__rowCount) /-1) - this.#canvas.__camera.offset_y;
+        this.#canvas.__camera.__maxYCamera = value < this.#canvas.__camera.offset_y ? value: this.#canvas.__camera.offset_y;
     }
 
     #setYOffset() {
-
         this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? 1 : 0.5;
     }
 
