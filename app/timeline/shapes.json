@@ -23,8 +23,8 @@
         ],
         "textTemplates": [
           "<regular style=\"color: #424242\">Code: ${code}</regular>",
-          "<icon style=\"color: #424242\">98</icon> <bold style=\"color: #424242\">[${assetCode}]</bold> <regular style=\"color: #424242\">${assetDescription}</regular>",
-          "<icon style=\"color: #424242\">97</icon> <bold style=\"color: #424242\">[${siteCode}]</bold> <regular style=\"color: #424242\">${siteDescription}</regular>"
+          "<icon style=\"color: #424242\">settings-outline</icon> <bold style=\"color: #424242\">[${assetCode}]</bold> <regular style=\"color: #424242\">${assetDescription}</regular>",
+          "<icon style=\"color: #424242\">location-pin</icon> <bold style=\"color: #424242\">[${siteCode}]</bold> <regular style=\"color: #424242\">${siteDescription}</regular>"
         ]
       },
       {
