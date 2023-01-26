@@ -1,6 +1,6 @@
 import {TimelineParser} from "./parser/timeline-parser.js";
 
-class TimelineActions {
+export class TimelineActions {
     static async perform(step, context, process, item) {
         return this[step.action]?.(step, context, process, item);
     }
@@ -116,6 +116,23 @@ class TimelineActions {
         setTimeout(async ()=> {
             await timeline.canvas.__resize();
         }, 210)
+    }
+
+    static zoom_in(step, context, process, item) {
+        step.args.direction = 1;
+        return this.zoom(step, context, process, item);
+    }
+
+    static zoom_out(step, context, process, item) {
+        step.args.direction = -1;
+        return this.zoom(step, context, process, item);
+    }
+
+    static async zoom(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        const direction = await crs.process.getValue(step.args.direction, context, process, item);
+
+        await timeline.adjustZoom(direction);
     }
 }
 

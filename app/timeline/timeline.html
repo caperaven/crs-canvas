@@ -20,6 +20,8 @@
         <button click.call="jumpToSelected()">View Selected</button>
         <button click.call="loadNewShapes()">Load new shapes with parser</button>
         <button click.call="updateShapes()">Update shapes</button>
+        <button click.call="zoomCameraOut()">Zoom Out</button>
+        <button click.call="zoomCameraIn()">Zoom In</button>
     </div>
 
     <crs-timeline id="timeline" contextmenu.call="showContextMenu" data-config="./app/timeline/shapes.json" data-scale="month"></crs-timeline>

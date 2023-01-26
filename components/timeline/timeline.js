@@ -21,6 +21,7 @@ export class Timeline extends HTMLElement {
     #headerManager;
     #rowManager;
     #selectionManager;
+    #wheelHandler = this.#mouseWheel.bind(this);
     #zIndices = Object.freeze({
         bgBorderMesh: -0.002,
         headerBorder: -0.003,
@@ -89,6 +90,8 @@ export class Timeline extends HTMLElement {
 
         this.#scale = this.dataset.scale || 'month';
 
+        this.addEventListener("wheel", this.#wheelHandler);
+
         requestAnimationFrame(async () => {
             this.#canvas = this.querySelector("canvas") || this.canvas;
             this.#canvas.__zIndices = this.#zIndices;
@@ -97,6 +100,7 @@ export class Timeline extends HTMLElement {
 
             const ready = async () => {
                 this.#canvas.removeEventListener("ready", ready);
+
                 await crs.call("component", "notify_ready", {element: this});
             }
 
@@ -109,6 +113,8 @@ export class Timeline extends HTMLElement {
     }
 
     async disconnectedCallback() {
+        this.removeEventListener("wheel", this.#wheelHandler);
+        this.#wheelHandler = null;
         this.#headerManager = this.#headerManager.dispose(this.#canvas)
         this.#rowManager = this.#rowManager.dispose()
         this.#baseDate = null;
@@ -124,6 +130,13 @@ export class Timeline extends HTMLElement {
 
         await this.render();
         await this.#scrollToDate(previousScale)
+    }
+
+    async adjustZoom(zoomValue) {
+        this.#canvas.__camera.position.z += zoomValue;
+        this.#canvas.__camera.maxZ = this.#canvas.__camera.position.z;
+        this.#canvas.__camera.offset_y += (zoomValue / 2.4);
+        this.#canvas.__camera.position.y += (zoomValue / 2.4);
     }
 
     async #scrollToDate(scale) {
@@ -179,7 +192,8 @@ export class Timeline extends HTMLElement {
 
     async #getData() {
         let items = await crs.call("timeline_datasource", "load", {
-            element: this
+            element: this,
+            perspective: this.dataset.perspective
         }); // We've created this temporary system, it will be changed to data manager in v2.
         return items;
     }
@@ -213,6 +227,10 @@ export class Timeline extends HTMLElement {
 
     #setYOffset() {
         this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? 1 : 0.5;
+    }
+
+    #mouseWheel(event) {
+        event.preventDefault();
     }
 
     async clean() {
