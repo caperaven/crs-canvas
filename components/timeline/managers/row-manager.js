@@ -98,10 +98,6 @@ export class RowManager {
                 if (shape.isText) {
                     shape.position.x = canvas.__camera.position.x - canvas.__camera.offset_x;
                 }
-
-                if (shape.isTextBackground) {
-                    shape.position.x = 2.575 + (canvas.__camera.position.x - canvas.__camera.offset_x);
-                }
             }
         }
     }
@@ -127,13 +123,6 @@ export class RowManager {
         }
 
         shapes.push(await this.#drawText(position, item, canvas));
-
-        //Create text background
-        const isEven = index % 2 === 1;
-        const color = isEven ? canvas._theme.offset_row_bg : canvas._theme.light_row_text_bg;
-        const textBackground = await createRect("timeline_offset_row_text_bg", color, 0, -rowOffset - position - textBgYOffset, canvas.__zIndices.offsetTextRow, 5,  canvas.__rowSize - 0.15, canvas, false);
-        textBackground.isTextBackground = true;
-        shapes.push(textBackground);
 
         return shapes;
     }
