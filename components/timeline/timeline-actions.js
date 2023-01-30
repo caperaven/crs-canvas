@@ -1,4 +1,5 @@
 import {TimelineParser} from "./parser/timeline-parser.js";
+import {updateCameraLimits} from "./timeline-camera.js";
 
 export class TimelineActions {
     static async perform(step, context, process, item) {
@@ -113,9 +114,7 @@ export class TimelineActions {
     static async resize(step, context, process, item) {
         const timeline = await crs.dom.get_element(step.args.element, context, process, item);
 
-        setTimeout(async ()=> {
-            await timeline.canvas.__resize();
-        }, 210)
+        await timeline.resize();
     }
 
     static zoom_in(step, context, process, item) {
