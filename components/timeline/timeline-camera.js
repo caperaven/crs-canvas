@@ -45,7 +45,6 @@ export async function updateCameraLimits(camera, scene) {
                 camera.offset_x = cameraNewX;
                 camera.view_width = cameraNewX * 2;
 
-                console.log(camera.view_width);
                 camera.offset_y = cameraNewY;
                 camera.view_height = cameraNewY * 2 / -1;
 
