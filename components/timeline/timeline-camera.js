@@ -35,11 +35,9 @@ export async function updateCameraLimits(camera, scene) {
             const pos = BABYLON.Vector3.TransformCoordinates(topLeftNormalised, camera.getTransformationMatrix().invert());
 
             if (pos.x) {
-                console.log(pos);
                 const zDistance = pos.z - camera.position.z;
                 const tangentX = calculateTangent(zDistance, pos.x);
                 const cameraNewX = tangentX * camera.position.z;
-
 
                 const tangentY = calculateTangent(zDistance, pos.y);
                 const cameraNewY = tangentY * camera.position.z;
