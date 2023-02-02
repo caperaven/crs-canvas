@@ -89,14 +89,9 @@ export class Timeline extends HTMLElement {
     }
 
     async connectedCallback() {
-
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
-
         this.#scale = this.dataset.scale || 'month';
-
         this.addEventListener("wheel", this.#wheelHandler);
-
-
 
         requestAnimationFrame(async () => {
             this.#canvas = this.querySelector("canvas") || this.canvas;
@@ -120,9 +115,7 @@ export class Timeline extends HTMLElement {
                        }
                     }
                 })
-
                 await crs.call("component", "notify_ready", {element: this});
-
             }
 
             if (this.#canvas.dataset.ready == "true") {
