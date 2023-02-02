@@ -4,8 +4,8 @@ export function cloneElementMock(mock) {
     const instance = new ElementMock();
 
     instance.nodeName = mock.nodeName;
-    instance.id = "";
-    instance.name = "";
+    instance.id = mock.id;
+    instance.name = mock.name;
 
     instance.textContent = mock.textContent;
     instance.innerText = mock.innerText;
@@ -426,6 +426,7 @@ function copyStyles(source, target) {
 function cloneChildren(source, target) {
     for (const child of source.children) {
         const newChild = cloneElementMock(child);
+        newChild.parentElement = source;
         target.children.push(newChild);
     }
 }

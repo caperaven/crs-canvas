@@ -21,6 +21,9 @@ export class Timeline extends HTMLElement {
     #headerManager;
     #rowManager;
     #selectionManager;
+    #resizeTimeout = null;
+    #loader = null;
+    #intialized = null;
     #wheelHandler = this.#mouseWheel.bind(this);
     #zIndices = Object.freeze({
         bgBorderMesh: -0.002,
@@ -86,11 +89,14 @@ export class Timeline extends HTMLElement {
     }
 
     async connectedCallback() {
+
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
 
         this.#scale = this.dataset.scale || 'month';
 
         this.addEventListener("wheel", this.#wheelHandler);
+
+
 
         requestAnimationFrame(async () => {
             this.#canvas = this.querySelector("canvas") || this.canvas;
@@ -100,8 +106,23 @@ export class Timeline extends HTMLElement {
 
             const ready = async () => {
                 this.#canvas.removeEventListener("ready", ready);
+                this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+                this.#canvas.__engine.adaptToDeviceRatio = false;
+
+                await crs.call("dom_observer", "observe_resize", {
+                    element: this,
+                    callback: (value)=> {
+                       if(this.#intialized) {
+                           this.#toggleResizeLoader();
+                       }
+                       else {
+                           this.#intialized = true;
+                       }
+                    }
+                })
 
                 await crs.call("component", "notify_ready", {element: this});
+
             }
 
             if (this.#canvas.dataset.ready == "true") {
@@ -113,14 +134,32 @@ export class Timeline extends HTMLElement {
     }
 
     async disconnectedCallback() {
+        await crs.call("dom_observer", "unobserve_resize", {element: this});
         this.removeEventListener("wheel", this.#wheelHandler);
         this.#wheelHandler = null;
-        this.#headerManager = this.#headerManager.dispose(this.#canvas)
-        this.#rowManager = this.#rowManager.dispose()
+        this.#headerManager = this.#headerManager.dispose(this.#canvas);
+        this.#rowManager = this.#rowManager.dispose(this.#canvas);
         this.#baseDate = null;
         this.#scale = null;
         this.#todayLineMesh = this.#todayLineMesh.dispose();
         this.#canvas = null;
+    }
+
+    #toggleResizeLoader() {
+        if (this.#loader == null) {
+            this.#loader = document.createElement("div");
+            this.#loader.id = "loader";
+            this.appendChild(this.#loader);
+        }
+        clearTimeout(this.#resizeTimeout);
+        this.#resizeTimeout = setTimeout(async () => {
+
+            await this.resize();
+            this.#resizeTimeout = null;
+            setTimeout(() => {
+                this.#loader = this.#loader.remove();
+            }, 250);
+        }, 200);
     }
 
     async setScale(newValue) {
@@ -267,13 +306,10 @@ export class Timeline extends HTMLElement {
         const camera = await this.#canvas.__camera;
         camera.position.x = 0;
         camera.position.y = 0;
-
-        setTimeout(async ()=> {
-            await this.#canvas.__resize();
-            requestAnimationFrame(async ()=> {
-                await updateCameraLimits(camera, this.#canvas.__layers[0]);
-            })
-        }, 210);
+        await this.#canvas.__resize();
+        requestAnimationFrame(async ()=> {
+            await updateCameraLimits(camera, this.#canvas.__layers[0]);
+        })
     }
 }
 

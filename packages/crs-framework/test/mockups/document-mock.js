@@ -7,7 +7,7 @@ globalThis.document.documentElement = globalThis.document.body;
 
 globalThis.document.createElement = (tag, html) => {
     if (globalThis.__elementRegistry[tag] != null) {
-        let result = mockElement(new globalThis.__elementRegistry[tag]());
+        let result = mockElement(new globalThis.__elementRegistry[tag](), tag);
 
         if (result.load != null) {
             const load = result.load;
@@ -21,6 +21,10 @@ globalThis.document.createElement = (tag, html) => {
     }
 
     return new ElementMock(tag);
+}
+
+globalThis.document.querySelector = (selector) => {
+    return globalThis.document.body.querySelector(selector);
 }
 
 globalThis.document.createTextNode = () => {

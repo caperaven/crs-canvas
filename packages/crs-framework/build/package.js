@@ -124,6 +124,8 @@ export async function packageFile(sourceFile, targetFile, loader, format, minifi
 export async function packageHTML(sourceFile, targetFile, minified) {
     let src = await Deno.readTextFile(sourceFile);
 
+    src = src.replace("/styles/", "/packages/crs-framework/styles/");
+
     if (minified == true) {
         src = decoder.decode(minify(encoder.encode(src), { minify_css: true, minify_js: true, do_not_minify_doctype: true, keep_closing_tags: true }));
     }
