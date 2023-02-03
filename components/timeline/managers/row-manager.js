@@ -108,7 +108,6 @@ export class RowManager {
     }
 
     async #drawRow(position, index, item, canvas) {
-
         const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_row : canvas.__offsets.y.year_row;
         const textBgYOffset =this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_text_offset_row_bg : canvas.__offsets.y.year_text_offset_row_bg;
         let shapes = [];
@@ -116,8 +115,8 @@ export class RowManager {
         //Create shapes
         for (const shape of this.#configuration.shapes) {
             // old condition || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]
-            if (item[shape.fromField] == null || item[shape.toField] == null ) {
-                continue
+            if (item[shape.fromField] == null && item[shape.toField] == null ) {
+                continue;
             }
             shapes.push(await this.#drawShape(canvas, shape, item, position, index));
         }

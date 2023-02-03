@@ -50,7 +50,24 @@ export function getRandomData(value = 0) {
         return `2022/12/02 00:00:00.000`;
     }
 
-    for (let i = 0; i < 100; i++) {
+    const i = 0
+    result.push({
+        "index": i,
+        "code": `Code #${i}`,
+        "assetCode": `Asset Code #${i}`,
+        "assetDescription": `Asset Desc #${i}`,
+        "siteCode": `Site Code #${i}`,
+        "siteDescription": `Site Desc #${i}`,
+        "startOn": getStartDate(),
+        "completeBy": null,
+        "receivedOn": null,
+        "requiredBy": getEndDate(),
+        "workStartedOn":`2022/12/01 12:00:00.000`,
+        "completedOn": null
+    })
+
+
+    for (let i = 1; i < 100; i++) {
         result.push({
             "index": i,
             "code": `Code #${i}`,
