@@ -5,7 +5,7 @@ export class SelectionManager {
     #mesh;
     #clickHandler;
     #selectionCallback;
-    #roundValue;
+    #disabled = false;
 
     constructor(canvas, selectionCallback) {
         this.#canvas = canvas;
@@ -32,11 +32,15 @@ export class SelectionManager {
         this.#mesh.edgesColor = BABYLON.Color4.FromHexString(this.#canvas._theme.row_selection_border);
     }
 
-    async hide() {
-        this.#mesh.position.y = 999 // We need to remove this when selection is recalc on scale change
+    set disabled(newValue) {
+        this.#disabled = newValue;
+        if(newValue === true) {
+            this.#mesh.position.y = 999 // We need to remove this when selection is recalc on scale change
+        }
     }
 
     async #click() {
+        if(this.#disabled === true) return;
         const engine = this.#canvas.__engine;
         const scene = this.#canvas.__layers[0];
 

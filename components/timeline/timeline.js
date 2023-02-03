@@ -59,6 +59,7 @@ export class Timeline extends HTMLElement {
 
     #rowSize = 1.25
     #todayLineMesh;
+    #disabled = true;
 
     get baseDate() {
         return this.#baseDate;
@@ -88,6 +89,21 @@ export class Timeline extends HTMLElement {
         this.#selectedIndex = newValue;
     }
 
+    get disabled() {
+        return this.#disabled;
+    }
+
+    set disabled(newValue) {
+        this.#selectionManager.disabled = newValue;
+        this.#disabled = newValue;
+        if(newValue == true) {
+            this.#canvas.__layers[0].detachControl()
+        }
+        else {
+            this.#canvas.__layers[0].attachControl();
+        }
+    }
+
     async connectedCallback() {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
         this.#scale = this.dataset.scale || 'month';
@@ -101,8 +117,6 @@ export class Timeline extends HTMLElement {
 
             const ready = async () => {
                 this.#canvas.removeEventListener("ready", ready);
-                this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-                this.#canvas.__engine.adaptToDeviceRatio = false;
 
                 await crs.call("dom_observer", "observe_resize", {
                     element: this,
@@ -240,6 +254,9 @@ export class Timeline extends HTMLElement {
             element: this,
             perspective: this.dataset.perspective
         }); // We've created this temporary system, it will be changed to data manager in v2.
+
+        this.disabled = items.length === 0;
+
         return items;
     }
 
