@@ -233,7 +233,8 @@ export class Timeline extends HTMLElement {
 
             let item = await crs.call("timeline_datasource", "get_by_index", {
                 element: this,
-                index: index
+                index: index,
+                perspective: this.dataset.perspective
             });
 
             this.selectedItem = item;
