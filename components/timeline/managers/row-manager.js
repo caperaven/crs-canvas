@@ -119,6 +119,8 @@ export class RowManager {
             if (item[shape.fromField] == null || item[shape.toField] == null ) {
                 continue
             }
+            // const drawnShapes = await this.#drawShape(canvas, shape, item, position, index);
+            // shapes.push(...drawnShapes);
             shapes.push(await this.#drawShape(canvas, shape, item, position, index));
         }
 
@@ -149,7 +151,9 @@ export class RowManager {
             },
             triangle_height: shapeProperties.triangleHeight,
             triangle_width: shapeProperties.triangleWidth,
-            bar_height: shapeProperties.barHeight
+            bar_height: shapeProperties.barHeight,
+            edges: shapeProperties.edges || false,
+            top_triangle: shapeProperties.topTriangle || false,
         });
 
         const args = {

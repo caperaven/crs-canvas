@@ -5,17 +5,6 @@
         "element": "rows",
         "shapes": [
           {
-            "shapeType": "rect",
-            "fromField": "workStartedOn",
-            "toField": "completedOn",
-            "condition": "completedOn > requiredBy ? 'row_range4' : 'row_range2'"
-          },
-          {
-            "shapeType": "range_indicator",
-            "fromField": "startOn",
-            "toField": "completeBy"
-          },
-          {
             "shapeType": "pillar",
             "fromField": "receivedOn",
             "toField": "requiredBy"
@@ -42,6 +31,7 @@
           "row_range2": "#16A085",
           "row_range3": "#757575",
           "row_range4": "#FF0000",
+          "row_range5": "#16A085",
           "row_selection": "#B9D8EC",
           "row_selection_border": "#0276C2"
         }
