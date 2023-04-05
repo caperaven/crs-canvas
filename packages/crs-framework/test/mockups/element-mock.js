@@ -22,6 +22,9 @@ export class ElementMock {
 }
 
 export function mockElement(instance, tag, id) {
+    instance.nodeName = (tag || "div").toUpperCase();
+    instance.tagName = instance.nodeName;
+
     if (instance.__events != null) {
         return instance;
     }
@@ -29,10 +32,8 @@ export function mockElement(instance, tag, id) {
     instance.__events = [];
     instance.queryResults = {};
 
-    instance.nodeName = (tag || "div").toUpperCase();
     instance.id = id;
     instance.name = id;
-    instance.tagName = instance.nodeName;
 
     instance.textContent = "";
     instance.innerText = "";
@@ -60,6 +61,7 @@ export function mockElement(instance, tag, id) {
     instance.performEvent = performEvent.bind(instance);
     instance.attachShadow = attachShadow.bind(instance);
     instance.getBoundingClientRect = getBoundingClientRect.bind(instance);
+    instance.remove = remove.bind(instance);
 
     Object.defineProperty(instance, "firstElementChild", {
         get() {
@@ -314,4 +316,8 @@ function getBoundingClientRect() {
         this.bounds = {}
     }
     return this.bounds;
+}
+
+function remove() {
+    this.parentElement.removeChild(this);
 }

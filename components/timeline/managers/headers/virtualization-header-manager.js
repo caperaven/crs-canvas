@@ -18,6 +18,8 @@ export class VirtualizationHeaderManager {
     }
 
     removeHeaders() {
+        if(this.#headers == null) return;
+
         for (const header of this.#headers) {
             header.dispose();
         }

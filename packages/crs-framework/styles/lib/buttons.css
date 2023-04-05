@@ -83,6 +83,7 @@ button.secondary.error, button.icon.success {
 }
 
 button.icon {
+    font-family: crsfrw;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,4 +94,8 @@ button.icon {
 button.icon svg {
     width: 2rem;
     height: 2rem;
+}
+
+button.transparent {
+    background: transparent;
 }

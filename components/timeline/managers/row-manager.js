@@ -98,10 +98,6 @@ export class RowManager {
                 if (shape.isText) {
                     shape.position.x = canvas.__camera.position.x - canvas.__camera.offset_x;
                 }
-
-                if (shape.isTextBackground) {
-                    shape.position.x = 2.575 + (canvas.__camera.position.x - canvas.__camera.offset_x);
-                }
             }
         }
     }
@@ -112,7 +108,6 @@ export class RowManager {
     }
 
     async #drawRow(position, index, item, canvas) {
-
         const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_row : canvas.__offsets.y.year_row;
         const textBgYOffset =this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_text_offset_row_bg : canvas.__offsets.y.year_text_offset_row_bg;
         let shapes = [];
@@ -120,20 +115,13 @@ export class RowManager {
         //Create shapes
         for (const shape of this.#configuration.shapes) {
             // old condition || item[shape.fromField] == item[shape.toField] || item[shape.fromField] > item[shape.toField]
-            if (item[shape.fromField] == null || item[shape.toField] == null ) {
-                continue
+            if (item[shape.fromField] == null && item[shape.toField] == null ) {
+                continue;
             }
             shapes.push(await this.#drawShape(canvas, shape, item, position, index));
         }
 
         shapes.push(await this.#drawText(position, item, canvas));
-
-        //Create text background
-        const isEven = index % 2 === 1;
-        const color = isEven ? canvas._theme.offset_row_bg : canvas._theme.light_row_text_bg;
-        const textBackground = await createRect("timeline_offset_row_text_bg", color, 0, -rowOffset - position - textBgYOffset, canvas.__zIndices.offsetTextRow, 5,  canvas.__rowSize - 0.15, canvas, false);
-        textBackground.isTextBackground = true;
-        shapes.push(textBackground);
 
         return shapes;
     }

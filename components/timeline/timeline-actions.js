@@ -1,18 +1,20 @@
 import {TimelineParser} from "./parser/timeline-parser.js";
+import {updateCameraLimits} from "./timeline-camera.js";
 
-class TimelineActions {
+export class TimelineActions {
     static async perform(step, context, process, item) {
         return this[step.action]?.(step, context, process, item);
     }
 
     static async go_to_selected(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step, context, process, item);
+        if (timeline.disabled) return;
         const selected = await this.get_selected(step, context, process, item);
         if (selected.index == null || selected.item == null) return;
 
         const field = await crs.process.getValue(step.args.field, context, process, item);
         if (selected.item[field] == null) return;
 
-        const timeline = await crs.dom.get_element(step, context, process, item);
         await this.jump_to_date({
             args: {
                 element: timeline?.canvas,
@@ -23,13 +25,15 @@ class TimelineActions {
     }
 
     static async set_scale(step, context, process, item) {
-        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        const timeline = await crs.dom.get_element(step, context, process, item);
+        if (timeline.disabled) return;
         const scale = await crs.process.getValue(step.args.scale, context, process, item);
         await timeline.setScale(scale);
     }
 
     static async jump_to_today(step, context, process, item) {
         const timeline = await crs.dom.get_element(step, context, process, item);
+        if (timeline.disabled) return;
 
         await this.jump_to_date({
             args: {
@@ -52,7 +56,8 @@ class TimelineActions {
     }
 
     static async get_selected(step, context, process, item) {
-        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        const timeline = await crs.dom.get_element(step, context, process, item);
+        if (timeline.disabled) return;
 
         const result = {
             index: timeline.selectedIndex,
@@ -67,7 +72,8 @@ class TimelineActions {
     }
 
     static async update_item(step, context, process, item) {
-        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        const timeline = await crs.dom.get_element(step, context, process, item);
+        if (timeline.disabled) return;
 
         const updatedItem =  await crs.process.getValue(step.args.updatedItem, context, process, item);
         const index =  await crs.process.getValue(step.args.index, context, process, item);
@@ -111,11 +117,27 @@ class TimelineActions {
     }
 
     static async resize(step, context, process, item) {
-        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        const timeline = await crs.dom.get_element(step, context, process, item);
+        if (timeline.disabled) return;
 
-        setTimeout(async ()=> {
-            await timeline.canvas.__resize();
-        }, 210)
+        await timeline.resize();
+    }
+
+    static zoom_in(step, context, process, item) {
+        step.args.direction = 1;
+        return this.zoom(step, context, process, item);
+    }
+
+    static zoom_out(step, context, process, item) {
+        step.args.direction = -1;
+        return this.zoom(step, context, process, item);
+    }
+
+    static async zoom(step, context, process, item) {
+        const timeline = await crs.dom.get_element(step.args.element, context, process, item);
+        const direction = await crs.process.getValue(step.args.direction, context, process, item);
+
+        await timeline.adjustZoom(direction);
     }
 }
 

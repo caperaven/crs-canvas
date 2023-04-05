@@ -6,7 +6,7 @@ import "./../../src/managers/text-manager.js";
 import "./../../src/managers/icons-manager.js";
 import "./../../src/factory/composite-factory.js";
 
-import {configureCamera, jumpToDate} from "./timeline-camera.js";
+import {configureCamera, jumpToDate, updateCameraLimits} from "./timeline-camera.js";
 import "./../../src/factory/timeline-shape-factory.js"
 import {VirtualizationHeaderManager} from "./managers/headers/virtualization-header-manager.js";
 import {RowManager} from "./managers/row-manager.js";
@@ -21,6 +21,10 @@ export class Timeline extends HTMLElement {
     #headerManager;
     #rowManager;
     #selectionManager;
+    #resizeTimeout = null;
+    #loader = null;
+    #intialized = null;
+    #wheelHandler = this.#mouseWheel.bind(this);
     #zIndices = Object.freeze({
         bgBorderMesh: -0.002,
         headerBorder: -0.003,
@@ -55,6 +59,7 @@ export class Timeline extends HTMLElement {
 
     #rowSize = 1.25
     #todayLineMesh;
+    #disabled = true;
 
     get baseDate() {
         return this.#baseDate;
@@ -84,10 +89,25 @@ export class Timeline extends HTMLElement {
         this.#selectedIndex = newValue;
     }
 
+    get disabled() {
+        return this.#disabled;
+    }
+
+    set disabled(newValue) {
+        this.#selectionManager.disabled = newValue;
+        this.#disabled = newValue;
+        if(newValue == true) {
+            this.#canvas.__layers[0].detachControl()
+        }
+        else {
+            this.#canvas.__layers[0].attachControl();
+        }
+    }
+
     async connectedCallback() {
         this.innerHTML = await fetch(import.meta.url.replace(".js", ".html")).then(result => result.text());
-
         this.#scale = this.dataset.scale || 'month';
+        this.addEventListener("wheel", this.#wheelHandler);
 
         requestAnimationFrame(async () => {
             this.#canvas = this.querySelector("canvas") || this.canvas;
@@ -97,6 +117,18 @@ export class Timeline extends HTMLElement {
 
             const ready = async () => {
                 this.#canvas.removeEventListener("ready", ready);
+
+                await crs.call("dom_observer", "observe_resize", {
+                    element: this,
+                    callback: (value)=> {
+                       if(this.#intialized) {
+                           this.#toggleResizeLoader();
+                       }
+                       else {
+                           this.#intialized = true;
+                       }
+                    }
+                })
                 await crs.call("component", "notify_ready", {element: this});
             }
 
@@ -109,12 +141,32 @@ export class Timeline extends HTMLElement {
     }
 
     async disconnectedCallback() {
-        this.#headerManager = this.#headerManager.dispose(this.#canvas)
-        this.#rowManager = this.#rowManager.dispose()
+        await crs.call("dom_observer", "unobserve_resize", {element: this});
+        this.removeEventListener("wheel", this.#wheelHandler);
+        this.#wheelHandler = null;
+        this.#headerManager = this.#headerManager.dispose(this.#canvas);
+        this.#rowManager = this.#rowManager.dispose(this.#canvas);
         this.#baseDate = null;
         this.#scale = null;
         this.#todayLineMesh = this.#todayLineMesh.dispose();
         this.#canvas = null;
+    }
+
+    #toggleResizeLoader() {
+        if (this.#loader == null) {
+            this.#loader = document.createElement("div");
+            this.#loader.id = "loader";
+            this.appendChild(this.#loader);
+        }
+        clearTimeout(this.#resizeTimeout);
+        this.#resizeTimeout = setTimeout(async () => {
+
+            await this.resize();
+            this.#resizeTimeout = null;
+            setTimeout(() => {
+                this.#loader = this.#loader.remove();
+            }, 250);
+        }, 200);
     }
 
     async setScale(newValue) {
@@ -126,16 +178,36 @@ export class Timeline extends HTMLElement {
         await this.#scrollToDate(previousScale)
     }
 
+    async adjustZoom(zoomValue) {
+        this.#canvas.__camera.position.z += zoomValue;
+        this.#canvas.__camera.maxZ = this.#canvas.__camera.position.z;
+        this.#canvas.__camera.offset_y += (zoomValue / 2.4);
+        this.#canvas.__camera.position.y += (zoomValue / 2.4);
+    }
+
     async #scrollToDate(scale) {
         const currentX = this.#canvas.__camera.position.x;
-        const date = await crs.call("gfx_timeline_manager", "get_date_at_x", {element: this.#canvas, scale: scale, x: currentX});
-        await crs.call("gfx_timeline", "jump_to_date", {element: this.#canvas, base: this.#baseDate, date: date, scale: this.#scale});
+        const date = await crs.call("gfx_timeline_manager", "get_date_at_x", {
+            element: this.#canvas,
+            scale: scale,
+            x: currentX
+        });
+        await crs.call("gfx_timeline", "jump_to_date", {
+            element: this.#canvas,
+            base: this.#baseDate,
+            date: date,
+            scale: this.#scale
+        });
     }
 
     async init() {
         this.#baseDate = new Date(new Date().toDateString());
 
-        await crs.call("gfx_timeline_manager", "initialize", {element: this.#canvas, base: this.#baseDate, scale: this.#scale});
+        await crs.call("gfx_timeline_manager", "initialize", {
+            element: this.#canvas,
+            base: this.#baseDate,
+            scale: this.#scale
+        });
         await crs.call("gfx_text", "initialize", {element: this.#canvas});
         await crs.call("gfx_icons", "initialize", {element: this.#canvas});
 
@@ -149,15 +221,15 @@ export class Timeline extends HTMLElement {
     }
 
     setRowConfig(config) {
-        if(this.#rowManager != null) {
+        if (this.#rowManager != null) {
             this.#rowManager.dispose(this.#canvas);
         }
         this.#rowManager = new RowManager(config);
     }
 
     async #initSelection() {
-        this.#selectionManager = new SelectionManager(this.#canvas, async  (index) => {
-            if(index < 0) return;
+        this.#selectionManager = new SelectionManager(this.#canvas, async (index) => {
+            if (index < 0) return;
 
             let item = await crs.call("timeline_datasource", "get_by_index", {
                 element: this,
@@ -179,13 +251,17 @@ export class Timeline extends HTMLElement {
 
     async #getData() {
         let items = await crs.call("timeline_datasource", "load", {
-            element: this
+            element: this,
+            perspective: this.dataset.perspective
         }); // We've created this temporary system, it will be changed to data manager in v2.
+
+        this.disabled = items.length === 0;
+
         return items;
     }
 
     async render(firstRender) {
-        if(firstRender !== true) {
+        if (firstRender !== true) {
             await this.clean();
         }
         this.#setYOffset();
@@ -201,18 +277,22 @@ export class Timeline extends HTMLElement {
         await this.#headerManager.createHeaders(this.#baseDate, this.#scale, this.#canvas);
         await this.#rowManager.render(items, this.#canvas, scene, this.#baseDate, this.#scale);
 
-        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera,scene , this.#scale, this.#canvas);
+        this.#todayLineMesh = await createBaseDashedLine(this.#canvas.__camera, scene, this.#scale, this.#canvas);
         this.#setCameraYLimits();
     }
 
     #setCameraYLimits() {
         // We get the max camera value using row size and count, then subtract the offset
-       const value = -this.#canvas.y_offset + ((this.#canvas.__rowSize * this.#canvas.__rowCount) /-1) - this.#canvas.__camera.offset_y;
-        this.#canvas.__camera.__maxYCamera = value < this.#canvas.__camera.offset_y ? value: this.#canvas.__camera.offset_y;
+        const value = -this.#canvas.y_offset + ((this.#canvas.__rowSize * this.#canvas.__rowCount) / -1) - this.#canvas.__camera.offset_y;
+        this.#canvas.__camera.__maxYCamera = value < this.#canvas.__camera.offset_y ? value : this.#canvas.__camera.offset_y;
     }
 
     #setYOffset() {
         this.#canvas.y_offset = this.#scale !== TIMELINE_SCALE.YEAR ? 1 : 0.5;
+    }
+
+    #mouseWheel(event) {
+        event.preventDefault();
     }
 
     async clean() {
@@ -224,12 +304,22 @@ export class Timeline extends HTMLElement {
     }
 
     async update(index, item) {
-          await this.#rowManager.redrawRowAtIndex(index,item,this.#canvas);
+        await this.#rowManager.redrawRowAtIndex(index, item, this.#canvas);
     }
 
     async jumpToDate(date) {
         if (date == null) return;
         await jumpToDate(this.#canvas, this.#baseDate, date, this.#scale);
+    }
+
+    async resize() {
+        const camera = await this.#canvas.__camera;
+        camera.position.x = 0;
+        camera.position.y = 0;
+        await this.#canvas.__resize();
+        requestAnimationFrame(async ()=> {
+            await updateCameraLimits(camera, this.#canvas.__layers[0]);
+        })
     }
 }
 

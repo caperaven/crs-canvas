@@ -115,6 +115,14 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         schema.body.elements[0].shapes.pop();
         await crs.call("gfx_timeline", "update_config", {element: this.timeline, schema: schema});
     }
+
+    async zoomCameraOut() {
+        await crs.call("gfx_timeline", "zoom_out", {element: this.timeline});
+    }
+
+    async zoomCameraIn() {
+        await crs.call("gfx_timeline", "zoom_in", {element: this.timeline});
+    }
 }
 
 class FakeDatasource {

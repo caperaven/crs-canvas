@@ -83,7 +83,7 @@
 
         window.addEventListener("load", async (event) => {
             await crs.modules.enableBinding([
-                ["canvas", "/components/canvas_2d/canvas_2d.js"]
+                ["canvas-2d", "/components/canvas_2d/canvas_2d.js"]
             ])
 
             document.viewModel = new IndexViewModel(document.body);
