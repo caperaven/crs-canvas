@@ -16,7 +16,17 @@ function getDate(date) {
 
     if (typeof(date) === 'string') {
         const newDate = new Date(date.slice(0, -1));
-        const result = new Date(newDate).getTime();
+        //NOTE: required to do the following to ensure the date is converted properly to UTC
+        const utcDate = Date.UTC(
+            newDate.getFullYear(),
+            newDate.getMonth(),
+            newDate.getDate(),
+            newDate.getHours(),
+            newDate.getMinutes(),
+            newDate.getSeconds(),
+            newDate.getMilliseconds()
+        );
+        const result = new Date(utcDate).getTime();
         if(!result) {
             throw Error(`date: ${date}, full string: ${fullString} could not be converted.`);
         }
@@ -156,9 +166,6 @@ class TimelineManager {
      * @param scale - day/week/month/year
      */
     async get(start, end, scale) {
-        start = start || end;
-        end = end || start;
-
         const x1 = await this[`_${scale}Scale`].get(getDate(this.#baseDate), getDate(start));
         const x2 = await this[`_${scale}Scale`].get(getDate(this.#baseDate), getDate(end));
         const width = Math.abs(x2 - x1);
