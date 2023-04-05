@@ -82,13 +82,13 @@ export class TextManagerActions {
     static async add(step, context, process, item) {
         const canvas = await crs.dom.get_element(step, context, process, item);
         const layer = (await crs.process.getValue(step.args.layer, context, process, item)) || 0;
+        const text = await crs.process.getValue(step.args.text, context, process, item);
         const bold = await crs.process.getValue(step.args.bold, context, process, item) || false;
         const color = await crs.process.getValue(step.args.color || {r: 1, g: 1, b: 1, a: 1}, context, process, item);
         const position = (await crs.process.getValue(step.args.position, context, process, item)) || {x: 0, y: 0, z: 0};
         const attributes = await crs.process.getValue(step.args.attributes, context, process, item);
         const scene = canvas.__layers[layer];
         const font = bold == true ? boldFont : regularFont;
-        const text = await this.#sanitiseText(await crs.process.getValue(step.args.text, context, process, item), font);
 
         //NOTE KR: issue on the clone within timeline.
         // if (canvas.__text.has(text, bold)) {
@@ -108,8 +108,11 @@ export class TextManagerActions {
 
         let xadvance = 0;
         let c = 0;
+        let finalText = "";
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
+            if (font.chars[char] == null) continue;
+            finalText += char;
 
             if (char == " ") {
                 xadvance += 0.3;
@@ -130,7 +133,7 @@ export class TextManagerActions {
             c += 1;
         }
 
-        const customMesh = new BABYLON.Mesh(text, scene);
+        const customMesh = new BABYLON.Mesh(finalText, scene);
         data.applyToMesh(customMesh);
 
         customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
@@ -149,27 +152,8 @@ export class TextManagerActions {
         });
 
         customMesh.material = material;
-        canvas.__text.set(text, customMesh, bold);
+        canvas.__text.set(finalText, customMesh, bold);
         return customMesh;
-    }
-
-    /**
-     * Removes any non-supported special characters within the text
-     * @param text {string} - The text to check for non-supported special characters
-     * @param font {Object} - The font being rendered
-     */
-    static async #sanitiseText(text, font) {
-        const supportedChars = Object.keys(font.chars);
-        let sanitisedText = "";
-
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            if (supportedChars.includes(char)) {
-                sanitisedText += char;
-            }
-        }
-
-        return sanitisedText;
     }
 }
 
