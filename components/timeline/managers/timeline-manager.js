@@ -15,11 +15,8 @@ function getDate(date) {
     }
 
     if (typeof(date) === 'string') {
-        const parts = date.split(" ");
-
-        const newDate = parts[0].split("/").join("-");
-        const fullString = [newDate, parts[1]].join("T");
-        const result =  (new Date(Date.parse(fullString))).getTime();
+        const newDate = new Date(date.slice(0, -1));
+        const result = new Date(newDate).getTime();
         if(!result) {
             throw Error(`date: ${date}, full string: ${fullString} could not be converted.`);
         }

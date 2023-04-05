@@ -21,7 +21,7 @@ function getDate(min, max) {
         value = `0${value}`;
     }
 
-    return `2022/11/${value} 12:00:00.000`;
+    return `2022-11-${value}T12:00:00.0000000ZT`;
 }
 
 function randomIntFromInterval(min, max) { // min and max included
@@ -43,14 +43,31 @@ export function getRandomData(value = 0) {
     let result = [];
 
     const getStartDate = ()=> {
-        return `2022/12/01 00:00:00.000`;
+        return `2023-03-08T00:00:00.0000000ZT`;
     }
 
     const getEndDate = ()=> {
-        return `2022/12/02 00:00:00.000`;
+        return `2023-03-08T12:00:00.0000000ZT`;
     }
 
-    for (let i = 0; i < 25; i++) {
+    const i = 0
+    result.push({
+        "index": i,
+        "code": `Code #${i}`,
+        "assetCode": `Asset Code #${i}`,
+        "assetDescription": `Asset Desc #${i}`,
+        "siteCode": `Site Code #${i}`,
+        "siteDescription": `Site Desc #${i}`,
+        "startOn": getStartDate(),
+        "completeBy": null,
+        "receivedOn": null,
+        "requiredBy": getEndDate(),
+        "workStartedOn":`2022-12-01T12:00:00.0000000ZT`,
+        "completedOn": null
+    })
+
+
+    for (let i = 1; i < 100; i++) {
         result.push({
             "index": i,
             "code": `Code #${i}`,
