@@ -166,6 +166,9 @@ class TimelineManager {
      * @param scale - day/week/month/year
      */
     async get(start, end, scale) {
+        start = start || end;
+        end = end || start;
+        
         const x1 = await this[`_${scale}Scale`].get(getDate(this.#baseDate), getDate(start));
         const x2 = await this[`_${scale}Scale`].get(getDate(this.#baseDate), getDate(end));
         const width = Math.abs(x2 - x1);
