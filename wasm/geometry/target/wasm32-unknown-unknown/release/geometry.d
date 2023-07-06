@@ -1,0 +1,1 @@
+C:\PragmaDev\crs-canvas\wasm\geometry\target\wasm32-unknown-unknown\release\geometry.wasm: C:\PragmaDev\crs-canvas\wasm\geometry\src\fill_utils.rs C:\PragmaDev\crs-canvas\wasm\geometry\src\lib.rs C:\PragmaDev\crs-canvas\wasm\geometry\src\path_utils.rs C:\PragmaDev\crs-canvas\wasm\geometry\src\utils.rs
