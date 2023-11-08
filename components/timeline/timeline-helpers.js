@@ -17,8 +17,6 @@ export async function createRect(id, color, x, y, z = 0, width, height, canvas, 
 }
 
 export async function createHeaderText(text, canvas, x, y, z = 0, scale, bold = false) {
-    const min = 0.1;
-    const max = 1.25;
 
     const textMesh = await crs.call("gfx_text", "add",
         {
@@ -29,13 +27,13 @@ export async function createHeaderText(text, canvas, x, y, z = 0, scale, bold = 
             attributes: [
                 {
                     fn: "Float",
-                    name: "min",
-                    value: min
+                    name: "u_buffer",
+                    value: 0.5
                 },
                 {
                     fn: "Float",
-                    name: "max",
-                    value: max
+                    name: "u_edge",
+                    value: 0.5
                 }
             ]
         });

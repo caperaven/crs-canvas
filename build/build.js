@@ -8,7 +8,6 @@ async function createFolderStructure() {
     await emptyDir("./dist");
 
     await ensureDir("./dist/assets");
-    await ensureDir("./dist/build");
     await ensureDir("./dist/bin");
     await ensureDir("./dist/components");
     await ensureDir("./dist/resources");
@@ -19,7 +18,6 @@ async function createFolderStructure() {
 
 await createFolderStructure();
 await copyDirectory("./assets", "./dist/assets");
-await copyDirectory("./build", "./dist/build");
 await copyDirectory("./bin", "./dist/bin");
 await copyDirectory("./tests/mockups", "./dist/tests/mockups");
 await copyDirectory("./packages/babylonjs", "./dist/packages/babylonjs");

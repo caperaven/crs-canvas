@@ -44,7 +44,11 @@ export class SelectionManager {
         const engine = this.#canvas.__engine;
         const scene = this.#canvas.__layers[0];
 
-        const screenPosition = new BABYLON.Vector3(scene.pointerX, scene.pointerY, 1);
+        const hardwareScalingLevel = engine.getHardwareScalingLevel();
+        const unscaledX = scene.pointerX / hardwareScalingLevel;
+        const unscaledY = scene.pointerY / hardwareScalingLevel;
+
+        const screenPosition = new BABYLON.Vector3(unscaledX, unscaledY, 1);
         const vector = BABYLON.Vector3.Unproject(
             screenPosition,
             engine.getRenderWidth(),

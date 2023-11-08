@@ -9,10 +9,11 @@ uniform sampler2D texture1;
 uniform float min;
 uniform float max;
 
-float edge = 0.2;
+uniform float u_buffer;
+uniform float u_edge;
 
 void main(void) {
     float dist = texture(texture1, v_uv).r;
-    float alpha = smoothstep(min - edge, max + edge, dist);
+    float alpha = smoothstep(u_buffer - u_edge, u_buffer + u_edge, dist);
     glFragColor = vec4(v_color.rgb, alpha);
 }

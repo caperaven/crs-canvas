@@ -137,11 +137,9 @@ export class TextManagerActions {
         data.applyToMesh(customMesh);
 
         customMesh.position.set(position.x || 0, position.y || 0, position.z || 0);
-        customMesh.scaling.x = 1;
-        customMesh.scaling.y = 1;
 
         const name = bold == true ? "text_bold" : "text_regular";
-        const texture = bold == true ? "textures/sdf_font_bold.png" : "textures/sdf_font.png";
+        const texture = bold == true ? "textures/font_bold.png" : "textures/font.png";
 
         const material = await crs.call("gfx_materials", "get_shader", {
             element: canvas,

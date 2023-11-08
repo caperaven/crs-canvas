@@ -10,13 +10,13 @@
 const attributes = [
     {
         fn: "Float",
-        name: "min",
-        value: 0.2
+        name: "u_buffer",
+        value: 0.5
     },
     {
         fn: "Float",
-        name: "max",
-        value: 0.5
+        name: "u_edge",
+        value: 0.4
     }
 ];
 

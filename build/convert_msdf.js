@@ -2,9 +2,38 @@
  * Convert the font json file for msdf to be more appropriate for rendering
  */
 
-import {font} from "./font-files/icons_font.old.js";
 
-function convertFont() {
+async function convertFont(name) {
+
+    const cmdArgs = [
+        "font-files/msdf-atlas-gen",
+        "-font", `font-files/${name}.ttf`,
+        "-type", "sdf",
+        "-imageout", `./font-files/temp_font.png`,
+        "-format", "png",
+        "-json", "./font-files/temp_font.json",
+        "-size", "64",
+        "-pxrange", "4",
+    ];
+
+    const p = Deno.run({
+        cmd: cmdArgs,
+        stderr: 'piped', stdout: 'piped'
+    });
+
+    const [status, stdout] = await Promise.all([
+        p.status(),
+        p.output(),
+    ]);
+    p.close();
+
+    if(status.code != 0) throw new Error(new TextDecoder().decode(stdout));
+
+
+
+    const file = await Deno.readTextFile(`./font-files/temp_font.json`);
+    const font = JSON.parse(file);
+
     const result = {
         info: {
             size: font.atlas.size,
@@ -42,21 +71,16 @@ function convertFont() {
             yoffset: glyph.planeBounds?.top || 0,
             xadvance: width + glyph.planeBounds?.left || 0
         }
-
-        // result.chars[char.char] = {
-        //     u1: u,
-        //     v1: v,
-        //     u2: u + uw,
-        //     v2: v + vh,
-        //     width: normalize(char.width, 0, font.common.lineHeight),
-        //     height: normalize(char.height, 0, font.common.lineHeight),
-        //     xoffset: normalize(char.xoffset, 0, font.common.lineHeight),
-        //     yoffset: normalize(char.yoffset, 0, font.common.lineHeight),
-        //     xadvance: normalize(char.xadvance, 0, font.common.lineHeight)
-        // }
     }
 
-    return result;
+    const js = `export const font = ${JSON.stringify(result, null, 4)}`;
+    await Deno.writeTextFile(`./../src/managers/font-atlas/${name}.js`, js);
+
+    // Copy png to assets folder
+    await Deno.copyFile(`./font-files/temp_font.png`, `./../assets/textures/${name}.png`);
+
+    await Deno.remove(`./font-files/temp_font.png`);
+    await Deno.remove(`./font-files/temp_font.json`);
 }
 
 function calculateUV(glyph, atlasWidth, atlasHeight) {
@@ -68,12 +92,7 @@ function calculateUV(glyph, atlasWidth, atlasHeight) {
     return [x, y, width, height]
 }
 
-function normalize(value, min, max) {
-    return (value - min) / (max - min);
-}
 
-const newFont = convertFont();
-console.log(newFont);
-const js = `export const font = ${JSON.stringify(newFont, null, 4)}`;
-await Deno.writeTextFile("./../src/managers/font-atlas/icons.js", js);
+await convertFont("font");
+await convertFont("font_bold");
 
