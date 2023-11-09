@@ -55,5 +55,19 @@ https://blog.mapbox.com/drawing-text-with-signed-distance-fields-in-mapbox-gl-b0
 ## Examples
 https://playground.babylonjs.com/#026IT4#2
 
-## Commands
-msdf-atlas-gen -type sdf -font .\SourceSansPro-Regular.ttf -json sdf_font_bold.json -format png -imageout sdf_font_bold.png
+## SDF font details
+We are using Signed Distance Field fonts for the text rendering.
+The build convert_msdf.js script runs the entire process to generate the font atlas and json file.
+
+We use msdf-atlas-gen to generate the font atlas and json file.
+
+The build script then creates a new js file for faster consumption by the application. It will also recreate the texture based on the parameters defined in the convert_msdf.js file.
+
+We recommend that you use the following command to generate the font atlas and json file.
+```
+msdf-atlas-gen -font ./normal.ttf -type sdf -imageout output/normal.png -format png -json output/normal.json -size 64 -pxrange 4
+```
+
+Its important to note that the pxrange is set to a value that can be used for smaller fonts. If this value is to low, the font will render lossy when its small.
+
+Within the assets folder we have the generated texture and also the shaders to render the font.
