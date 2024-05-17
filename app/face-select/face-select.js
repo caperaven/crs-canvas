@@ -5,18 +5,18 @@ export default class FaceSelect extends crsbinding.classes.ViewBase {
         await super.connectedCallback();
 
         this.currentColor = "#ffffff";
-        this.canvas2d = this.element.querySelector("canvas-2d");
-        const ready = () => {
 
-
-            this.canvas2d.removeEventListener("ready", ready);
-            this.canvas =  this.canvas2d.querySelector("canvas");
-            this.addMeshes();
-            this.addPickEvent();
-            this.addGUI();
-            this.addSave();
-        }
-        this.canvas2d.addEventListener("ready", ready);
+        requestAnimationFrame(()=> {
+            this.canvas = this.element.querySelector("canvas");
+            const ready = () => {
+                this.canvas.removeEventListener("ready", ready);
+                this.addMeshes();
+                this.addPickEvent();
+                this.addGUI();
+                this.addSave();
+            }
+            this.canvas.addEventListener("ready", ready);
+        });
     }
 
     async disconnectedCallback() {

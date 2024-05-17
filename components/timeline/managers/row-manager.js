@@ -4,7 +4,6 @@ import "../../../src/factory/timeline-shape-factory.js"
 import {TIMELINE_SCALE} from "../timeline-scale.js";
 import {StaticVirtualization} from "./static-virtualization.js";
 import {TimelineShapes} from "../timeline-shapes.js";
-import {createRect} from "../timeline-helpers.js";
 
 /**
  * This class is responsible for rendering the rows and includes generating the geometry and virtualization
@@ -177,22 +176,6 @@ export class RowManager {
 
     async #drawText(position, item, canvas) {
         const rowOffset = this.#scale !== TIMELINE_SCALE.YEAR ? canvas.__offsets.y.default_row : canvas.__offsets.y.year_row;
-
-
-        // TODO GM: This is a major hack. Need to discuss strategy with JHR asap
-        const parts =  item.siteDescription.split(" ");
-        let newValue = "";
-        for (const part of parts) {
-            if((newValue.length + part.length) < 30) {
-                newValue += `${part} `;
-            }
-            else {
-                newValue = newValue.trim();
-                newValue += "..."
-                break;
-            }
-        }
-        item.siteDescription = newValue;
 
         const parentText = await crs.call("gfx_composite", "create", {
             element: canvas,

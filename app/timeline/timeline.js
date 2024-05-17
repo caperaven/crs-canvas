@@ -20,6 +20,11 @@ export default class Timeline extends crsbinding.classes.ViewBase {
         await super.connectedCallback();
     }
 
+    async disconnectedCallback() {
+        this.timeline = null;
+        await super.disconnectedCallback();
+    }
+
     async showInspector() {
         await crs.call("gfx_stats", "addInspector", {
             element: this.timeline.querySelector("canvas")
@@ -27,7 +32,6 @@ export default class Timeline extends crsbinding.classes.ViewBase {
     }
 
     async resetData(value) {
-
         for (const item of this.timeline._tempData) {
             item.startOn = `2022/12/08 12:00:00.000`;
             item.completeBy = `2022/12/10 12:00:00.000`;

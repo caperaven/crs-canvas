@@ -16,16 +16,6 @@
       "view": "face-select"
     },
     {
-      "title": "Text",
-      "hash": "#text",
-      "view": "text"
-    },
-    {
-      "title": "Text Rendering Issues",
-      "hash": "#text-rendering",
-      "view": "text-rendering"
-    },
-    {
       "title": "SDF Shapes",
       "hash": "#sdf-shapes",
       "view": "sdf-shapes"

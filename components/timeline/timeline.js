@@ -116,7 +116,10 @@ export class Timeline extends HTMLElement {
             this.#canvas.__rowSize = this.#rowSize;
 
             const ready = async (event) => {
-                event.stopPropagation();
+                if (event != null) {
+                    event.stopPropagation();
+                }
+
                 this.#canvas.removeEventListener("ready", ready);
 
                 this.#canvas.__engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
